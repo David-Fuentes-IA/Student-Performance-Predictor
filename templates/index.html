@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Predictor Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-color: #f4f6f9;
+            --header-bg: #1e133c; /* Color oscuro similar a la imagen */
+            --card-bg: #ffffff;
+            --text-main: #2c3e50;
+            --text-muted: #7f8c8d;
+            --accent-purple: #8e44ad;
+            --accent-blue: #3498db;
+            --accent-red: #e74c3c;
+            --accent-green: #2ecc71;
+        }
+        body { 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            color: var(--text-main);
+        }
+        /* Cabecera superior */
+        .topbar {
+            background-color: var(--header-bg);
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .topbar h2 { margin: 0; font-size: 20px; font-weight: 600; }
+        .topbar .user-info { font-size: 14px; opacity: 0.9; }
+        
+        /* Contenedor principal Grid */
+        .container {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: 250px 1fr 1fr;
+            grid-gap: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        /* Tarjetas */
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            border: 1px solid #eef0f2;
+        }
+        .card h3 { 
+            margin-top: 0; 
+            font-size: 16px; 
+            color: var(--text-main);
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        /* KPIs superiores */
+        .kpi-container {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 20px;
+        }
+        .kpi-box {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            border: 1px solid #eef0f2;
+        }
+        .kpi-value { font-size: 32px; font-weight: bold; margin-bottom: 5px; }
+        .kpi-label { color: var(--text-muted); font-size: 14px; }
+        
+        /* Posicionamiento de gráficas */
+        .chart-dona { grid-column: 1 / 2; }
+        .chart-barras { grid-column: 2 / 4; }
+        
+        /* Lista de estudiantes */
+        .student-list {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        .student-card {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #eee;
+        }
+        .avatar {
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            background: #eef2f5;
+            margin: 0 auto 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+        .badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            margin-top: 5px;
+        }
+        .bg-red { background: var(--accent-red); }
+        .bg-yellow { background: #f1c40f; color: #7a5b00; }
+        .bg-green { background: var(--accent-green); }
+        .error-banner {
+            grid-column: 1 / -1;
+            background: #fdecea;
+            border: 1px solid var(--accent-red);
+            color: #7a1a13;
+            padding: 15px 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="topbar">
+        <h2>Ingeniería en IA - Facultad de Ingeniería UAEMéx</h2>
+        <div class="user-info">Grupo: {{ group_id }} | Panel de Desempeño</div>
+    </div>
+
+    <div class="container">
+        {% if error_message %}
+        <!-- Mensaje seguro para el usuario si algo falla en el pipeline -->
+        <div class="error-banner">
+            No se pudo generar el reporte de este grupo: {{ error_message }}
+        </div>
+        {% endif %}
+
+        <!-- KPIs -->
+        <div class="kpi-container">
+            <div class="kpi-box">
+                <div>
+                    <div class="kpi-value">{{ total }}</div>
+                    <div class="kpi-label">Total de Estudiantes</div>
+                </div>
+            </div>
+            <div class="kpi-box">
+                <div>
+                    <div class="kpi-value" style="color: var(--accent-red)">{{ high_risk }}</div>
+                    <div class="kpi-label">Estudiantes en Riesgo</div>
+                </div>
+            </div>
+            <div class="kpi-box">
+                <div>
+                    <div class="kpi-value" style="color: #b38600">{{ monitor }}</div>
+                    <div class="kpi-label">En Observación</div>
+                </div>
+            </div>
+            <div class="kpi-box">
+                <div>
+                    <div class="kpi-value" style="color: var(--accent-green)">{{ on_track }}</div>
+                    <div class="kpi-label">Por Buen Camino</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfica de Dona -->
+        <div class="card chart-dona">
+            <h3>Distribución de Riesgo</h3>
+            <canvas id="donaChart"></canvas>
+        </div>
+
+        <!-- Gráfica de Barras -->
+        <div class="card chart-barras">
+            <h3>Puntaje de Riesgo por Estudiante</h3>
+            <canvas id="barChart"></canvas>
+        </div>
+
+        <!-- Perfiles de Estudiantes -->
+        <div class="student-list">
+            {% for student in students %}
+            <div class="student-card">
+                <div class="avatar">👤</div>
+                <strong>{{ student.name }}</strong>
+                <div style="font-size: 13px; color: #7f8c8d; margin-top: 5px;">Puntaje: {{ student.score }}</div>
+                <span class="badge {{ student.badge_class }}">
+                    {{ student.status }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // Datos pasados desde Python a JavaScript. risk_label ya viene
+        // resuelto desde main_api (high/medium/low), nunca se adivina
+        // a partir de texto.
+        const highRisk = {{ high_risk }};
+        const monitor = {{ monitor }};
+        const onTrack = {{ on_track }};
+
+        const badgeToColor = { "bg-red": "#e74c3c", "bg-yellow": "#f1c40f", "bg-green": "#2ecc71" };
+
+        const studentNames = [];
+        const studentScores = [];
+        const barColors = [];
+
+        {% for student in students %}
+            studentNames.push("{{ student.name }}");
+            studentScores.push({{ student.score }});
+            barColors.push(badgeToColor["{{ student.badge_class }}"]);
+        {% endfor %}
+
+        // Configuración Gráfica de Dona
+        new Chart(document.getElementById('donaChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Alto Riesgo', 'En Observación', 'Buen Camino'],
+                datasets: [{
+                    data: [highRisk, monitor, onTrack],
+                    backgroundColor: ['#e74c3c', '#f1c40f', '#2ecc71'],
+                    borderWidth: 0
+                }]
+            },
+            options: { cutout: '75%', plugins: { legend: { position: 'bottom' } } }
+        });
+
+        // Configuración Gráfica de Barras
+        new Chart(document.getElementById('barChart'), {
+            type: 'bar',
+            data: {
+                labels: studentNames,
+                datasets: [{
+                    label: 'Puntaje de Riesgo (0-100)',
+                    data: studentScores,
+                    backgroundColor: barColors,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true, max: 100 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    </script>
+</body>
+</html>
