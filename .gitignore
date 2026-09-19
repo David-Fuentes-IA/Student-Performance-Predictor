@@ -1,21 +1,32 @@
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
+*.pyo
+*.pyd
+.Python
 
 # Virtual environment
 venv/
-env/
 .venv/
+env/
 
-# Model Files (Optional, but usually you don't version control trained models if they are large)
-*.pkl
+# Logs (generated at runtime)
+logs/
 
-# Logs
-*.log
-system_audit.log
+# Environment variables
+.env
+.env.*
 
-# OS generated files
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
 .DS_Store
 Thumbs.db

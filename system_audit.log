@@ -1,0 +1,264 @@
+2026-09-17 19:29:08,868 - StudentPredictor - INFO - Connected to MongoDB successfully.
+2026-09-17 19:29:08,944 - StudentPredictor - INFO - Starting model training...
+2026-09-17 19:29:09,008 - StudentPredictor - INFO - Model training completed.
+2026-09-17 19:29:09,024 - StudentPredictor - INFO - Model saved to C:\Users\DIAGM\Downloads\Student Performance Predictor\student_predictor_project\risk_model.pkl
+2026-09-17 19:29:09,031 - StudentPredictor - INFO - Model Evaluation - Accuracy: 1.00
+2026-09-17 19:29:09,032 - StudentPredictor - INFO - Classification Report:
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00        17
+           1       1.00      1.00      1.00        83
+
+    accuracy                           1.00       100
+   macro avg       1.00      1.00      1.00       100
+weighted avg       1.00      1.00      1.00       100
+
+2026-09-17 19:29:15,358 - StudentPredictor - INFO - Connected to MongoDB successfully.
+2026-09-17 19:29:15,997 - StudentPredictor - INFO - Model loaded successfully from C:\Users\DIAGM\Downloads\Student Performance Predictor\student_predictor_project\risk_model.pkl
+2026-09-17 19:29:17,275 - StudentPredictor - INFO - Connected to MongoDB successfully.
+2026-09-17 19:29:17,847 - StudentPredictor - INFO - Model loaded successfully from C:\Users\DIAGM\Downloads\Student Performance Predictor\student_predictor_project\risk_model.pkl
+2026-09-17 19:31:21,944 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0001, Risk Level: 96.0%, Timestamp: 2026-09-17T19:31:21.944336
+2026-09-17 19:31:21,944 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0001 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,944 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0003, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.944336
+2026-09-17 19:31:21,944 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0003 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,945 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0004, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.945336
+2026-09-17 19:31:21,945 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0004 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,945 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0012, Risk Level: 98.0%, Timestamp: 2026-09-17T19:31:21.945336
+2026-09-17 19:31:21,945 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0012 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,945 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0013, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.945336
+2026-09-17 19:31:21,945 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0013 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,945 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0015, Risk Level: 99.0%, Timestamp: 2026-09-17T19:31:21.945336
+2026-09-17 19:31:21,945 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0015 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,945 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0022, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.945336
+2026-09-17 19:31:21,945 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0022 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,945 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0026, Risk Level: 99.0%, Timestamp: 2026-09-17T19:31:21.945336
+2026-09-17 19:31:21,946 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0026 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,946 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0027, Risk Level: 96.0%, Timestamp: 2026-09-17T19:31:21.946335
+2026-09-17 19:31:21,946 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0027 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,946 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0028, Risk Level: 96.0%, Timestamp: 2026-09-17T19:31:21.946335
+2026-09-17 19:31:21,946 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0028 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,948 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0029, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.946335
+2026-09-17 19:31:21,948 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0029 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,948 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0030, Risk Level: 99.0%, Timestamp: 2026-09-17T19:31:21.948355
+2026-09-17 19:31:21,948 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0030 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,948 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0037, Risk Level: 99.0%, Timestamp: 2026-09-17T19:31:21.948355
+2026-09-17 19:31:21,948 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0037 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,948 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0040, Risk Level: 88.0%, Timestamp: 2026-09-17T19:31:21.948355
+2026-09-17 19:31:21,948 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0040 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,949 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0041, Risk Level: 99.0%, Timestamp: 2026-09-17T19:31:21.949354
+2026-09-17 19:31:21,950 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0041 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,950 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0042, Risk Level: 99.0%, Timestamp: 2026-09-17T19:31:21.950921
+2026-09-17 19:31:21,951 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0042 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,951 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0046, Risk Level: 95.0%, Timestamp: 2026-09-17T19:31:21.951917
+2026-09-17 19:31:21,951 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0046 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,951 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0049, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.951917
+2026-09-17 19:31:21,951 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0049 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,951 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0050, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.951917
+2026-09-17 19:31:21,951 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0050 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,951 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0051, Risk Level: 99.0%, Timestamp: 2026-09-17T19:31:21.951917
+2026-09-17 19:31:21,951 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0051 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,953 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0055, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.953453
+2026-09-17 19:31:21,953 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0055 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,953 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0056, Risk Level: 99.0%, Timestamp: 2026-09-17T19:31:21.953453
+2026-09-17 19:31:21,954 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0056 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,954 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0059, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.954173
+2026-09-17 19:31:21,954 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0059 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,954 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0064, Risk Level: 99.0%, Timestamp: 2026-09-17T19:31:21.954719
+2026-09-17 19:31:21,954 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0064 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,954 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0065, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.954719
+2026-09-17 19:31:21,954 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0065 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,954 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0067, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.954719
+2026-09-17 19:31:21,954 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0067 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,954 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0068, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.954719
+2026-09-17 19:31:21,954 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0068 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,954 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0080, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.954719
+2026-09-17 19:31:21,954 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0080 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,955 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0091, Risk Level: 99.0%, Timestamp: 2026-09-17T19:31:21.954719
+2026-09-17 19:31:21,955 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0091 - HIGH RISK DETECTED.
+2026-09-17 19:31:21,955 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0096, Risk Level: 100.0%, Timestamp: 2026-09-17T19:31:21.955732
+2026-09-17 19:31:21,955 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0096 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,497 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0001, Risk Level: 96.0%, Timestamp: 2026-09-17T19:42:03.497933
+2026-09-17 19:42:03,499 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0001 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,499 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0003, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.499328
+2026-09-17 19:42:03,499 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0003 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,499 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0004, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.499328
+2026-09-17 19:42:03,499 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0004 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,499 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0012, Risk Level: 98.0%, Timestamp: 2026-09-17T19:42:03.499832
+2026-09-17 19:42:03,499 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0012 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,499 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0013, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.499832
+2026-09-17 19:42:03,499 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0013 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,499 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0015, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:03.499832
+2026-09-17 19:42:03,499 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0015 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,500 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0022, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.500375
+2026-09-17 19:42:03,500 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0022 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,500 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0026, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:03.500375
+2026-09-17 19:42:03,500 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0026 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,500 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0027, Risk Level: 96.0%, Timestamp: 2026-09-17T19:42:03.500884
+2026-09-17 19:42:03,500 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0027 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,500 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0028, Risk Level: 96.0%, Timestamp: 2026-09-17T19:42:03.500884
+2026-09-17 19:42:03,500 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0028 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,500 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0029, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.500884
+2026-09-17 19:42:03,501 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0029 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,501 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0030, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:03.501410
+2026-09-17 19:42:03,501 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0030 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,501 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0037, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:03.501410
+2026-09-17 19:42:03,501 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0037 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,501 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0040, Risk Level: 88.0%, Timestamp: 2026-09-17T19:42:03.501950
+2026-09-17 19:42:03,501 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0040 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,501 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0041, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:03.501950
+2026-09-17 19:42:03,505 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0041 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,505 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0042, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:03.505281
+2026-09-17 19:42:03,505 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0042 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,505 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0046, Risk Level: 95.0%, Timestamp: 2026-09-17T19:42:03.505803
+2026-09-17 19:42:03,505 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0046 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,505 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0049, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.505803
+2026-09-17 19:42:03,505 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0049 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,505 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0050, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.505803
+2026-09-17 19:42:03,506 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0050 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,506 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0051, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:03.506270
+2026-09-17 19:42:03,506 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0051 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,506 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0055, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.506270
+2026-09-17 19:42:03,506 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0055 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,506 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0056, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:03.506774
+2026-09-17 19:42:03,506 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0056 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,506 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0059, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.506774
+2026-09-17 19:42:03,507 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0059 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,507 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0064, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:03.507105
+2026-09-17 19:42:03,507 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0064 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,507 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0065, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.507105
+2026-09-17 19:42:03,507 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0065 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,507 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0067, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.507105
+2026-09-17 19:42:03,507 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0067 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,507 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0068, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.507625
+2026-09-17 19:42:03,507 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0068 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,507 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0080, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.507625
+2026-09-17 19:42:03,507 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0080 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,507 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0091, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:03.507625
+2026-09-17 19:42:03,507 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0091 - HIGH RISK DETECTED.
+2026-09-17 19:42:03,507 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0096, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:03.507625
+2026-09-17 19:42:03,508 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0096 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,069 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0001, Risk Level: 96.0%, Timestamp: 2026-09-17T19:42:15.069112
+2026-09-17 19:42:15,070 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0001 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,070 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0003, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.070100
+2026-09-17 19:42:15,070 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0003 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,070 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0004, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.070100
+2026-09-17 19:42:15,070 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0004 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,071 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0012, Risk Level: 98.0%, Timestamp: 2026-09-17T19:42:15.070100
+2026-09-17 19:42:15,071 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0012 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,071 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0013, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.071099
+2026-09-17 19:42:15,071 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0013 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,071 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0015, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:15.071099
+2026-09-17 19:42:15,071 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0015 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,071 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0022, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.071914
+2026-09-17 19:42:15,072 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0022 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,072 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0026, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:15.072429
+2026-09-17 19:42:15,072 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0026 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,072 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0027, Risk Level: 96.0%, Timestamp: 2026-09-17T19:42:15.072429
+2026-09-17 19:42:15,072 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0027 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,072 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0028, Risk Level: 96.0%, Timestamp: 2026-09-17T19:42:15.072429
+2026-09-17 19:42:15,072 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0028 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,072 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0029, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.072429
+2026-09-17 19:42:15,072 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0029 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,072 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0030, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:15.072429
+2026-09-17 19:42:15,072 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0030 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,073 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0037, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:15.073776
+2026-09-17 19:42:15,073 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0037 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,073 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0040, Risk Level: 88.0%, Timestamp: 2026-09-17T19:42:15.073776
+2026-09-17 19:42:15,073 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0040 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,074 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0041, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:15.074385
+2026-09-17 19:42:15,074 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0041 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,074 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0042, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:15.074385
+2026-09-17 19:42:15,074 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0042 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,074 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0046, Risk Level: 95.0%, Timestamp: 2026-09-17T19:42:15.074703
+2026-09-17 19:42:15,074 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0046 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,075 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0049, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.075222
+2026-09-17 19:42:15,075 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0049 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,075 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0050, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.075222
+2026-09-17 19:42:15,075 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0050 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,075 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0051, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:15.075222
+2026-09-17 19:42:15,075 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0051 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,075 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0055, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.075994
+2026-09-17 19:42:15,075 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0055 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,075 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0056, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:15.075994
+2026-09-17 19:42:15,075 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0056 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,075 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0059, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.075994
+2026-09-17 19:42:15,076 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0059 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,076 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0064, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:15.076708
+2026-09-17 19:42:15,076 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0064 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,076 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0065, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.076708
+2026-09-17 19:42:15,076 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0065 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,077 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0067, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.077216
+2026-09-17 19:42:15,077 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0067 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,077 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0068, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.077216
+2026-09-17 19:42:15,077 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0068 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,077 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0080, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.077216
+2026-09-17 19:42:15,077 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0080 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,077 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0091, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:15.077747
+2026-09-17 19:42:15,077 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0091 - HIGH RISK DETECTED.
+2026-09-17 19:42:15,077 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0096, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:15.077747
+2026-09-17 19:42:15,078 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0096 - HIGH RISK DETECTED.
+2026-09-17 19:42:22,201 - StudentPredictor - ERROR - Unexpected error: 404: Group not found or no students in group.
+2026-09-17 19:42:30,574 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0005, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.574663
+2026-09-17 19:42:30,574 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0005 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,574 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0006, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.574663
+2026-09-17 19:42:30,574 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0006 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,576 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0007, Risk Level: 97.0%, Timestamp: 2026-09-17T19:42:30.576189
+2026-09-17 19:42:30,576 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0007 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,576 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0009, Risk Level: 95.0%, Timestamp: 2026-09-17T19:42:30.576189
+2026-09-17 19:42:30,576 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0009 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,576 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0010, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:30.576189
+2026-09-17 19:42:30,576 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0010 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,576 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0014, Risk Level: 96.0%, Timestamp: 2026-09-17T19:42:30.576785
+2026-09-17 19:42:30,576 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0014 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,576 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0020, Risk Level: 96.0%, Timestamp: 2026-09-17T19:42:30.576785
+2026-09-17 19:42:30,576 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0020 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,577 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0023, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.577375
+2026-09-17 19:42:30,577 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0023 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,577 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0025, Risk Level: 95.0%, Timestamp: 2026-09-17T19:42:30.577375
+2026-09-17 19:42:30,577 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0025 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,577 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0032, Risk Level: 98.0%, Timestamp: 2026-09-17T19:42:30.577375
+2026-09-17 19:42:30,577 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0032 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,577 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0033, Risk Level: 98.0%, Timestamp: 2026-09-17T19:42:30.577375
+2026-09-17 19:42:30,578 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0033 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,578 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0034, Risk Level: 97.0%, Timestamp: 2026-09-17T19:42:30.578164
+2026-09-17 19:42:30,578 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0034 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,578 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0035, Risk Level: 94.0%, Timestamp: 2026-09-17T19:42:30.578164
+2026-09-17 19:42:30,578 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0035 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,578 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0038, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:30.578164
+2026-09-17 19:42:30,578 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0038 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,579 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0047, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.579194
+2026-09-17 19:42:30,579 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0047 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,579 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0048, Risk Level: 98.0%, Timestamp: 2026-09-17T19:42:30.579194
+2026-09-17 19:42:30,579 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0048 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,579 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0053, Risk Level: 98.0%, Timestamp: 2026-09-17T19:42:30.579718
+2026-09-17 19:42:30,579 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0053 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,580 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0054, Risk Level: 94.0%, Timestamp: 2026-09-17T19:42:30.580303
+2026-09-17 19:42:30,580 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0054 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,580 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0061, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:30.580303
+2026-09-17 19:42:30,580 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0061 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,580 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0062, Risk Level: 98.0%, Timestamp: 2026-09-17T19:42:30.580867
+2026-09-17 19:42:30,580 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0062 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,580 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0071, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.580867
+2026-09-17 19:42:30,581 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0071 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,581 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0073, Risk Level: 95.0%, Timestamp: 2026-09-17T19:42:30.581427
+2026-09-17 19:42:30,581 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0073 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,581 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0078, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.581950
+2026-09-17 19:42:30,581 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0078 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,581 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0079, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.581950
+2026-09-17 19:42:30,581 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0079 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,582 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0083, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.582530
+2026-09-17 19:42:30,582 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0083 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,582 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0084, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:30.582530
+2026-09-17 19:42:30,582 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0084 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,583 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0085, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.583096
+2026-09-17 19:42:30,583 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0085 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,583 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0086, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.583096
+2026-09-17 19:42:30,583 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0086 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,583 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0090, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:30.583096
+2026-09-17 19:42:30,583 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0090 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,583 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0092, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.583661
+2026-09-17 19:42:30,583 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0092 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,584 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0097, Risk Level: 99.0%, Timestamp: 2026-09-17T19:42:30.583661
+2026-09-17 19:42:30,584 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0097 - HIGH RISK DETECTED.
+2026-09-17 19:42:30,584 - StudentPredictor - INFO - AUDIT LOG: Risk Alert - StudentID: S0098, Risk Level: 100.0%, Timestamp: 2026-09-17T19:42:30.584482
+2026-09-17 19:42:30,584 - StudentPredictor - WARNING - NOTIFICATION SERVICE: Alert sent to Academic Tutor for StudentID: S0098 - HIGH RISK DETECTED.

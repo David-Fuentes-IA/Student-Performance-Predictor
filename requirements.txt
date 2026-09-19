@@ -1,8 +1,5 @@
-fastapi
-uvicorn
-pymongo
-pandas
-scikit-learn
-streamlit
-joblib
-pydantic
+flask>=3.0
+scikit-learn>=1.4
+# Vectorized feature engineering over tabular academic records
+pandas>=2.0
+numpy>=1.26
