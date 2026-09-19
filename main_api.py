@@ -78,9 +78,7 @@ def _bootstrap():
 _repository, _etl, _engine, _publisher, _monitoring_observer, _trained_model, _X_test, _y_test = _bootstrap()
 
 
-# --------------------------------------------------------------------------
 # Business Logic layer
-# --------------------------------------------------------------------------
 
 def _validate_request(group_id: str, requesting_teacher: str) -> None:
     """
@@ -182,9 +180,8 @@ def get_group_dashboard_data(
     ]
 
 
-# --------------------------------------------------------------------------
+
 # Thin Flask API (Technology Stack, §6.5)
-# --------------------------------------------------------------------------
 
 app = Flask(__name__)
 
@@ -199,10 +196,9 @@ def get_group_risk_report(group_id: str):
         return jsonify({"error": exc.user_message}), 400
 
 
-# --------------------------------------------------------------------------
 # Runnable demo: exercises the whole pipeline without needing a Flask
 # server running, so the workflow can be verified end to end directly.
-# --------------------------------------------------------------------------
+
 
 if __name__ == "__main__":
     print(generate_group_risk_report("301-A"))
