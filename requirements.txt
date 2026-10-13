@@ -3,3 +3,11 @@ scikit-learn>=1.4
 # Vectorized feature engineering over tabular academic records
 pandas>=2.0
 numpy>=1.26
+# Base de datos: MongoDB (Atlas en la nube / local).
+# dnspython es necesario para las cadenas mongodb+srv:// de Atlas.
+pymongo>=4.6
+dnspython>=2.4
+# Importacion de calificaciones desde Excel (.xlsx)
+openpyxl>=3.1
+# Carga de variables de entorno desde .env en desarrollo local
+python-dotenv>=1.0

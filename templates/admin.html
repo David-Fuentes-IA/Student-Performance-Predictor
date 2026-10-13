@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Student Performance Predictor - Base de datos</title>
+  <style>
+    :root { --navy:#1f3a5f; --bg:#f3f5f9; --card:#fff; --line:#dde3ec; --text:#1d2733; --muted:#6b7a8c;
+            --green:#1e8e4e; --red:#c0392b; --yellow:#b7791f; --blue:#2563eb; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; background:var(--bg); color:var(--text); font-size:14px; }
+    header { background:var(--navy); color:#fff; padding:14px 24px; display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; }
+    header h1 { font-size:18px; margin:0; font-weight:600; }
+    .badge { padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; background:#ffffff26; }
+    .badge.ok { background:var(--green); } .badge.bad { background:var(--red); }
+    .chips { display:flex; gap:8px; flex-wrap:wrap; margin-left:auto; }
+    .chip { background:#ffffff1f; padding:3px 10px; border-radius:6px; font-size:12px; }
+    main { display:grid; grid-template-columns:320px 1fr; gap:16px; padding:16px 24px; max-width:1500px; margin:auto; }
+    @media (max-width:900px) { main { grid-template-columns:1fr; } }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin-bottom:16px; }
+    .card h2 { font-size:14px; margin:0 0 10px; color:var(--navy); text-transform:uppercase; letter-spacing:.04em; }
+    label { display:block; font-size:12px; color:var(--muted); margin:8px 0 3px; }
+    input, select { width:100%; padding:7px 9px; border:1px solid var(--line); border-radius:6px; font:inherit; background:#fff; }
+    .row { display:flex; gap:8px; } .row > * { flex:1; }
+    button { cursor:pointer; border:0; border-radius:6px; padding:7px 12px; font:inherit; font-weight:600; background:var(--navy); color:#fff; }
+    button.secondary { background:#e8edf5; color:var(--navy); } button.danger { background:var(--red); }
+    button.small { padding:3px 8px; font-size:12px; } button:disabled { opacity:.5; cursor:wait; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    ul.groups { list-style:none; margin:0; padding:0; }
+    ul.groups li { padding:9px 10px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; gap:8px; }
+    ul.groups li:hover { background:#f0f4fa; } ul.groups li.active { border-color:var(--navy); background:#e8eef8; }
+    ul.groups small { color:var(--muted); display:block; }
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+    th { color:var(--muted); font-weight:600; font-size:12px; position:sticky; top:0; background:#fff; }
+    .scroll { max-height:380px; overflow:auto; border:1px solid var(--line); border-radius:8px; }
+    .muted { color:var(--muted); } .tag { font-size:11px; padding:1px 7px; border-radius:999px; background:#e8edf5; color:var(--navy); }
+    .tag.synthetic { background:#fdf0d5; color:var(--yellow); } .tag.excel { background:#dff3e7; color:var(--green); }
+    .msg { padding:9px 12px; border-radius:8px; margin-top:10px; font-size:13px; }
+    .msg.ok { background:#dff3e7; color:#14532d; } .msg.err { background:#fde2e0; color:#7f1d1d; }
+    #toast { position:fixed; right:18px; bottom:18px; max-width:380px; z-index:10; }
+    pre { background:#0f172a; color:#d6e2f5; padding:10px; border-radius:8px; overflow:auto; max-height:360px; font-size:12px; margin:8px 0 0; }
+    .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; } @media (max-width:1100px) { .grid2 { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Student Performance Predictor &middot; Base de datos</h1>
+  <span id="dbBadge" class="badge">Comprobando...</span>
+  <div class="chips" id="chips"></div>
+</header>
+
+<main>
+  <aside>
+    <div class="card">
+      <h2>Grupos</h2>
+      <ul class="groups" id="groupList"><li class="muted">Cargando...</li></ul>
+    </div>
+
+    <div class="card">
+      <h2>Nuevo grupo</h2>
+      <form id="newGroupForm">
+        <label>ID del grupo *</label><input name="group_id" placeholder="301-A" required maxlength="32">
+        <label>Nombre / materia</label><input name="name" placeholder="Ingenieria de Software II">
+        <div class="row">
+          <div><label>Periodo</label><input name="period" placeholder="2026-B"></div>
+          <div><label>Profesor</label><input name="teacher" placeholder="M. en I. ..."></div>
+        </div>
+        <div class="actions"><button type="submit">Crear grupo</button></div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Crear grupo desde Excel</h2>
+      <form id="newGroupExcelForm">
+        <label>ID del grupo *</label><input name="group_id" placeholder="302-B" required maxlength="32">
+        <label>Archivo .xlsx *</label><input type="file" name="file" accept=".xlsx" required>
+        <div class="actions">
+          <button type="submit">Crear e importar</button>
+          <button type="button" class="secondary" onclick="downloadTemplate()">Descargar plantilla</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>Datos de prueba</h2>
+      <p class="muted" style="margin-top:0">Alumnos ficticios marcados como <span class="tag synthetic">synthetic</span>. Quitarlos no afecta tus grupos reales.</p>
+      <label>Cantidad de alumnos</label><input id="seedCount" type="number" value="100" min="1" max="500">
+      <div class="actions">
+        <button onclick="seed(false)">Generar</button>
+        <button class="secondary" onclick="seed(true)">Regenerar</button>
+        <button class="danger" onclick="purgeSeed()">Quitar</button>
+      </div>
+    </div>
+  </aside>
+
+  <section>
+    <div class="card" id="groupCard">
+      <h2 id="groupTitle">Selecciona un grupo</h2>
+      <div id="groupBody" class="muted">Elige un grupo de la izquierda para ver sus alumnos.</div>
+    </div>
+
+    <div class="grid2">
+      <div class="card">
+        <h2>Explorador de la base de datos</h2>
+        <div class="row">
+          <select id="collectionSelect" onchange="browse()">
+            <option>groups</option><option>students</option><option selected>academic_records</option>
+            <option>record_history</option><option>predictions</option><option>import_logs</option>
+          </select>
+          <button class="secondary" onclick="browse()">Actualizar</button>
+        </div>
+        <div id="browseInfo" class="muted" style="margin-top:8px"></div>
+        <pre id="browseOut">-</pre>
+      </div>
+      <div class="card">
+        <h2>Ultimas importaciones</h2>
+        <div class="scroll"><table><thead><tr><th>Fecha</th><th>Grupo</th><th>Archivo</th><th>Resultado</th></tr></thead>
+          <tbody id="importRows"><tr><td colspan="4" class="muted">-</td></tr></tbody></table></div>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="toast"></div>
+
+<script>
+let currentGroup = null;
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $ = id => document.getElementById(id);
+
+function toast(text, ok = true) {
+  const el = document.createElement("div");
+  el.className = "msg " + (ok ? "ok" : "err"); el.textContent = text;
+  $("toast").appendChild(el); setTimeout(() => el.remove(), 6000);
+}
+
+async function api(path, options = {}) {
+  const headers = options.headers || {};
+  const pw = sessionStorage.getItem("adminPassword");
+  if (pw) headers["X-Admin-Password"] = pw;
+  if (options.json !== undefined) { headers["Content-Type"] = "application/json"; options.body = JSON.stringify(options.json); }
+  const res = await fetch(path, { ...options, headers });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401) {
+    const typed = prompt("Contrasena de administrador:");
+    if (typed) { sessionStorage.setItem("adminPassword", typed); return api(path, options); }
+    throw new Error("Se requiere contrasena.");
+  }
+  if (!res.ok) throw new Error(data.error || ("Error " + res.status));
+  return data;
+}
+
+async function run(button, fn) {
+  if (button) button.disabled = true;
+  try { await fn(); } catch (e) { toast(e.message, false); } finally { if (button) button.disabled = false; }
+}
+
+async function refreshHeader() {
+  const health = await fetch("/api/health").then(r => r.json()).catch(() => ({ database: false }));
+  const badge = $("dbBadge");
+  badge.className = "badge " + (health.database ? "ok" : "bad");
+  badge.textContent = health.database ? "MongoDB conectado: " + health.db_name : "Sin conexion a la base de datos";
+  if (!health.database) { $("chips").innerHTML = ""; if (health.message) toast(health.message, false); return false; }
+  const s = await api("/api/stats");
+  const c = s.collections;
+  $("chips").innerHTML = [["Grupos", c.groups], ["Alumnos", c.students], ["Registros", c.academic_records],
+    ["Historial", c.record_history], ["Predicciones", c.predictions]]
+    .map(([n, v]) => `<span class="chip">${n}: <b>${v}</b></span>`).join("");
+  return true;
+}
+
+async function loadGroups() {
+  const { groups } = await api("/api/groups");
+  $("groupList").innerHTML = groups.length ? groups.map(g => `
+    <li class="${g.group_id === currentGroup ? "active" : ""}" data-id="${esc(g.group_id)}" onclick="selectGroup(this.dataset.id)">
+      <span><b>${esc(g.group_id)}</b><small>${esc(g.name || "Sin nombre")} ${g.period ? "&middot; " + esc(g.period) : ""}</small></span>
+      <span class="tag ${esc(g.source)}">${g.student_count} alumnos</span>
+    </li>`).join("") : '<li class="muted">Aun no hay grupos. Crea uno o genera datos de prueba.</li>';
+}
+
+async function selectGroup(id) {
+  currentGroup = id; await loadGroups(); await loadStudents();
+}
+
+function fmtDate(v) { return v ? new Date(v).toLocaleString() : ""; }
+
+async function loadStudents() {
+  if (!currentGroup) return;
+  const g = currentGroup;
+  const { students } = await api("/api/groups/" + encodeURIComponent(g) + "/students");
+  $("groupTitle").textContent = "Grupo " + g + " - " + students.length + " alumnos";
+  $("groupBody").className = "";
+  $("groupBody").innerHTML = `
+    <div class="scroll"><table>
+      <thead><tr><th>Matricula</th><th>Nombre</th><th>Parciales</th><th>Asist. %</th><th>Partic.</th><th>Origen</th><th>Actualizado</th><th></th></tr></thead>
+      <tbody>${students.map(s => `<tr>
+        <td>${esc(s.student_id)}</td><td>${esc(s.name)}</td><td>${s.grades.join(" / ")}</td>
+        <td>${s.attendance_pct}</td><td>${s.participation_score}</td>
+        <td><span class="tag ${esc(s.source)}">${esc(s.source || "-")}</span></td><td class="muted">${fmtDate(s.updated_at)}</td>
+        <td><button class="small danger" data-id="${esc(s.student_id)}" onclick="deleteStudent(this.dataset.id)">Quitar</button></td></tr>`).join("")
+        || '<tr><td colspan="8" class="muted">Grupo sin alumnos. Agrega uno o importa un Excel.</td></tr>'}</tbody></table></div>
+
+    <h2 style="margin-top:16px">Agregar alumno</h2>
+    <form id="addStudentForm">
+      <div class="row">
+        <div><label>Matricula *</label><input name="student_id" required maxlength="32"></div>
+        <div style="flex:2"><label>Nombre *</label><input name="name" required maxlength="120"></div>
+      </div>
+      <div class="row">
+        <div><label>Parcial 1 *</label><input name="p1" type="number" step="0.1" min="0" max="100" required></div>
+        <div><label>Parcial 2</label><input name="p2" type="number" step="0.1" min="0" max="100"></div>
+        <div><label>Parcial 3</label><input name="p3" type="number" step="0.1" min="0" max="100"></div>
+        <div><label>Parcial 4</label><input name="p4" type="number" step="0.1" min="0" max="100"></div>
+        <div><label>Asistencia % *</label><input name="attendance" type="number" step="0.1" min="0" max="100" required></div>
+        <div><label>Participacion *</label><input name="participation" type="number" step="0.1" min="0" max="100" required></div>
+      </div>
+      <div class="actions"><button type="submit">Guardar alumno</button></div>
+    </form>
+
+    <h2 style="margin-top:16px">Importar calificaciones desde Excel</h2>
+    <form id="importForm">
+      <div class="row">
+        <div style="flex:2"><label>Archivo .xlsx</label><input type="file" name="file" accept=".xlsx" required></div>
+        <div><label>Modo</label><select name="mode">
+          <option value="partial">Importar filas validas, reportar el resto</option>
+          <option value="strict">Estricto: cancelar si hay errores</option></select></div>
+      </div>
+      <div class="actions">
+        <button type="submit">Importar</button>
+        <button type="button" class="secondary" onclick="downloadTemplate()">Descargar plantilla</button>
+      </div>
+    </form>
+    <div id="importResult"></div>
+
+    <div class="actions" style="margin-top:18px;border-top:1px solid var(--line);padding-top:12px">
+      <button class="secondary" onclick="clearStudents()">Vaciar alumnos del grupo</button>
+      <button class="danger" onclick="deleteGroup()">Eliminar grupo</button>
+    </div>`;
+
+  $("addStudentForm").onsubmit = e => { e.preventDefault(); run(e.submitter, () => addStudent(e.target)); };
+  $("importForm").onsubmit = e => { e.preventDefault(); run(e.submitter, () => importExcel(e.target)); };
+}
+
+async function addStudent(form) {
+  const f = new FormData(form);
+  const grades = ["p1", "p2", "p3", "p4"].map(k => f.get(k)).filter(v => v !== "").map(Number);
+  await api("/api/groups/" + encodeURIComponent(currentGroup) + "/students", { method: "POST", json: {
+    student_id: f.get("student_id"), name: f.get("name"), grades,
+    attendance_pct: Number(f.get("attendance")), participation_score: Number(f.get("participation")) } });
+  toast("Alumno guardado."); await refreshAll();
+}
+
+function renderImport(r) {
+  const rejected = r.rejected || [];
+  return `<div class="msg ${rejected.length ? "err" : "ok"}">
+    ${r.group_created ? "Grupo creado. " : ""}Filas leidas: <b>${r.total_rows}</b> &middot; nuevos: <b>${r.created}</b> &middot;
+    actualizados: <b>${r.updated}</b> &middot; sin cambios: <b>${r.unchanged}</b> &middot; rechazados: <b>${rejected.length}</b></div>
+    ${rejected.length ? `<div class="scroll" style="margin-top:8px"><table><thead><tr><th>Fila</th><th>Matricula</th><th>Motivo</th></tr></thead><tbody>
+    ${rejected.map(x => `<tr><td>${x.row}</td><td>${esc(x.student_id)}</td><td>${esc(x.reason)}</td></tr>`).join("")}</tbody></table></div>` : ""}`;
+}
+
+async function importExcel(form) {
+  const data = new FormData(form);
+  const r = await api("/api/groups/" + encodeURIComponent(currentGroup) + "/import", { method: "POST", body: data });
+  await refreshAll(); $("importResult").innerHTML = renderImport(r); toast("Importacion completada.");
+}
+
+async function deleteStudent(id) {
+  if (!confirm("Quitar al alumno " + id + " del grupo?")) return;
+  await run(null, async () => { await api("/api/groups/" + encodeURIComponent(currentGroup) + "/students/" + encodeURIComponent(id), { method: "DELETE" }); await refreshAll(); });
+}
+async function clearStudents() {
+  if (!confirm("Vaciar todos los alumnos del grupo " + currentGroup + "?")) return;
+  await run(null, async () => { await api("/api/groups/" + encodeURIComponent(currentGroup) + "/students", { method: "DELETE" }); toast("Grupo vaciado."); await refreshAll(); });
+}
+async function deleteGroup() {
+  if (!confirm("Eliminar el grupo " + currentGroup + " con todos sus datos?")) return;
+  await run(null, async () => {
+    await api("/api/groups/" + encodeURIComponent(currentGroup), { method: "DELETE" });
+    toast("Grupo eliminado."); currentGroup = null;
+    $("groupTitle").textContent = "Selecciona un grupo"; $("groupBody").className = "muted";
+    $("groupBody").textContent = "Elige un grupo de la izquierda para ver sus alumnos."; await refreshAll();
+  });
+}
+
+async function seed(reset) {
+  const count = Number($("seedCount").value || 100);
+  if (reset && !confirm("Regenerar borra primero los datos de prueba anteriores. Continuar?")) return;
+  await run(null, async () => {
+    const r = await api("/api/seed", { method: "POST", json: { count, reset } });
+    toast(`Datos de prueba: ${r.created} nuevos, ${r.updated} actualizados.`); await refreshAll();
+  });
+}
+async function purgeSeed() {
+  if (!confirm("Quitar todos los datos de prueba (synthetic)?")) return;
+  await run(null, async () => {
+    const r = await api("/api/seed", { method: "DELETE" });
+    toast(`Eliminados: ${r.records_deleted} registros, ${r.groups_deleted} grupos de prueba.`);
+    if (currentGroup && !(await api("/api/groups")).groups.some(g => g.group_id === currentGroup)) currentGroup = null;
+    await refreshAll();
+  });
+}
+
+async function browse() {
+  const name = $("collectionSelect").value;
+  try {
+    const r = await api("/api/collections/" + name + "?limit=20");
+    $("browseInfo").textContent = `${r.total} documentos en "${name}" (mostrando ${r.documents.length})`;
+    $("browseOut").textContent = JSON.stringify(r.documents, null, 2);
+  } catch (e) { $("browseOut").textContent = e.message; }
+}
+
+async function loadImports() {
+  const { imports } = await api("/api/imports");
+  $("importRows").innerHTML = imports.length ? imports.map(i => `<tr><td class="muted">${fmtDate(i.created_at)}</td>
+    <td>${esc(i.group_id)}</td><td>${esc(i.filename)}</td>
+    <td>${esc(i.status)}: +${i.created} / ~${i.updated} / rechazadas ${i.rejected_count}</td></tr>`).join("")
+    : '<tr><td colspan="4" class="muted">Sin importaciones todavia.</td></tr>';
+}
+
+function downloadTemplate() { window.location = "/api/template.xlsx"; }
+
+async function refreshAll() {
+  if (!(await refreshHeader())) return;
+  await loadGroups();
+  if (currentGroup) await loadStudents();
+  await Promise.all([browse(), loadImports()]);
+}
+
+$("newGroupForm").onsubmit = e => { e.preventDefault(); run(e.submitter, async () => {
+  const f = Object.fromEntries(new FormData(e.target));
+  await api("/api/groups", { method: "POST", json: f });
+  e.target.reset(); toast("Grupo creado."); currentGroup = f.group_id; await refreshAll();
+}); };
+
+$("newGroupExcelForm").onsubmit = e => { e.preventDefault(); run(e.submitter, async () => {
+  const data = new FormData(e.target); data.append("create_group", "true");
+  const id = data.get("group_id");
+  const r = await api("/api/groups/" + encodeURIComponent(id) + "/import", { method: "POST", body: data });
+  e.target.reset(); currentGroup = id; await refreshAll();
+  $("importResult").innerHTML = renderImport(r); toast("Grupo importado desde Excel.");
+}); };
+
+refreshAll().catch(e => toast(e.message, false));
+</script>
+</body>
+</html>

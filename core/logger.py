@@ -21,7 +21,12 @@ from datetime import datetime
 from pathlib import Path
 
 _LOGS_DIR = Path(__file__).resolve().parent.parent / "logs"
-_LOGS_DIR.mkdir(exist_ok=True)
+try:
+    _LOGS_DIR.mkdir(exist_ok=True)
+    _FILE_LOGGING_AVAILABLE = True
+except OSError:
+    # Read-only filesystem (e.g. Vercel serverless): log to console only.
+    _FILE_LOGGING_AVAILABLE = False
 
 # Fields that must never appear in a log line. Anything with one of these
 # keys gets replaced with a redaction marker before it is logged.
@@ -45,15 +50,20 @@ def _configure_root_logger(level: int = logging.DEBUG) -> None:
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
 
-    log_file = _LOGS_DIR / f"spp_{datetime.now().strftime('%Y%m%d')}.log"
-    file_handler = logging.FileHandler(log_file, encoding="utf-8")
-    file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(formatter)
-
     root = logging.getLogger("student_predictor")
     root.setLevel(level)
     root.addHandler(console_handler)
-    root.addHandler(file_handler)
+
+    if _FILE_LOGGING_AVAILABLE:
+        try:
+            log_file = _LOGS_DIR / f"spp_{datetime.now().strftime('%Y%m%d')}.log"
+            file_handler = logging.FileHandler(log_file, encoding="utf-8")
+            file_handler.setLevel(logging.DEBUG)
+            file_handler.setFormatter(formatter)
+            root.addHandler(file_handler)
+        except OSError:
+            pass  # console logging is still active
+
     root.propagate = False
 
     _configured = True

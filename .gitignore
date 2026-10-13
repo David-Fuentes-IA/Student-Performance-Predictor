@@ -30,3 +30,9 @@ build/
 # OS
 .DS_Store
 Thumbs.db
+
+# Keep the env template, ignore everything else
+!.env.example
+
+# Vercel local link
+.vercel/

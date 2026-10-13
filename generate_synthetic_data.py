@@ -1,48 +1,43 @@
-import random
-import pandas as pd
-from data_access.student_repository import MongoStudentRepository
-from learning_module.model_trainer import ModelTrainer
-from learning_module.model_evaluator import ModelEvaluator
-from feature_store.feature_manager import FeatureManager
-from data_pipeline.etl_processor import ETLProcessor
+"""
+generate_synthetic_data.py
 
-def generate_data():
-    repo = MongoStudentRepository()
-    
-    repo.collection.delete_many({})
-    print("Cleared existing records.")
+Command-line way to (re)generate demo data in the configured MongoDB
+(MONGODB_URI in .env -> Atlas, or any other Mongo).
 
-    groups = ['301-A', '302-B', '401-A']
-    records = []
-    
-    for i in range(1, 101):
-        attendance = random.randint(40, 100)
-        grades = [random.randint(40, 100) for _ in range(3)]
-        participation = random.randint(0, 100)
-        
-        record = {
-            "student_id": f"S{i:04d}",
-            "group_id": random.choice(groups),
-            "grades": grades,
-            "attendance_pct": attendance,
-            "participation_score": participation
-        }
-        records.append(record)
-        repo.insert_student_record(record)
-    
-    print(f"Inserted {len(records)} synthetic records into MongoDB.")
-    
-    raw_data = repo.get_all_students()
-    df = ETLProcessor.process_data(raw_data)
-    X = FeatureManager.extract_features(df)
-    
-    y = ((X['avg_grade'] < 70) | (X['attendance_pct'] < 75)).astype(int)
-    
-    trainer = ModelTrainer()
-    trainer.train(X, y)
-    
-    acc, report = ModelEvaluator.evaluate(trainer.model, X, y)
-    print(f"Model trained. Accuracy: {acc}")
+    python generate_synthetic_data.py                 # 100 students, 3 groups
+    python generate_synthetic_data.py --count 200
+    python generate_synthetic_data.py --reset         # remove old demo data first
+    python generate_synthetic_data.py --purge         # only remove demo data
+
+Only data tagged source="synthetic" is ever touched - groups and students
+created manually or imported from Excel are never modified or deleted.
+(The same actions are available as buttons in the admin web interface.)
+"""
+
+import argparse
+import json
+
+from data_access.mongo_repository import MongoAcademicRepository
+from data_pipeline.synthetic_seed import seed_database
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Generate synthetic demo data in MongoDB.")
+    parser.add_argument("--count", type=int, default=100, help="number of students (default 100)")
+    parser.add_argument("--reset", action="store_true", help="remove old synthetic data first")
+    parser.add_argument("--purge", action="store_true", help="only remove synthetic data")
+    args = parser.parse_args()
+
+    repository = MongoAcademicRepository()
+
+    if args.purge:
+        print(json.dumps(repository.purge_synthetic(), indent=2))
+        return
+
+    result = seed_database(repository, args.count, reset=args.reset)
+    print(json.dumps(result, indent=2, default=str))
+    print(json.dumps(repository.stats(), indent=2))
+
 
 if __name__ == "__main__":
-    generate_data()
+    main()

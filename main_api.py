@@ -26,7 +26,7 @@ from core.exception_handler import handle_errors, ValidationError, AppError
 from core.logger import get_logger
 from core.audit_observer import RiskEventPublisher, RiskAlertObserver, ModelMonitoringObserver, RiskEvent
 
-from data_access.student_repository import InMemoryAcademicRepository
+from data_access.repository_factory import build_repository
 from data_pipeline.etl_processor import ETLProcessor
 
 from learning_module.model_trainer import ModelTrainer, generate_synthetic_training_set, split_dataset
@@ -49,7 +49,7 @@ DEFAULT_RISK_THRESHOLD = 75.0  # NFR-1 / FR-7: admin-configurable in a real depl
 # --------------------------------------------------------------------------
 
 def _bootstrap():
-    repository = InMemoryAcademicRepository()
+    repository = build_repository()  # MongoDB if MONGODB_URI is set, in-memory demo otherwise
     etl = ETLProcessor(repository)
 
     # "Train or load model" (§9): proper 80/20 stratified split so the
