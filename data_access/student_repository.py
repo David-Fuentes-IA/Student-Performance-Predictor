@@ -110,7 +110,7 @@ class InMemoryAcademicRepository(IAcademicDataRepository):
         return StudentGroup(group_id=group_id, students=students)
 
     def get_student(self, student_id: str) -> StudentRecord:
-        group_id = student_id.split("-")[0] if "-" in student_id else student_id
+        group_id = student_id.rsplit("-", 1)[0] if "-" in student_id else student_id
         group = self.get_group(group_id)
         for student in group.students:
             if student.student_id == student_id:

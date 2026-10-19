@@ -11,3 +11,7 @@ dnspython>=2.4
 openpyxl>=3.1
 # Carga de variables de entorno desde .env en desarrollo local
 python-dotenv>=1.0
+
+
+# PDF individual y grupal
+reportlab>=4.0

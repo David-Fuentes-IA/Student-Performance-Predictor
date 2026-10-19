@@ -169,10 +169,17 @@ def get_group_dashboard_data(
     {"name", "risk_score", "risk_label"}.
     """
     results, name_lookup = _run_risk_workflow(group_id, requesting_teacher, threshold)
+    records = {s.student_id: s for s in _repository.get_group(group_id).students}
     ordered = sorted(results, key=lambda r: r.risk_score, reverse=True)
     return [
         {
+            "student_id": r.student_ref,
             "name": name_lookup.get(r.student_ref, r.student_ref),
+            "grades": list(records[r.student_ref].grades),
+            "average_grade": round(sum(records[r.student_ref].grades) / len(records[r.student_ref].grades), 2),
+            "attendance_pct": records[r.student_ref].attendance_pct,
+            "participation_score": records[r.student_ref].participation_score,
+            "grade_trend": round(records[r.student_ref].grades[-1] - records[r.student_ref].grades[0], 2),
             "risk_score": r.risk_score,
             "risk_label": r.risk_label,  # "high" | "medium" | "low" - never guessed from text
         }

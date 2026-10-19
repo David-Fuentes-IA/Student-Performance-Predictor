@@ -1,3 +1,88 @@
+# Student Performance Predictor — panel interactivo
+
+## Ejecutar la interfaz
+
+Requiere Python 3.10 o superior (recomendado: 3.11 o 3.12).
+Desde la carpeta del proyecto, en Windows:
+
+```bat
+py -m venv .venv
+.venv\Scripts\activate
+python -m pip install -r requirements.txt
+python web_app.py
+```
+
+En Linux/macOS: `python3 -m venv .venv` y `source .venv/bin/activate`,
+seguido de los mismos comandos de instalación y ejecución.
+Abre http://127.0.0.1:5000 en un navegador moderno. Mantén la terminal abierta.
+Para detener el servidor, usa Ctrl+C. El servidor de `main_api.py` no es necesario
+para utilizar la interfaz: inicia `web_app.py`.
+
+## Qué puedes hacer
+
+- Buscar alumnos por nombre o matrícula, filtrar por nivel de riesgo y ordenar
+  por promedio, riesgo o nombre.
+- Pulsar un nivel en el panorama del grupo para activar/desactivar el filtro.
+- Abrir **Ver detalle** para consultar calificaciones, asistencia, participación
+  y cambio entre el primer y último registro. Escape cierra la ficha.
+- Pulsar **PDF** en la fila o **Descargar PDF individual** en la ficha.
+  Incluye indicadores, comparación con el grupo y sugerencias de seguimiento.
+- Pulsar **Descargar reporte del grupo** para obtener indicadores agregados,
+  distribución de riesgo, promedios por registro y detalle de todos los alumnos.
+  Este reporte siempre incluye el grupo completo, incluso con filtros activos.
+- Cambiar el identificador del grupo y pulsar **Cargar grupo**. **Actualizar**
+  vuelve a consultar sus datos; no modifica las calificaciones.
+
+El diseño se adapta a pantallas pequeñas; la tabla permite desplazamiento horizontal.
+Las gráficas funcionan sin CDN ni recursos externos.
+
+## Datos e interpretación
+
+El panel usa la selección de repositorio existente: MongoDB cuando está configurado
+`MONGODB_URI`, o datos sintéticos en memoria en modo de demostración. Se conservan
+el panel de administración, la importación Excel y la configuración de Vercel de
+`main`. Consulta [docs/DATABASE.md](docs/DATABASE.md) para configurar MongoDB.
+El modelo de riesgo sigue entrenado con datos sintéticos. Calificaciones y
+participación: escala 0–100; asistencia: porcentaje. El riesgo no es una calificación.
+Umbrales: bajo <40, observación >=40 y <75, alto >=75. Los PDF usan fecha/hora UTC.
+Los promedios por registro se calculan con los alumnos que tienen ese registro.
+
+Esta actualización cambia el panel docente ejecutado con `python web_app.py`.
+La entrada existente de Vercel sigue sirviendo el panel de administración.
+
+## Verificación
+
+```bash
+python -m pip install -r requirements-dev.txt
+python -m unittest discover -s tests -v
+```
+
+Se incluyen pruebas del servidor, consistencia de indicadores, PDF individual y
+grupal, matrículas con guiones, grupos vacíos, nivel intermedio, nombres largos,
+paginación con 100 alumnos y respuestas de error. Los archivos de pruebas no
+requieren modificar el modelo ni el repositorio original.
+
+Las interacciones de la interfaz también se comprobaron con un DOM simulado.
+No fue posible realizar la revisión visual en un navegador real en este entorno.
+
+## Archivos principales de esta actualización
+
+- `web_app.py`: interfaz y rutas JSON/PDF.
+- `templates/index.html`, `static/dashboard.css`, `static/dashboard.js`: panel.
+- `presentation/report_data.py`: indicadores agregados y sugerencias.
+- `presentation/pdf_reports.py`: generación de PDF con ReportLab.
+- `main_api.py`: agrega matrícula e indicadores académicos al resultado del panel.
+- `data_access/student_repository.py`: corrige la búsqueda de alumnos en grupos
+  cuyo identificador contiene guiones.
+
+El ZIP contiene el código y el modelo original. Crea un entorno virtual nuevo en
+tu equipo; un entorno virtual de otra computadora no es portable.
+
+
+---
+
+## Arquitectura y documentación del proyecto
+
 # Student Performance Predictor
 
 **Equipo 5** — Ingeniería de Software II  
@@ -43,7 +128,7 @@ pip install -r requirements.txt
 python web_app.py
 ```
 Abrir el navegador en `http://127.0.0.1:5000`.  
-Seleccionar un grupo (301-A, 301-B, 301-C) y hacer clic en **Ver reporte** para obtener el análisis de riesgo.
+Cargar un grupo y consultar los alumnos o descargar los reportes desde el panel.
 
 ### 5. Ejecutar el demo de consola (pipeline completo sin servidor)
 ```bash
