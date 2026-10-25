@@ -25,6 +25,30 @@ http://127.0.0.1:5000/admin. `python admin_app.py` sirve la misma app en el puer
 Para detener el servidor, usa Ctrl+C. El servidor de `main_api.py` no es necesario
 para utilizar la interfaz: inicia `web_app.py`.
 
+## Pruebas
+
+Las pruebas viven en `tests/`, organizadas por nivel: `unit/`, `integration/`, `system/` y `performance/`
+(perfilado de memoria con `tracemalloc`).
+
+```bash
+python -m pip install -r requirements-dev.txt
+pytest                      # todo; las pruebas que necesitan MongoDB real se omiten
+pytest tests/unit           # un solo nivel
+pytest --cov                # con cobertura (configuración en .coveragerc)
+ruff check .                # análisis estático
+```
+
+Para incluir las pruebas contra una base MongoDB real, levanta una desechable y apunta a ella
+(no usa tus datos ni los del equipo; cada prueba crea y borra su propia base):
+
+```bash
+docker run -d --name spp-mongo-test -p 27018:27017 mongo:7
+MONGODB_TEST_URI=mongodb://localhost:27018 pytest
+```
+
+`python scripts/collect_test_evidence.py` regenera la evidencia (resultados por nivel, cobertura y memoria)
+en `docs/evidence/testing/`, donde `README.md` interpreta los resultados.
+
 ## Qué puedes hacer
 
 - Buscar alumnos por nombre o matrícula, filtrar por nivel de riesgo y ordenar

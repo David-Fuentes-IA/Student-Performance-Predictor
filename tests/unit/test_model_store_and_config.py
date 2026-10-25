@@ -1,6 +1,4 @@
 import os
-import subprocess
-import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -20,8 +18,6 @@ from learning_module.model_store import (
     save_model,
 )
 from learning_module.training_pipeline import run_training
-
-ROOT = Path(__file__).resolve().parent.parent
 
 
 def tiny_model():
@@ -61,15 +57,6 @@ class ModelStoreTests(unittest.TestCase):
             self.assertTrue((Path(tmp) / CARD_FILENAME).is_file())
             self.assertEqual(set(card["metrics_on_holdout"]), {"accuracy", "precision", "recall", "f1_score"})
             self.assertEqual(card["data"]["n_train"] + card["data"]["n_test"], card["data"]["n_samples"])
-
-    def test_app_refuses_to_start_without_a_model(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            env = dict(os.environ, MODEL_DIR=tmp, MONGODB_URI="")
-            result = subprocess.run([sys.executable, "-c", "import main_api"], cwd=ROOT, env=env,
-                                    capture_output=True, text=True, timeout=120)
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("ModelLoadError", result.stderr)
-        self.assertIn("scripts/train_model.py", result.stderr)
 
 
 class RiskThresholdConfigTests(unittest.TestCase):

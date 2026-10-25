@@ -1,0 +1,22 @@
+[run]
+source =
+    core
+    data_access
+    data_pipeline
+    feature_store
+    inference_engine
+    learning_module
+    presentation
+    webapp
+    main_api
+omit =
+    */tests/*
+    */scripts/*
+    */venv/*
+
+[report]
+show_missing = True
+skip_empty = True
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:

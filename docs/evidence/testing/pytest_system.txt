@@ -1,0 +1,27 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.3, pytest-9.1.1, pluggy-1.7.0 -- D:\1_Universidad\5-SEMESTRE\IngenieríaSoft2Jessica\Proyecto\student_predictor_project\venv\Scripts\python.exe
+rootdir: D:\1_Universidad\5-SEMESTRE\IngenieríaSoft2Jessica\Proyecto\student_predictor_project
+configfile: pytest.ini
+plugins: cov-7.1.0
+collecting ... collected 17 items
+
+tests/system/test_excel_error_scenarios.py::UploadRejectedBeforeReachingTheDatabaseTests::test_extremely_large_file PASSED [  5%]
+tests/system/test_excel_error_scenarios.py::UploadRejectedBeforeReachingTheDatabaseTests::test_no_file_at_all PASSED [ 11%]
+tests/system/test_excel_error_scenarios.py::UploadRejectedBeforeReachingTheDatabaseTests::test_wrong_extension PASSED [ 17%]
+tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_corrupted_excel PASSED [ 23%]
+tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_empty_file PASSED [ 29%]
+tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_excel_without_the_required_columns PASSED [ 35%]
+tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_pdf_content_disguised_as_excel PASSED [ 41%]
+tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_valid_file_is_accepted PASSED [ 47%]
+tests/system/test_failure_scenarios.py::StartupFailureTests::test_a_valid_configuration_starts_normally PASSED [ 52%]
+tests/system/test_failure_scenarios.py::StartupFailureTests::test_corrupted_model_file_stops_the_app PASSED [ 58%]
+tests/system/test_failure_scenarios.py::StartupFailureTests::test_invalid_risk_threshold_stops_the_app_and_names_the_variable 
+tests/system/test_failure_scenarios.py::StartupFailureTests::test_invalid_risk_threshold_stops_the_app_and_names_the_variable PASSED [ 64%]
+tests/system/test_failure_scenarios.py::StartupFailureTests::test_missing_model_stops_the_app_and_names_the_fix PASSED [ 70%]
+tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_a_group_with_no_students_is_a_valid_empty_report PASSED [ 76%]
+tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_changing_a_students_data_changes_the_prediction_for_the_next_report PASSED [ 82%]
+tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_create_group_import_excel_analyse_and_download_reports PASSED [ 88%]
+tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_health_reports_a_working_database PASSED [ 94%]
+tests/system/test_threshold_end_to_end.py::EndToEndThresholdTests::test_lowering_the_threshold_turns_more_students_high_risk PASSED [100%]
+
+=================== 17 passed, 3 subtests passed in 23.45s ====================

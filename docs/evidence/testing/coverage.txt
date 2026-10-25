@@ -1,0 +1,42 @@
+....................................................... [ 33%]
+............................................................................................................     [100%]
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.12.3-final-0 _______________
+
+Name                                    Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------
+core\audit_observer.py                     47      1    98%   70
+core\config.py                             30      2    93%   39, 71
+core\exception_handler.py                  25      0   100%
+core\logger.py                             45      4    91%   27-29, 64-65
+core\risk_levels.py                        10      0   100%
+data_access\mongo_connection.py            27      4    85%   47-55, 72
+data_access\mongo_repository.py           203     48    76%   48-49, 63-64, 76, 93, 101-113, 126-127, 142-143, 151-152, 173-174, 187-188, 207-208, 226, 294-297, 310-311, 323-324, 336-337, 361-362, 376-377, 384-385, 392-393, 407-408, 446
+data_access\repository_factory.py          17      2    88%   35-36
+data_access\schema.py                      32      3    91%   96, 105-107
+data_access\student_repository.py          76      4    95%   62, 66, 71, 76
+data_pipeline\etl_processor.py             25      0   100%
+data_pipeline\excel_importer.py           143      4    97%   85, 155, 192, 239
+data_pipeline\fail_fast_validator.py       22      0   100%
+data_pipeline\group_import_service.py      62      2    97%   100, 166
+data_pipeline\synthetic_seed.py            36      0   100%
+feature_store\feature_manager.py           30      0   100%
+inference_engine\cache_manager.py          50      1    98%   51
+inference_engine\risk_predictor.py         51      3    94%   43, 106-107
+learning_module\model_evaluator.py         26      0   100%
+learning_module\model_store.py             32      0   100%
+learning_module\model_trainer.py           42      4    90%   100-103
+learning_module\training_pipeline.py       19      0   100%
+main_api.py                                60      2    97%   92, 97
+presentation\pdf_reports.py                62      0   100%
+presentation\report_data.py                24      0   100%
+presentation\teacher_report_ui.py          18      2    89%   42-43
+webapp\__init__.py                         47      5    89%   35, 70, 73, 77-78
+webapp\admin.py                           121      1    99%   85
+webapp\dashboard.py                        72      5    93%   68-69, 98, 106, 113
+---------------------------------------------------------------------
+TOTAL                                    1454     97    93%
+
+7 empty files skipped.
+Coverage JSON written to file C:\Users\Gabo\AppData\Local\Temp\tmpc3dxsam0\coverage.json
+163 passed, 49 subtests passed in 56.16s
