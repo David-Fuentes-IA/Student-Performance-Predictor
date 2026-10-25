@@ -5,3 +5,6 @@
 .topnav a:hover{background:#eeebfc}
 #demo-banner{background:#fff4dc;color:#7a5200;border-bottom:1px solid #f0dca8;padding:10px 5%;font-size:13px}
 #no-groups{background:white;border:1px dashed var(--border);border-radius:10px;margin-bottom:20px}
+
+.alert-flag{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;background:#fcebf0;color:var(--high);font-size:11px;font-weight:700;vertical-align:middle}
+.alert-text{color:var(--high)}

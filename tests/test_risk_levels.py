@@ -80,6 +80,11 @@ class DashboardAndReportsTests(unittest.TestCase):
         for student in data["students"]:
             self.assertEqual(student["risk_label"], label_for(student["risk_score"], main_api.RISK_THRESHOLD))
 
+    def test_page_has_the_threshold_tag_and_legend_placeholders(self):
+        html = self.client.get("/").get_data(as_text=True)
+        self.assertIn('id="threshold-tag"', html)
+        self.assertIn('id="risk-legend"', html)
+
     def test_pdfs_print_the_configured_levels(self):
         students = main_api.get_group_dashboard_data("301-A")
         group_text = "\n".join(p.extract_text() for p in PdfReader(BytesIO(build_group_report("301-A", students, 90))).pages)
