@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T16:30:34+00:00",
+  "generated_at": "2026-10-25T21:48:28+00:00",
   "environment": {
     "python": "3.12.3",
     "scikit_learn": "1.9.1"
@@ -739,6 +739,183 @@
       "flagged_share": 0.1458
     },
     "application_alert_threshold": 75.0
+  },
+  "application_rule": {
+    "rule": "high risk = average grade < 60 (failing) OR model risk score >= 75",
+    "passing_grade": 60.0,
+    "risk_threshold": 75.0,
+    "combined_rule": {
+      "cross_validation": {
+        "accuracy": 0.8733,
+        "precision": 0.8069,
+        "recall": 0.7091,
+        "f1": 0.7548,
+        "f2": 0.7267,
+        "tn": 407,
+        "fp": 28,
+        "fn": 48,
+        "tp": 117,
+        "flagged_share": 0.2417,
+        "recall_ci95": [
+          0.6357,
+          0.773
+        ]
+      },
+      "independent": {
+        "accuracy": 0.8708,
+        "precision": 0.7797,
+        "recall": 0.7188,
+        "f1": 0.748,
+        "f2": 0.7302,
+        "tn": 163,
+        "fp": 13,
+        "fn": 18,
+        "tp": 46,
+        "flagged_share": 0.2458,
+        "recall_ci95": [
+          0.5987,
+          0.8141
+        ]
+      }
+    },
+    "failing_average_alone": {
+      "cross_validation": {
+        "accuracy": 0.875,
+        "precision": 0.8125,
+        "recall": 0.7091,
+        "f1": 0.7573,
+        "f2": 0.7276,
+        "tn": 408,
+        "fp": 27,
+        "fn": 48,
+        "tp": 117,
+        "flagged_share": 0.24,
+        "recall_ci95": [
+          0.6357,
+          0.773
+        ]
+      },
+      "independent": {
+        "accuracy": 0.875,
+        "precision": 0.7931,
+        "recall": 0.7188,
+        "f1": 0.7541,
+        "f2": 0.7325,
+        "tn": 164,
+        "fp": 12,
+        "fn": 18,
+        "tp": 46,
+        "flagged_share": 0.2417,
+        "recall_ci95": [
+          0.5987,
+          0.8141
+        ]
+      }
+    },
+    "model_score_alone": {
+      "cross_validation": {
+        "accuracy": 0.8533,
+        "precision": 0.8969,
+        "recall": 0.5273,
+        "f1": 0.6641,
+        "f2": 0.5746,
+        "tn": 425,
+        "fp": 10,
+        "fn": 78,
+        "tp": 87,
+        "flagged_share": 0.1617,
+        "recall_ci95": [
+          0.4513,
+          0.602
+        ]
+      },
+      "independent": {
+        "accuracy": 0.8208,
+        "precision": 0.8,
+        "recall": 0.4375,
+        "f1": 0.5657,
+        "f2": 0.4811,
+        "tn": 169,
+        "fp": 7,
+        "fn": 36,
+        "tp": 28,
+        "flagged_share": 0.1458,
+        "recall_ci95": [
+          0.3229,
+          0.5591
+        ]
+      }
+    },
+    "combined_rule_with_lower_model_threshold": {
+      "60": {
+        "cross_validation": {
+          "accuracy": 0.8817,
+          "precision": 0.8133,
+          "recall": 0.7394,
+          "f1": 0.7746,
+          "f2": 0.7531,
+          "tn": 407,
+          "fp": 28,
+          "fn": 43,
+          "tp": 122,
+          "flagged_share": 0.25,
+          "recall_ci95": [
+            0.6675,
+            0.8004
+          ]
+        },
+        "independent": {
+          "accuracy": 0.8792,
+          "precision": 0.7778,
+          "recall": 0.7656,
+          "f1": 0.7717,
+          "f2": 0.768,
+          "tn": 162,
+          "fp": 14,
+          "fn": 15,
+          "tp": 49,
+          "flagged_share": 0.2625,
+          "recall_ci95": [
+            0.6487,
+            0.8525
+          ]
+        }
+      },
+      "50": {
+        "cross_validation": {
+          "accuracy": 0.885,
+          "precision": 0.8038,
+          "recall": 0.7697,
+          "f1": 0.7864,
+          "f2": 0.7763,
+          "tn": 404,
+          "fp": 31,
+          "fn": 38,
+          "tp": 127,
+          "flagged_share": 0.2633,
+          "recall_ci95": [
+            0.6998,
+            0.8274
+          ]
+        },
+        "independent": {
+          "accuracy": 0.8708,
+          "precision": 0.7463,
+          "recall": 0.7812,
+          "f1": 0.7634,
+          "f2": 0.774,
+          "tn": 159,
+          "fp": 17,
+          "fn": 14,
+          "tp": 50,
+          "flagged_share": 0.2792,
+          "recall_ci95": [
+            0.6657,
+            0.865
+          ]
+        }
+      }
+    }
   },
   "feature_effects": {
     "kind": "logistic regression coefficients (positive = raises risk)",

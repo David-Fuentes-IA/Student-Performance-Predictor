@@ -18,7 +18,7 @@ Design note (traceability: Strategy + Factory, §5; DIP §6.3; FR-4, FR-8):
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from core.config import DEFAULT_RISK_THRESHOLD
+from core.config import DEFAULT_PASSING_GRADE, DEFAULT_RISK_THRESHOLD
 from core.exception_handler import PredictionEngineError
 from core.logger import get_logger
 from core.risk_levels import label_for
@@ -52,7 +52,8 @@ class RandomForestRiskEngine(IRiskPredictionEngine):
     (SRP; training lives in learning_module.model_trainer).
     """
 
-    def __init__(self, trained_model, risk_threshold: float = DEFAULT_RISK_THRESHOLD) -> None:
+    def __init__(self, trained_model, risk_threshold: float = DEFAULT_RISK_THRESHOLD,
+                 passing_grade: float = DEFAULT_PASSING_GRADE) -> None:
         if trained_model is None:
             raise PredictionEngineError(
                 "RandomForestRiskEngine created without a trained model",
@@ -60,6 +61,7 @@ class RandomForestRiskEngine(IRiskPredictionEngine):
             )
         self._model = trained_model
         self._risk_threshold = risk_threshold
+        self._passing_grade = passing_grade
 
     def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
         try:
@@ -78,7 +80,7 @@ class RandomForestRiskEngine(IRiskPredictionEngine):
         return RiskResult(
             student_ref=feature_vector.student_ref,
             risk_score=score,
-            risk_label=label_for(score, self._risk_threshold),
+            risk_label=label_for(score, self._risk_threshold, feature_vector.average_grade, self._passing_grade),
         )
 
 
@@ -89,7 +91,8 @@ class LogisticRegressionRiskEngine(IRiskPredictionEngine):
     inference; training lives in learning_module.model_trainer.
     """
 
-    def __init__(self, trained_model, risk_threshold: float = DEFAULT_RISK_THRESHOLD) -> None:
+    def __init__(self, trained_model, risk_threshold: float = DEFAULT_RISK_THRESHOLD,
+                 passing_grade: float = DEFAULT_PASSING_GRADE) -> None:
         if trained_model is None:
             raise PredictionEngineError(
                 "LogisticRegressionRiskEngine created without a trained model",
@@ -97,6 +100,7 @@ class LogisticRegressionRiskEngine(IRiskPredictionEngine):
             )
         self._model = trained_model
         self._risk_threshold = risk_threshold
+        self._passing_grade = passing_grade
 
     def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
         try:
@@ -113,7 +117,7 @@ class LogisticRegressionRiskEngine(IRiskPredictionEngine):
         return RiskResult(
             student_ref=feature_vector.student_ref,
             risk_score=score,
-            risk_label=label_for(score, self._risk_threshold),
+            risk_label=label_for(score, self._risk_threshold, feature_vector.average_grade, self._passing_grade),
         )
 
 
@@ -125,12 +129,15 @@ def create_risk_engine(engine_type: str, **kwargs) -> IRiskPredictionEngine:
     """
     engine_type = engine_type.lower().strip()
     risk_threshold = kwargs.get("risk_threshold", DEFAULT_RISK_THRESHOLD)
+    passing_grade = kwargs.get("passing_grade", DEFAULT_PASSING_GRADE)
 
     if engine_type == "random_forest":
-        return RandomForestRiskEngine(trained_model=kwargs.get("trained_model"), risk_threshold=risk_threshold)
+        return RandomForestRiskEngine(trained_model=kwargs.get("trained_model"), risk_threshold=risk_threshold,
+                                      passing_grade=passing_grade)
 
     if engine_type == "logistic_regression":
-        return LogisticRegressionRiskEngine(trained_model=kwargs.get("trained_model"), risk_threshold=risk_threshold)
+        return LogisticRegressionRiskEngine(trained_model=kwargs.get("trained_model"), risk_threshold=risk_threshold,
+                                      passing_grade=passing_grade)
 
     raise PredictionEngineError(
         f"Unknown engine_type '{engine_type}' requested from create_risk_engine",

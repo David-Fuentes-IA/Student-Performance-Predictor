@@ -5,9 +5,11 @@ Reproduces, with one command, every number quoted in docs/evidence/docker/README
 
     python scripts/collect_docker_evidence.py              # needs Docker Desktop running; takes ~5 minutes
     python scripts/collect_docker_evidence.py --skip-build # reuse the existing image
+    python scripts/collect_docker_evidence.py --cold       # build without cache (slow, and every run adds
+                                                           # ~0.5 GB to Docker's disk until it is pruned)
 
 What it does (and records in docs/evidence/docker/):
-    1. cold build of the image (no cache) and an inspection of it: size, user, health check, layers
+    1. build of the image (cached, or from scratch with --cold) and an inspection of it: size, user, health check, layers
     2. a fresh `docker compose up`: seconds until the application container is "healthy"
     3. the smoke test against the running container
     4. import of data/grupo_evaluacion.xlsx through the admin API, then `down` / `up` to prove persistence
@@ -92,12 +94,12 @@ def ready_in_database_mode() -> bool:
     return status == 200 and data["mode"] == "database" and data["database"] is True
 
 
-def build_and_inspect(skip_build: bool) -> dict:
-    result = {"cold_build_seconds": None}
+def build_and_inspect(skip_build: bool, cold: bool = False) -> dict:
+    result = {"build_seconds": None, "build_was_cold": cold}
     if not skip_build:
         started = time.monotonic()
-        build = run(["docker", "build", "--no-cache", "--progress=plain", "-t", IMAGE, "."])
-        result["cold_build_seconds"] = round(time.monotonic() - started, 1)
+        build = run(["docker", "build", *(["--no-cache"] if cold else []), "--progress=plain", "-t", IMAGE, "."])
+        result["build_seconds"] = round(time.monotonic() - started, 1)
         if build.returncode != 0:
             raise SystemExit("docker build failed:\n" + (build.stdout + build.stderr)[-2000:])
     info = json.loads(run(["docker", "image", "inspect", IMAGE]).stdout)[0]
@@ -206,13 +208,14 @@ def drill_boot_with_database_down() -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Collect the Docker evidence.")
     parser.add_argument("--skip-build", action="store_true", help="reuse the existing image")
+    parser.add_argument("--cold", action="store_true", help="build without Docker's cache (measures a first build)")
     parser.add_argument("--watch-seconds", type=int, default=100, help="how long drill A watches the container")
     args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
 
     summary = {"generated_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
                "docker": run(["docker", "version", "--format", "{{.Server.Version}}"]).stdout.strip()}
-    for name, step in (("image", lambda: build_and_inspect(args.skip_build)), ("fresh_stack", fresh_stack),
+    for name, step in (("image", lambda: build_and_inspect(args.skip_build, args.cold)), ("fresh_stack", fresh_stack),
                        ("smoke_test", smoke), ("import_and_persistence", import_and_persist),
                        ("drill_runtime_outage", lambda: drill_runtime_outage(args.watch_seconds)),
                        ("drill_boot_with_database_down", drill_boot_with_database_down)):

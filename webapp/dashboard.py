@@ -125,7 +125,8 @@ def group_data(group_id):
         return jsonify(error="Identificador de grupo inválido."), 400
     return _no_store(jsonify(group_id=group_id, students=students, summary=summarize(students),
                              model_demo=True, mode=_mode(), risk_threshold=main_api.RISK_THRESHOLD,
-                             risk_levels=describe_levels(main_api.RISK_THRESHOLD)))
+                             passing_grade=main_api.PASSING_GRADE,
+                             risk_levels=describe_levels(main_api.RISK_THRESHOLD, main_api.PASSING_GRADE)))
 
 
 @dashboard_bp.get("/api/v1/groups/<group_id>/risk-report")
@@ -140,7 +141,7 @@ def group_pdf(group_id):
     students = load_group(group_id)
     if students is None:
         return jsonify(error="Identificador de grupo inválido."), 400
-    return pdf_response(build_group_report(group_id, students, main_api.RISK_THRESHOLD), f"reporte_grupo_{group_id}.pdf")
+    return pdf_response(build_group_report(group_id, students, main_api.RISK_THRESHOLD, main_api.PASSING_GRADE), f"reporte_grupo_{group_id}.pdf")
 
 
 @dashboard_bp.get("/reports/groups/<group_id>/students/<path:student_id>.pdf")
@@ -151,5 +152,6 @@ def student_pdf(group_id, student_id):
     student = next((s for s in students if s["student_id"] == student_id), None)
     if student is None:
         return jsonify(error="El alumno no pertenece a este grupo."), 404
-    return pdf_response(build_student_report(group_id, student, summarize(students), main_api.RISK_THRESHOLD),
+    return pdf_response(build_student_report(group_id, student, summarize(students), main_api.RISK_THRESHOLD,
+                                             main_api.PASSING_GRADE),
                         f"reporte_alumno_{secure_filename(student_id)}.pdf")

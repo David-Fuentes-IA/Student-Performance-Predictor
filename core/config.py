@@ -28,6 +28,7 @@ from core.exception_handler import ValidationError
 
 DEFAULT_DB_NAME = "student_predictor"
 DEFAULT_RISK_THRESHOLD = 75.0
+DEFAULT_PASSING_GRADE = 60.0   # 6.0 on the usual 0-10 school scale
 MODEL_TYPES = ("random_forest", "logistic_regression")
 # Chosen by scripts/evaluate_models.py (cross-validation, see docs/evidence/model/README.md).
 DEFAULT_MODEL_TYPE = "logistic_regression"
@@ -53,21 +54,31 @@ def model_dir() -> Path:
     return Path(configured) if configured else Path(__file__).resolve().parent.parent / "models"
 
 
-def risk_threshold() -> float:
-    """Score (0-100) at or above which a Risk Alert fires (FR-7). RISK_THRESHOLD overrides 75."""
-    raw = os.environ.get("RISK_THRESHOLD", "").strip()
+def _percent_from_env(name: str, default: float) -> float:
+    """A 0-100 number from the environment; anything else stops the application (Fail-Fast)."""
+    raw = os.environ.get(name, "").strip()
     if not raw:
-        return DEFAULT_RISK_THRESHOLD
+        return default
     try:
         value = float(raw)
     except ValueError:
         value = float("nan")
     if not 0.0 <= value <= 100.0:  # NaN fails this comparison too
         raise ValidationError(
-            f"RISK_THRESHOLD={raw!r} is not a number between 0 and 100",
-            user_message="RISK_THRESHOLD must be a number between 0 and 100.",
+            f"{name}={raw!r} is not a number between 0 and 100",
+            user_message=f"{name} must be a number between 0 and 100.",
         )
     return value
+
+
+def risk_threshold() -> float:
+    """Model risk score (0-100) from which a student is high risk (FR-7). RISK_THRESHOLD overrides 75."""
+    return _percent_from_env("RISK_THRESHOLD", DEFAULT_RISK_THRESHOLD)
+
+
+def passing_grade() -> float:
+    """Average grade (0-100) below which a student is failing and therefore high risk. Default 60 (= 6.0)."""
+    return _percent_from_env("PASSING_GRADE", DEFAULT_PASSING_GRADE)
 
 
 def allow_demo_fallback() -> bool:

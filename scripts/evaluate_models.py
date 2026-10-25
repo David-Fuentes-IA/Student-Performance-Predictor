@@ -59,6 +59,7 @@ from learning_module.model_validation import (  # noqa: E402
     score_predictions,
     select_model,
     threshold_sweep,
+    wilson_interval,
 )
 from learning_module.training_pipeline import DATA_SEED, N_SAMPLES  # noqa: E402
 
@@ -142,6 +143,38 @@ def decline_analysis(X_test, y_true, y_pred) -> dict:
             "at_risk_with_sharp_decline": int(declining.sum()), "of_which_missed": int(missed.sum()),
             "miss_rate_with_sharp_decline": round(float(missed.sum() / declining.sum()), 3) if declining.any() else None,
             "miss_rate_overall": round(float((at_risk & (y_pred == 0)).sum() / at_risk.sum()), 3)}
+
+
+def evaluate_application_rule(avg_cv, scores_cv, y_cv, avg_test, scores_test, y_test) -> dict:
+    """The rule the application actually uses for 'Alto riesgo' and alerts (core/risk_levels.py):
+    failing average (below PASSING_GRADE) OR model score >= RISK_THRESHOLD. Measured on out-of-fold
+    cross-validation scores and once on the independent set, next to its two halves alone."""
+    passing, threshold = config.DEFAULT_PASSING_GRADE, config.DEFAULT_RISK_THRESHOLD
+
+    def measure(predictions_cv, predictions_test):
+        out = {}
+        for name, truth, predictions in (("cross_validation", y_cv, predictions_cv), ("independent", y_test, predictions_test)):
+            counts = confusion_counts(truth, predictions)
+            out[name] = {**{k: round(v, 4) for k, v in score_predictions(truth, predictions).items()}, **counts,
+                         "flagged_share": round(float(np.mean(predictions)), 4),
+                         "recall_ci95": wilson_interval(counts["tp"], counts["tp"] + counts["fn"])}
+        return out
+
+    failing_cv, failing_test = np.asarray(avg_cv) < passing, np.asarray(avg_test) < passing
+    high_cv, high_test = np.asarray(scores_cv) >= threshold, np.asarray(scores_test) >= threshold
+    return {
+        "rule": f"high risk = average grade < {passing:g} (failing) OR model risk score >= {threshold:g}",
+        "passing_grade": passing,
+        "risk_threshold": threshold,
+        "combined_rule": measure((failing_cv | high_cv).astype(int), (failing_test | high_test).astype(int)),
+        "failing_average_alone": measure(failing_cv.astype(int), failing_test.astype(int)),
+        "model_score_alone": measure(high_cv.astype(int), high_test.astype(int)),
+        "combined_rule_with_lower_model_threshold": {
+            str(t): measure((failing_cv | (np.asarray(scores_cv) >= t)).astype(int),
+                            (failing_test | (np.asarray(scores_test) >= t)).astype(int))
+            for t in (60, 50)
+        },
+    }
 
 
 def plot_confusions(results: dict, path: Path) -> None:
@@ -249,8 +282,11 @@ def evaluate(selected_override: str | None = None) -> dict:
     scores = chosen.predict_proba(X_test)[:, 1] * 100
 
     # Operating points: the metrics above cut at score 50, but the application alerts at RISK_THRESHOLD (75).
-    sweep_cv = threshold_sweep(y, out_of_fold_scores(lambda: ModelTrainer.build(selected), X, y))
+    scores_cv = out_of_fold_scores(lambda: ModelTrainer.build(selected), X, y)
+    sweep_cv = threshold_sweep(y, scores_cv)
     sweep_independent = threshold_sweep(y_test, scores)
+    application_rule = evaluate_application_rule(np.asarray(X)[:, 0], scores_cv, y,
+                                                 np.asarray(X_test)[:, 0], scores, y_test)
     chosen_threshold = lowest_threshold_with_precision(sweep_cv)   # decided on cross-validation only
     f2_threshold = best_threshold(sweep_cv, "f2")
     pick = lambda sweep, t: next(r for r in sweep if r["threshold"] == t)  # noqa: E731
@@ -281,6 +317,7 @@ def evaluate(selected_override: str | None = None) -> dict:
             "independent_at_application_alert_threshold": pick(sweep_independent, int(config.DEFAULT_RISK_THRESHOLD)),
             "application_alert_threshold": config.DEFAULT_RISK_THRESHOLD,
         },
+        "application_rule": application_rule,
         "feature_effects": feature_effects(chosen, X),
         "error_analysis": {**error_analysis, "sharp_decline": decline_analysis(X_test, y_test, predictions)},
         "fairness": {"selected_model": selected, "subgroup": "turno (synthetic, see data/README.md)",

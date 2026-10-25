@@ -106,8 +106,6 @@ class AuditDecoratorTests(unittest.TestCase):
         self.assertRegex(line, r"latency_ms=\d+\.\d{2}")
 
 
-if __name__ == "__main__":
-    unittest.main()
 
 
 class ModelTypeConfigTests(unittest.TestCase):
@@ -146,3 +144,27 @@ class ServingFollowsTheModelCardTests(unittest.TestCase):
                 model, card = load_model(Path(tmp))
                 self.assertEqual(card["engine_type"], model_type)
                 self.assertIsInstance(create_risk_engine(card["engine_type"], trained_model=model), engine_class)
+
+
+class PassingGradeConfigTests(unittest.TestCase):
+    def passing(self, value):
+        with patch.dict(os.environ, {} if value is None else {"PASSING_GRADE": value}):
+            if value is None:
+                os.environ.pop("PASSING_GRADE", None)
+            return config.passing_grade()
+
+    def test_default_is_6_point_0(self):
+        self.assertEqual(self.passing(None), 60.0)
+
+    def test_valid_values(self):
+        self.assertEqual(self.passing("70"), 70.0)
+        self.assertEqual(self.passing(" 55.5 "), 55.5)
+
+    def test_invalid_values_fail_fast(self):
+        for raw in ("seis", "-1", "101", "nan"):
+            with self.subTest(raw=raw), self.assertRaises(ValidationError):
+                self.passing(raw)
+
+
+if __name__ == "__main__":
+    unittest.main()

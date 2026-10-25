@@ -10,8 +10,9 @@ import os
 import shutil
 import tempfile
 
-os.environ["MONGODB_URI"] = ""
-os.environ.pop("RISK_THRESHOLD", None)
+# Setting every variable (empty = default) also stops python-dotenv from filling it from a .env file.
+for name in ("MONGODB_URI", "RISK_THRESHOLD", "PASSING_GRADE", "RISK_MODEL", "ALLOW_DEMO_FALLBACK", "ADMIN_PASSWORD"):
+    os.environ[name] = ""
 
 _MODEL_DIR = tempfile.mkdtemp(prefix="spp_test_models_")
 atexit.register(shutil.rmtree, _MODEL_DIR, ignore_errors=True)

@@ -49,7 +49,16 @@ class RiskEventTests(unittest.TestCase):
 
     def test_event_carries_no_personal_name_field(self):
         names = {f.name for f in dataclasses.fields(RiskEvent)}
-        self.assertEqual(names, {"group_id", "student_ref", "risk_score", "threshold", "timestamp"})
+        self.assertEqual(names, {"group_id", "student_ref", "risk_score", "threshold", "timestamp",
+                                 "below_passing_grade"})
+
+    def test_a_failing_average_requires_an_alert_even_with_a_low_score(self):
+        failing = RiskEvent(group_id="G1", student_ref="S1", risk_score=10, threshold=75, below_passing_grade=True)
+        self.assertTrue(failing.requires_alert)
+        self.assertFalse(event(10).requires_alert)
+        with self.assertLogs(ALERTS, level="WARNING") as logs:
+            RiskAlertObserver().update(failing)
+        self.assertIn("reason=failing average", logs.output[0])
 
 
 class PublisherTests(unittest.TestCase):

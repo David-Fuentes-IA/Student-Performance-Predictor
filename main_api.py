@@ -29,6 +29,7 @@ from core.audit_observer import (
 )
 from core.exception_handler import ValidationError, handle_errors
 from core.logger import get_logger
+from core.risk_levels import alert_reasons, is_failing
 from data_access.repository_factory import build_repository
 from data_pipeline.etl_processor import ETLProcessor
 from inference_engine.cache_manager import AuditDecorator, CachingDecorator
@@ -39,9 +40,11 @@ from presentation.teacher_report_ui import TeacherReportUI
 
 logger = get_logger(__name__)
 
-# FR-7: RISK_THRESHOLD env var (default 75). It sets the alert line AND the "high" level
-# (core/risk_levels.py), and is read once at startup.
+# FR-7: a student is "high risk" (and raises an alert) when the average grade is below
+# PASSING_GRADE (default 60 = 6.0, a failing average) OR the model's risk score reaches
+# RISK_THRESHOLD (default 75). See core/risk_levels.py. Both are read once at start-up.
 RISK_THRESHOLD = config.risk_threshold()
+PASSING_GRADE = config.passing_grade()
 
 
 # --------------------------------------------------------------------------
@@ -64,7 +67,8 @@ def _bootstrap():
     # CachingDecorator outermost (so a cache hit skips both the audit
     # write and the model entirely). The rest of the app only ever sees
     # an IRiskPredictionEngine, never these concrete classes.
-    base_engine = create_risk_engine(model_card["engine_type"], trained_model=trained_model, risk_threshold=RISK_THRESHOLD)
+    base_engine = create_risk_engine(model_card["engine_type"], trained_model=trained_model,
+                                     risk_threshold=RISK_THRESHOLD, passing_grade=PASSING_GRADE)
     audited_engine = AuditDecorator(base_engine, model_version=model_card["model_version"])
     engine = CachingDecorator(audited_engine)
 
@@ -132,6 +136,7 @@ def _run_risk_workflow(group_id: str, requesting_teacher: str):
                 student_ref=result.student_ref,
                 risk_score=result.risk_score,
                 threshold=RISK_THRESHOLD,
+                below_passing_grade=is_failing(feature_vector.average_grade, PASSING_GRADE),
             )
         )
 
@@ -159,6 +164,10 @@ def generate_group_risk_report(
     return TeacherReportUI.render_group_report(group_id, results, name_lookup)
 
 
+def _average(grades: list[float]) -> float:
+    return round(sum(grades) / len(grades), 2)
+
+
 @handle_errors
 def get_group_dashboard_data(
     group_id: str,
@@ -168,8 +177,9 @@ def get_group_dashboard_data(
     Same workflow as generate_group_risk_report, but returns structured
     data instead of rendered text - for a UI (like web_app.py) that wants
     to build its own layout instead of parsing a text report. Returns a
-    list of plain dicts, sorted highest-risk-first, one per student:
-    {"name", "risk_score", "risk_label"}.
+    list of plain dicts, sorted by model risk score, one per student, with the
+    student's data, "risk_score", "risk_label" and "alert_reasons" (why the student
+    is high risk: "failing_average" and/or "high_predicted_risk").
     """
     results, name_lookup = _run_risk_workflow(group_id, requesting_teacher)
     records = {s.student_id: s for s in _repository.get_group(group_id).students}
@@ -179,12 +189,14 @@ def get_group_dashboard_data(
             "student_id": r.student_ref,
             "name": name_lookup.get(r.student_ref, r.student_ref),
             "grades": list(records[r.student_ref].grades),
-            "average_grade": round(sum(records[r.student_ref].grades) / len(records[r.student_ref].grades), 2),
+            "average_grade": _average(records[r.student_ref].grades),
             "attendance_pct": records[r.student_ref].attendance_pct,
             "participation_score": records[r.student_ref].participation_score,
             "grade_trend": round(records[r.student_ref].grades[-1] - records[r.student_ref].grades[0], 2),
             "risk_score": r.risk_score,
             "risk_label": r.risk_label,  # "high" | "medium" | "low" - never guessed from text
+            "alert_reasons": alert_reasons(r.risk_score, RISK_THRESHOLD, _average(records[r.student_ref].grades),
+                                           PASSING_GRADE),
         }
         for r in ordered
     ]

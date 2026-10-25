@@ -5,7 +5,9 @@ const labels = {high:'Alto riesgo', medium:'En observación', low:'Buen camino'}
 const colors = {high:'#c43c50', medium:'#ac7014', low:'#147b65'};
 let data = null, selectedStudent = null, loading = false;
 const fmtT = n => Number(n).toLocaleString('es-MX', {maximumFractionDigits:1});
-const alertFlag = s => s.risk_label==='high' ? '<span class="alert-flag" title="Puntaje de riesgo igual o mayor al umbral de alerta">⚠ Alerta</span>' : '';
+const reasonText = {failing_average:'Promedio reprobatorio', high_predicted_risk:'Riesgo estimado alto'};
+const reasonsOf = s => (s.alert_reasons||[]).map(r=>reasonText[r]||r).join(' y ');
+const alertFlag = s => s.risk_label==='high' ? `<span class="alert-flag" title="${esc(reasonsOf(s))}">⚠ Alerta</span>` : '';
 const fmt = n => Number(n).toLocaleString('es-MX', {maximumFractionDigits:1, minimumFractionDigits:1});
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function groupPath(){return `/reports/groups/${encodeURIComponent(data.group_id)}`;}
@@ -32,11 +34,11 @@ async function load(group){
 }
 function renderOverview(){
  const s=data.summary;
- const metrics=[['Alumnos del grupo',s.total,'Vista completa del grupo'],['Promedio de calificaciones',fmt(s.average_grade),'Escala de 0 a 100'],['Asistencia promedio',`${fmt(s.attendance_pct)}%`,'Media de todos los alumnos'],['Alumnos en alerta',s.counts.high,`Riesgo ≥ ${fmtT(data.risk_threshold)} · requieren revisión del docente`]];
+ const metrics=[['Alumnos del grupo',s.total,'Vista completa del grupo'],['Promedio de calificaciones',fmt(s.average_grade),'Escala de 0 a 100'],['Asistencia promedio',`${fmt(s.attendance_pct)}%`,'Media de todos los alumnos'],['Alumnos en alerta',s.counts.high,`Promedio < ${fmtT(data.passing_grade/10)} o riesgo ≥ ${fmtT(data.risk_threshold)} · requieren revisión`]];
  $('metrics').innerHTML=metrics.map(([label,value,note])=>`<div class="metric"><p>${label}</p><strong>${value}</strong><small>${note}</small></div>`).join('');
  $('group-tag').textContent=data.group_id;
  $('risk-legend').textContent=`Riesgo estimado: ${data.risk_levels}.`;
- $('threshold-tag').textContent=`Umbral de alerta: ${fmtT(data.risk_threshold)}`;
+ $('threshold-tag').textContent=`Alerta: promedio < ${fmtT(data.passing_grade/10)} o riesgo ≥ ${fmtT(data.risk_threshold)}`;
  $('distribution').innerHTML=Object.entries(labels).map(([tier,label])=>`<button class="distribution-row" data-tier="${tier}" aria-pressed="false"><span>${label}</span><span class="track"><span class="fill" style="display:block;width:${s.total?100*s.counts[tier]/s.total:0}%;background:${colors[tier]}"></span></span><b>${s.counts[tier]} <small>/${s.total}</small></b></button>`).join('');
  $('grade-chart').innerHTML=s.period_averages.map((g,i)=>`<div class="grade-col"><strong>${fmt(g)}</strong><div class="column" style="height:${g}px" title="Registro ${i+1}: ${fmt(g)}"></div><span>Registro ${i+1}</span></div>`).join('');
 }
@@ -54,7 +56,7 @@ function renderStudents(){
 function showStudent(s){
  selectedStudent=s;
  $('student-name').textContent=s.name; $('student-id').textContent=s.student_id;
- $('student-detail').innerHTML=`<span class="badge ${s.risk_label}">${labels[s.risk_label]}</span> <b>Riesgo estimado: ${fmt(s.risk_score)}/100</b>${s.risk_label==='high'?` · <b class="alert-text">En alerta (umbral ${fmtT(data.risk_threshold)})</b>`:''}<div class="detail-metrics"><div><span>Promedio /100</span><strong>${fmt(s.average_grade)}</strong></div><div><span>Asistencia</span><strong>${fmt(s.attendance_pct)}%</strong></div><div><span>Participación /100</span><strong>${fmt(s.participation_score)}</strong></div></div><h2>Calificaciones registradas</h2><div class="detail-grades">${s.grades.map((g,i)=>`<span>Registro ${i+1}<br><b>${fmt(g)}</b></span>`).join('')}</div><p>Cambio del primer al último registro: <b>${s.grade_trend>0?'+':''}${fmt(s.grade_trend)} puntos</b>.</p><p class="detail-note">Modelo de demostración. El riesgo es una estimación del modelo; la interpretación final corresponde al docente. El PDF incluye una comparación con el grupo y sugerencias de seguimiento.</p>`;
+ $('student-detail').innerHTML=`<span class="badge ${s.risk_label}">${labels[s.risk_label]}</span> <b>Riesgo estimado: ${fmt(s.risk_score)}/100</b>${s.risk_label==='high'?` · <b class="alert-text">En alerta: ${esc(reasonsOf(s))}</b>`:''}<div class="detail-metrics"><div><span>Promedio /100</span><strong>${fmt(s.average_grade)}</strong></div><div><span>Asistencia</span><strong>${fmt(s.attendance_pct)}%</strong></div><div><span>Participación /100</span><strong>${fmt(s.participation_score)}</strong></div></div><h2>Calificaciones registradas</h2><div class="detail-grades">${s.grades.map((g,i)=>`<span>Registro ${i+1}<br><b>${fmt(g)}</b></span>`).join('')}</div><p>Cambio del primer al último registro: <b>${s.grade_trend>0?'+':''}${fmt(s.grade_trend)} puntos</b>.</p><p class="detail-note">Modelo de demostración. El riesgo es una estimación del modelo; la interpretación final corresponde al docente. El PDF incluye una comparación con el grupo y sugerencias de seguimiento.</p>`;
  $('student-dialog').showModal();
 }
 async function download(url, button){

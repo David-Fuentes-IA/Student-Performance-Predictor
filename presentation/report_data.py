@@ -1,17 +1,21 @@
 """Shared definitions used by the dashboard and both PDF reports."""
-from core.config import DEFAULT_RISK_THRESHOLD
-from core.risk_levels import risk_bands
+from core.config import DEFAULT_PASSING_GRADE, DEFAULT_RISK_THRESHOLD
+from core.risk_levels import FAILING_AVERAGE, HIGH_PREDICTED_RISK, risk_bands
 
 STATUS_LABELS = {'high': 'Alto riesgo', 'medium': 'En observación', 'low': 'Buen camino'}
 
 
-def describe_levels(threshold=DEFAULT_RISK_THRESHOLD):
-    """Spanish description of the risk levels, derived from the configured threshold."""
+ALERT_REASON_LABELS = {FAILING_AVERAGE: 'Promedio reprobatorio', HIGH_PREDICTED_RISK: 'Riesgo estimado alto'}
+
+
+def describe_levels(threshold=DEFAULT_RISK_THRESHOLD, passing_grade=DEFAULT_PASSING_GRADE):
+    """Spanish description of the risk levels, derived from the configured threshold and passing grade."""
     medium_floor, high_floor = risk_bands(threshold)
+    high = (f'alto: promedio menor a {passing_grade / 10:.1f} ({passing_grade:g}/100) '
+            f'o riesgo estimado desde {high_floor:g}')
     if medium_floor >= high_floor:
-        return f'bajo <{high_floor:g}; alto desde {high_floor:g}'
-    return (f'bajo <{medium_floor:g}; observación desde {medium_floor:g} y <{high_floor:g}; '
-            f'alto desde {high_floor:g}')
+        return f'{high}; bajo: el resto'
+    return f'{high}; observación: riesgo estimado desde {medium_floor:g}; bajo: el resto'
 
 
 def summarize(students):

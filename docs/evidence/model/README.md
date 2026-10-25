@@ -120,33 +120,60 @@ grades against 11 % of the caught students. With 5 of 17 cases this is an indica
 the main limit), *noise* in grades and attendance, a *minority class* (27 %), a *small dataset* (600), and, specific to this project,
 *synthetic data* that may not resemble real students.
 
-### Where the biggest gain is: the alert threshold
+### Where the biggest gain is: the alert rule
 
-The figures above cut the score at 50, but **the application raises its Risk Alert at 75** (`RISK_THRESHOLD`, default). Measured
-on the independent set with the chosen model:
+The figures above cut the score at 50, but **until this phase the application raised its Risk Alert only when the model score
+reached 75** (`RISK_THRESHOLD`). Measured on the independent set with the chosen model:
 
 | Flag students with risk score ≥ | Flagged | Precision | Recall (95 % interval) | Missed (FN) | False alarms (FP) |
 |---|---|---|---|---|---|
-| 75 (application default) | 15 % | 0.800 | **0.438** (0.32–0.56) | **36** of 64 | 7 |
+| 75 (the former alert rule) | 15 % | 0.800 | **0.438** (0.32–0.56) | **36** of 64 | 7 |
 | 50 (cut used by the metrics above) | 25 % | 0.770 | 0.734 (0.62–0.83) | 17 | 14 |
-| **35 (recommended)** | 30 % | 0.708 | **0.797** (0.68–0.88) | **13** | 21 |
+| 35 (best model-only point, from CV) | 30 % | 0.708 | **0.797** (0.68–0.88) | **13** | 21 |
 | 15 (maximum F2) | 45 % | 0.528 | 0.891 | 7 | 51 |
 
-At the default threshold the alert system **misses more than half of the students who end up at risk**. The recall
+With the model score alone at 75 the alert system **missed more than half of the students who end up at risk**. The recall
 intervals for 75 and 35 do not overlap, so, unlike the model comparison, this difference is real, and cross-validation shows
 the same shape (`operating_points.png`: the solid curves, computed without the independent set, agree with the dashed ones).
 The recommendation is the lowest threshold whose cross-validated precision stays at or above 0.70 (at most about 3 alerts in 10
-being false alarms), which cross-validation places at **35**. That 0.70 is a **policy assumption** the institution may change;
+being false alarms), which cross-validation places at **35** (for the model score used alone; see the decision below). That 0.70 is a **policy assumption** the institution may change;
 the maximum-F2 point is shown only as a reference because flagging 45 % of a class is not workable.
 
-**This recommendation has not been applied.** Moving the default from 75 to 35 doubles the number of flagged students (15 % to 30 %)
-and changes which students the dashboard calls "Alto riesgo", so it is a decision for the team and the instructor, not a side effect of validation.
+### Decision taken: "Alto riesgo" as a school would define it, plus the model
+
+The team chose the definition a school uses: **a student whose average is failing (below 6.0, i.e. 60/100) is high risk**,
+whatever the model says, and the model adds the students who still pass but score ≥ 75 (`core/risk_levels.py`; both values are
+configurable: `PASSING_GRADE`, `RISK_THRESHOLD`). Alerts, the dashboard's "Alto riesgo", the legend and the PDFs all use this rule,
+and every alert states its reason. Measured (`metrics.json` → `application_rule`):
+
+| "Alto riesgo" rule | CV recall (95 % interval) | CV precision | Independent recall (95 % interval) | Independent precision | Flagged |
+|---|---|---|---|---|---|
+| Model score ≥ 75 alone (before) | 0.527 (0.45–0.60) | 0.897 | **0.438** (0.32–0.56) | 0.800 | 15 % |
+| Failing average alone | 0.709 (0.64–0.77) | 0.812 | 0.719 (0.60–0.81) | 0.793 | 24 % |
+| **Failing average OR score ≥ 75 (applied)** | **0.709** (0.64–0.77) | 0.807 | **0.719** (0.60–0.81) | 0.780 | 25 % |
+
+The applied rule catches **46 of the 64** students who end up at risk instead of 28, with about the same precision. Its recall
+interval does not overlap the old one, so the improvement is real.
+
+What these numbers also show, and must be said: **with the model part at 75, almost all of the gain comes from the school
+criterion.** On the independent set the model adds no extra correct alert to "failing average" (and one false alarm), because in
+this simulation the average grade drives most outcomes and a student the model scores ≥ 75 is nearly always already failing. The model's
+contribution today is the "En observación" band (score ≥ 40) and the ordering of students by risk. Lowering the model part of the rule
+would make it count (`application_rule` → `combined_rule_with_lower_model_threshold`):
+
+| Failing average OR score ≥ … | CV recall | CV precision | Independent recall | Independent precision |
+|---|---|---|---|---|
+| 60 | 0.739 | 0.813 | 0.766 | 0.778 |
+| 50 | 0.770 | 0.804 | 0.781 | 0.746 |
+
+That is a further decision for the team; the default stays at 75.
 
 ### Proposed improvements
 
 | Improvement | Problem it addresses | Metric that should improve | Status |
 |---|---|---|---|
-| Lower the alert threshold from 75 to about 35 | 36 of 64 at-risk students missed at 75 | recall 0.44 → 0.80 (measured), at precision 0.80 → 0.71 | measured, **not applied** |
+| "Alto riesgo" = failing average OR model score ≥ 75 | 36 of 64 at-risk students missed with the model score alone at 75 | recall 0.44 → 0.72 (measured), precision 0.80 → 0.78 | **applied** |
+| Lower the model part of the rule to about 50–60 | at 75 the model adds nothing beyond the school criterion | recall to about 0.77–0.78 (measured separately), precision about 0.75–0.78 | measured, not applied |
 | Features that capture recent change better (last partial grade, lowest grade, missing partials) | the trend is barely used; 26 % of sharply declining students are missed | recall among students with a sharp decline (now 74 % caught) | proposal, **not implemented** |
 | Flag students with fewer than 3 partials as "insufficient data" for teacher review instead of scoring them | 29 % of false negatives have incomplete grades | share of false negatives among incomplete records | proposal, not implemented |
 | Re-run this script on real historical data and review the threshold each term | everything here uses synthetic students | all of them | needs institutional data |

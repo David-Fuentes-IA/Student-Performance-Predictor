@@ -1,6 +1,13 @@
 import unittest
 
-from core.risk_levels import label_for, risk_bands
+from core.risk_levels import (
+    FAILING_AVERAGE,
+    HIGH_PREDICTED_RISK,
+    alert_reasons,
+    is_failing,
+    label_for,
+    risk_bands,
+)
 from feature_store.feature_manager import FeatureVector
 from inference_engine.risk_predictor import (
     LogisticRegressionRiskEngine,
@@ -38,11 +45,48 @@ class LabelTests(unittest.TestCase):
         self.assertEqual(risk_bands(30), (30, 30))
         self.assertEqual([label_for(s, 30) for s in (10, 29.9, 30, 90)], ["low", "low", "high", "high"])
 
-    def test_level_description_is_derived_from_the_threshold(self):
-        self.assertEqual(describe_levels(75), "bajo <40; observación desde 40 y <75; alto desde 75")
-        self.assertEqual(describe_levels(90), "bajo <40; observación desde 40 y <90; alto desde 90")
-        self.assertEqual(describe_levels(82.5), "bajo <40; observación desde 40 y <82.5; alto desde 82.5")
-        self.assertEqual(describe_levels(30), "bajo <30; alto desde 30")
+    def test_level_description_is_derived_from_the_threshold_and_passing_grade(self):
+        self.assertEqual(describe_levels(75), "alto: promedio menor a 6.0 (60/100) o riesgo estimado desde 75; "
+                                              "observación: riesgo estimado desde 40; bajo: el resto")
+        self.assertIn("riesgo estimado desde 82.5", describe_levels(82.5))
+        self.assertEqual(describe_levels(30), "alto: promedio menor a 6.0 (60/100) o riesgo estimado desde 30; "
+                                              "bajo: el resto")
+        self.assertIn("promedio menor a 7.0 (70/100)", describe_levels(75, 70))
+
+
+class SchoolRuleTests(unittest.TestCase):
+    """High risk also means 'failing average', as a school would say (below 6.0 = 60/100)."""
+
+    def test_a_failing_average_is_high_risk_whatever_the_model_says(self):
+        self.assertEqual(label_for(3.0, 75, average_grade=59.9), "high")
+        self.assertEqual(label_for(3.0, 75, average_grade=0), "high")
+
+    def test_the_passing_grade_itself_is_not_failing(self):
+        self.assertEqual(label_for(3.0, 75, average_grade=60.0), "low")
+        self.assertEqual(label_for(50.0, 75, average_grade=60.0), "medium")
+
+    def test_without_an_average_only_the_model_score_counts(self):
+        self.assertEqual(label_for(3.0, 75), "low")
+        self.assertEqual(label_for(80.0, 75), "high")
+
+    def test_the_passing_grade_is_configurable(self):
+        self.assertEqual(label_for(3.0, 75, average_grade=65, passing_grade=70), "high")
+        self.assertEqual(label_for(3.0, 75, average_grade=65, passing_grade=60), "low")
+
+    def test_alert_reasons_say_why(self):
+        self.assertEqual(alert_reasons(10, 75, 55), [FAILING_AVERAGE])
+        self.assertEqual(alert_reasons(90, 75, 80), [HIGH_PREDICTED_RISK])
+        self.assertEqual(alert_reasons(90, 75, 40), [FAILING_AVERAGE, HIGH_PREDICTED_RISK])
+        self.assertEqual(alert_reasons(10, 75, 80), [])
+        self.assertTrue(is_failing(59.99) and not is_failing(60) and not is_failing(None))
+
+    def test_engines_apply_the_school_rule_through_the_factory(self):
+        failing = FeatureVector("S9", 45.0, 0.0, 90.0, 80.0)
+        low_score_model = FixedProbabilityModel(0.05)
+        self.assertEqual(create_risk_engine("logistic_regression", trained_model=low_score_model)
+                         .predict_risk(failing).risk_label, "high")
+        lenient = create_risk_engine("logistic_regression", trained_model=low_score_model, passing_grade=40)
+        self.assertEqual(lenient.predict_risk(failing).risk_label, "low")
 
 
 class EngineThresholdTests(unittest.TestCase):

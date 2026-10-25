@@ -51,6 +51,7 @@ class RiskEvent:
     risk_score: float       # 0-100
     threshold: float        # threshold that was in effect at prediction time
     timestamp: str = None   # set automatically if not provided
+    below_passing_grade: bool = False   # the student's average is already failing (no grades, only the flag)
 
     def __post_init__(self):
         if self.timestamp is None:
@@ -59,6 +60,11 @@ class RiskEvent:
     @property
     def exceeds_threshold(self) -> bool:
         return self.risk_score >= self.threshold
+
+    @property
+    def requires_alert(self) -> bool:
+        """High risk = failing average OR model score at/above the threshold (core/risk_levels.py)."""
+        return self.below_passing_grade or self.exceeds_threshold
 
 
 class RiskObserver(ABC):
@@ -100,21 +106,23 @@ class RiskEventPublisher:
 
 class RiskAlertObserver(RiskObserver):
     """
-    'Risk Alert' instance (FR-5). Only acts when the event crosses the
-    threshold, and only *notifies* - the actual intervention is always a
-    human decision (DR-2).
+    'Risk Alert' instance (FR-5). Only acts for high-risk students (failing
+    average or score at/above the threshold), and only *notifies* - the actual
+    intervention is always a human decision (DR-2).
     """
 
     def update(self, event: RiskEvent) -> None:
-        if not event.exceeds_threshold:
+        if not event.requires_alert:
             return
+        reasons = [text for flag, text in ((event.below_passing_grade, "failing average"),
+                                           (event.exceeds_threshold, "risk score at/above threshold")) if flag]
         # In production this would call the Notification Service (email/
         # SMS/push to the teacher and academic tutor). For this milestone
         # we log the alert so the workflow is visible end to end.
         logger.warning(
-            "RISK ALERT | group=%s student_ref=%s score=%.1f (threshold=%.1f) "
+            "RISK ALERT | group=%s student_ref=%s score=%.1f (threshold=%.1f) reason=%s "
             "-> teacher and academic tutor notified for review",
-            event.group_id, event.student_ref, event.risk_score, event.threshold,
+            event.group_id, event.student_ref, event.risk_score, event.threshold, " + ".join(reasons),
         )
 
 

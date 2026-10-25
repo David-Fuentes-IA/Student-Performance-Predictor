@@ -6,7 +6,7 @@
 Every number below comes from `summary.json`, produced by one command (about 5 minutes, Docker Desktop running):
 
 ```bash
-python scripts/collect_docker_evidence.py              # add --skip-build to reuse the image
+python scripts/collect_docker_evidence.py --cold       # --cold measures a first build; omit it to reuse the cache
 ```
 
 > It runs `docker compose down -v` first, which deletes the compose project's own database volume. Your separate

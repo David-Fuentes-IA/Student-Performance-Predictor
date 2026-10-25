@@ -47,6 +47,11 @@ class StartupFailureTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("RISK_THRESHOLD", result.stderr)
 
+    def test_invalid_passing_grade_stops_the_app_and_names_the_variable(self):
+        result = start_app(PASSING_GRADE="seis")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("PASSING_GRADE", result.stderr)
+
     def test_a_configured_but_unreachable_database_stops_the_app_instead_of_serving_fake_data(self):
         # Found in Docker: the container restarted while MongoDB was down, fell back to demo data
         # and kept serving fake students for good, even after MongoDB came back.

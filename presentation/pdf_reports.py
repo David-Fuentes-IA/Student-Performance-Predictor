@@ -18,8 +18,9 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from core.config import DEFAULT_RISK_THRESHOLD
+from core.config import DEFAULT_PASSING_GRADE, DEFAULT_RISK_THRESHOLD
 from presentation.report_data import (
+    ALERT_REASON_LABELS,
     STATUS_LABELS,
     describe_levels,
     recommendations,
@@ -86,10 +87,13 @@ def document(title, group_id, content):
     return output.getvalue()
 
 
-def build_student_report(group_id, student, summary, threshold=DEFAULT_RISK_THRESHOLD):
+def build_student_report(group_id, student, summary, threshold=DEFAULT_RISK_THRESHOLD,
+                         passing_grade=DEFAULT_PASSING_GRADE):
     s = student
     body = [para(s['name'], 'Heading2'), para(f"Matrícula: {s['student_id']}"),
             para(f"Riesgo estimado: {s['risk_score']:.1f}/100 | {STATUS_LABELS[s['risk_label']]}"),
+            *([para("Motivo de la alerta: " + ", ".join(ALERT_REASON_LABELS[r] for r in s["alert_reasons"]))]
+              if s.get("alert_reasons") else []),
             table([['Indicador', 'Alumno', 'Promedio del grupo'],
                    ['Calificación promedio (0-100)', f"{s['average_grade']:.2f}", f"{summary['average_grade']:.2f}"],
                    ['Asistencia', f"{s['attendance_pct']:.1f}%", f"{summary['attendance_pct']:.1f}%"],
@@ -100,12 +104,12 @@ def build_student_report(group_id, student, summary, threshold=DEFAULT_RISK_THRE
             para('Sugerencias de seguimiento', 'Heading2')]
     body += [para(f'{i+1}. {action}') for i, action in enumerate(recommendations(s))]
     body += [para('Estas sugerencias se basan en los indicadores observados; no explican causalmente la predicción. '
-                  f'Niveles del modelo: {describe_levels(threshold)}. '
+                  f'Niveles: {describe_levels(threshold, passing_grade)}. '
                   'La interpretación final corresponde al docente.', 'SmallNote')]
     return document('Reporte individual', group_id, body)
 
 
-def build_group_report(group_id, students, threshold=DEFAULT_RISK_THRESHOLD):
+def build_group_report(group_id, students, threshold=DEFAULT_RISK_THRESHOLD, passing_grade=DEFAULT_PASSING_GRADE):
     summary = summarize(students)
     n = summary['total']
     body = [para('Resumen de todo el grupo', 'Heading2'),
@@ -130,5 +134,5 @@ def build_group_report(group_id, students, threshold=DEFAULT_RISK_THRESHOLD):
                  f"dar seguimiento a {summary['counts']['medium']} en observación. "
                  'Contrastar los indicadores con el contexto de cada alumno antes de decidir acciones.'),
             para('Los promedios son medias aritméticas por alumno; cada registro usa los alumnos que lo tienen disponible. Niveles de riesgo: '
-                 f'{describe_levels(threshold)}. El puntaje de riesgo no mide directamente el rendimiento.', 'SmallNote')]
+                 f'{describe_levels(threshold, passing_grade)}. El puntaje de riesgo no mide directamente el rendimiento.', 'SmallNote')]
     return document('Reporte de rendimiento grupal', group_id, body)

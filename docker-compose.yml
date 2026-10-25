@@ -37,6 +37,7 @@ services:
       MONGODB_DB: ${MONGODB_DB:-student_predictor}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
       RISK_THRESHOLD: ${RISK_THRESHOLD:-75}
+      PASSING_GRADE: ${PASSING_GRADE:-60}
       SEED_DEMO: ${SEED_DEMO:-true}
 
 volumes:
