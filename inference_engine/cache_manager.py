@@ -48,36 +48,37 @@ class RiskPredictionDecoratorBase(IRiskPredictionEngine, ABC):
         self._wrappee = wrappee
 
     def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
-        return self._wrappee.predict_risk(feature_vector)
+        return self.predict_many([feature_vector])[0]
+
+    def predict_many(self, feature_vectors: list[FeatureVector]) -> list[RiskResult]:
+        return self._wrappee.predict_many(feature_vectors)
 
 
 class AuditDecorator(RiskPredictionDecoratorBase):
     """
     Wraps an IRiskPredictionEngine to record the audit history - exactly
     the responsibility Figure 5 assigns to AuditDecorator. Every time the
-    wrapped engine actually runs, this writes one audit-trail line before
-    returning the result, independent of anything the Observer side does.
+    wrapped engine actually runs, this writes one audit-trail line per
+    student before returning the results, independent of the Observer side.
+    `latency_ms` is the duration of the engine call that produced the score
+    (one call for the whole batch).
     """
 
     def __init__(self, wrappee: IRiskPredictionEngine, model_version: str = "unknown") -> None:
         super().__init__(wrappee)
         self._model_version = model_version
 
-    def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
+    def predict_many(self, feature_vectors: list[FeatureVector]) -> list[RiskResult]:
         started = time.perf_counter()
-        result = self._wrappee.predict_risk(feature_vector)
+        results = self._wrappee.predict_many(feature_vectors)
         latency_ms = (time.perf_counter() - started) * 1000
-
-        logger.info(
-            "AUDIT-TRAIL | engine=%s model_version=%s student_ref=%s score=%.1f latency_ms=%.2f at=%s",
-            type(self._wrappee).__name__,
-            self._model_version,
-            result.student_ref,
-            result.risk_score,
-            latency_ms,
-            datetime.now(timezone.utc).isoformat(),
-        )
-        return result
+        engine, at = type(self._wrappee).__name__, datetime.now(timezone.utc).isoformat()
+        for result in results:
+            logger.info(
+                "AUDIT-TRAIL | engine=%s model_version=%s student_ref=%s score=%.1f latency_ms=%.2f batch=%d at=%s",
+                engine, self._model_version, result.student_ref, result.risk_score, latency_ms, len(results), at,
+            )
+        return results
 
 
 class CachingDecorator(RiskPredictionDecoratorBase):
@@ -89,6 +90,8 @@ class CachingDecorator(RiskPredictionDecoratorBase):
     attendance, participation), not just the student id: if an Excel import or
     an admin edit changes a student's data, the key changes and a fresh
     prediction is computed immediately instead of serving a stale score.
+    For a group, only the students missing from the cache reach the engine,
+    in a single batch.
     """
 
     _MAX_ENTRIES = 10_000
@@ -97,23 +100,27 @@ class CachingDecorator(RiskPredictionDecoratorBase):
         super().__init__(wrappee)
         self._cache: dict[FeatureVector, tuple[RiskResult, float]] = {}
 
-    def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
-        entry = self._cache.get(feature_vector)
-        if entry is not None:
-            result, cached_at = entry
-            age = time.monotonic() - cached_at
-            if age < _TTL_SECONDS:
-                logger.info(
-                    "Cache hit for %s (age=%.1fs / TTL=%ds)",
-                    feature_vector.student_ref, age, _TTL_SECONDS,
-                )
-                return result
-            logger.debug("Cache expired for %s (age=%.1fs)", feature_vector.student_ref, age)
+    def predict_many(self, feature_vectors: list[FeatureVector]) -> list[RiskResult]:
+        results: list[RiskResult | None] = [None] * len(feature_vectors)
+        misses = []
+        for position, vector in enumerate(feature_vectors):
+            entry = self._cache.get(vector)
+            if entry is not None and time.monotonic() - entry[1] < _TTL_SECONDS:
+                results[position] = entry[0]
+            else:
+                misses.append(position)
 
-        result = self._wrappee.predict_risk(feature_vector)
-        self._evict_if_full()
-        self._cache[feature_vector] = (result, time.monotonic())
-        return result
+        hits = len(feature_vectors) - len(misses)
+        if hits:
+            logger.info("Cache hit for %d of %d students (TTL=%ds)", hits, len(feature_vectors), _TTL_SECONDS)
+        if misses:
+            fresh = self._wrappee.predict_many([feature_vectors[p] for p in misses])
+            stored_at = time.monotonic()
+            for position, result in zip(misses, fresh, strict=True):
+                results[position] = result
+                self._evict_if_full()
+                self._cache[feature_vectors[position]] = (result, stored_at)
+        return results
 
     def _evict_if_full(self) -> None:
         if len(self._cache) < self._MAX_ENTRIES:

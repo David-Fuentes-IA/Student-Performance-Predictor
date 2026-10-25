@@ -139,9 +139,59 @@ jobs:
         if: always()
         run: docker compose down -v
 
+  kubernetes:
+    name: "4b. Kubernetes: deploy to a throw-away cluster, smoke test, self-healing"
+    needs: container
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NS: student-predictor
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create a throw-away Kubernetes cluster (kind)
+        uses: helm/kind-action@v1
+        with:
+          cluster_name: spp
+      - name: Build the image and load it into the cluster
+        run: |
+          docker build -t student-performance-predictor:ci .
+          kind load docker-image student-performance-predictor:ci --name spp
+      - name: Deploy the database (development manifest), the Secret and the application
+        run: |
+          kubectl apply -f k8s/namespace.yaml
+          kubectl -n "$NS" create secret generic spp-secrets --from-literal=MONGODB_URI=mongodb://mongo:27017 --from-literal=ADMIN_PASSWORD=
+          kubectl apply -f k8s/mongodb-dev.yaml
+          kubectl -n "$NS" rollout status statefulset/mongo --timeout=240s
+          kubectl apply -f k8s/app.yaml
+          kubectl -n "$NS" set image deployment/spp-app app=student-performance-predictor:ci
+          kubectl -n "$NS" set env deployment/spp-app SEED_DEMO=true
+          kubectl -n "$NS" rollout status deployment/spp-app --timeout=300s
+      - name: Smoke test through the Service
+        run: |
+          kubectl -n "$NS" port-forward service/spp-app 8080:80 > /tmp/port-forward.log 2>&1 &
+          python3 scripts/smoke_test.py http://localhost:8080 --expect-groups 3 --timeout 120
+      - name: Self-healing - delete a Pod, the Deployment must replace it
+        run: |
+          POD=$(kubectl -n "$NS" get pods -l app=spp-app -o jsonpath='{.items[0].metadata.name}')
+          kubectl -n "$NS" delete pod "$POD" --wait=false
+          START=$(date +%s)
+          for i in $(seq 1 90); do
+            READY=$(kubectl -n "$NS" get deployment spp-app -o jsonpath='{.status.readyReplicas}')
+            if [ "$READY" = "2" ] && ! kubectl -n "$NS" get pod "$POD" > /dev/null 2>&1; then break; fi
+            sleep 2
+          done
+          echo "deleted $POD; ready replicas back to $READY after $(( $(date +%s) - START )) s"
+          test "$READY" = "2"
+      - name: Cluster state
+        if: always()
+        run: |
+          kubectl -n "$NS" get deployment,statefulset,pods,service,hpa -o wide
+          kubectl -n "$NS" describe deployment spp-app | tail -n 25
+          kubectl -n "$NS" logs deployment/spp-app --tail=30
+
   deliver:
     name: "5. Deliver: publish the image to GitHub Container Registry"
-    needs: container
+    needs: [container, kubernetes]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'    # only verified code on main is delivered
     runs-on: ubuntu-latest
     timeout-minutes: 20

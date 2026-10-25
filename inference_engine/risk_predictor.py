@@ -18,6 +18,8 @@ Design note (traceability: Strategy + Factory, §5; DIP §6.3; FR-4, FR-8):
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+import numpy as np
+
 from core.config import DEFAULT_PASSING_GRADE, DEFAULT_RISK_THRESHOLD
 from core.exception_handler import PredictionEngineError
 from core.logger import get_logger
@@ -42,21 +44,25 @@ class IRiskPredictionEngine(ABC):
     def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
         raise NotImplementedError
 
+    def predict_many(self, feature_vectors: list[FeatureVector]) -> list[RiskResult]:
+        """Predictions for a whole group, in order. The default asks one student at a time;
+        engines that can (scikit-learn models) override it with one batch call."""
+        return [self.predict_risk(vector) for vector in feature_vectors]
 
-class RandomForestRiskEngine(IRiskPredictionEngine):
+
+class _ProbabilisticRiskEngine(IRiskPredictionEngine):
     """
-    Concrete strategy backed by a scikit-learn RandomForestClassifier.
+    Shared implementation for engines backed by a scikit-learn classifier with predict_proba.
 
-    The trained model is injected in the constructor rather than trained
-    here - this class's one job is running inference, not training
-    (SRP; training lives in learning_module.model_trainer).
+    The trained model is injected in the constructor rather than trained here - this class's one
+    job is running inference, not training (SRP; training lives in learning_module.model_trainer).
     """
 
     def __init__(self, trained_model, risk_threshold: float = DEFAULT_RISK_THRESHOLD,
                  passing_grade: float = DEFAULT_PASSING_GRADE) -> None:
         if trained_model is None:
             raise PredictionEngineError(
-                "RandomForestRiskEngine created without a trained model",
+                f"{type(self).__name__} created without a trained model",
                 user_message="The prediction model is not available right now.",
             )
         self._model = trained_model
@@ -64,61 +70,40 @@ class RandomForestRiskEngine(IRiskPredictionEngine):
         self._passing_grade = passing_grade
 
     def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
+        return self.predict_many([feature_vector])[0]
+
+    def predict_many(self, feature_vectors: list[FeatureVector]) -> list[RiskResult]:
+        if not feature_vectors:
+            return []
         try:
-            # predict_proba returns [P(not at risk), P(at risk)]; we report
-            # the "at risk" probability as a 0-100 risk score.
-            probability_at_risk = self._model.predict_proba(
-                [feature_vector.as_model_input()]
-            )[0][1]
+            # predict_proba returns [P(not at risk), P(at risk)] per row; one call for the whole group
+            # is ~100x faster than one call per student (docs/evidence/performance).
+            rows = [v.as_model_input() for v in feature_vectors]
+            probabilities = np.asarray(self._model.predict_proba(rows), dtype=float)[:, 1]
         except Exception as exc:  # noqa: BLE001
+            refs = ", ".join(v.student_ref for v in feature_vectors[:5])
             raise PredictionEngineError(
-                f"model inference failed for {feature_vector.student_ref}: {exc}",
+                f"{type(self).__name__} inference failed for {refs}: {exc}",
                 user_message="Could not compute a risk score for one or more students.",
             ) from exc
 
-        score = round(probability_at_risk * 100, 1)
-        return RiskResult(
-            student_ref=feature_vector.student_ref,
-            risk_score=score,
-            risk_label=label_for(score, self._risk_threshold, feature_vector.average_grade, self._passing_grade),
-        )
+        results = []
+        for vector, probability in zip(feature_vectors, probabilities, strict=True):
+            score = round(float(probability) * 100, 1)
+            results.append(RiskResult(
+                student_ref=vector.student_ref,
+                risk_score=score,
+                risk_label=label_for(score, self._risk_threshold, vector.average_grade, self._passing_grade),
+            ))
+        return results
 
 
-class LogisticRegressionRiskEngine(IRiskPredictionEngine):
-    """
-    Second concrete strategy backed by a scikit-learn LogisticRegression
-    model. Injecting the trained model keeps SRP: this class only runs
-    inference; training lives in learning_module.model_trainer.
-    """
+class RandomForestRiskEngine(_ProbabilisticRiskEngine):
+    """Concrete strategy backed by a scikit-learn RandomForestClassifier."""
 
-    def __init__(self, trained_model, risk_threshold: float = DEFAULT_RISK_THRESHOLD,
-                 passing_grade: float = DEFAULT_PASSING_GRADE) -> None:
-        if trained_model is None:
-            raise PredictionEngineError(
-                "LogisticRegressionRiskEngine created without a trained model",
-                user_message="The prediction model is not available right now.",
-            )
-        self._model = trained_model
-        self._risk_threshold = risk_threshold
-        self._passing_grade = passing_grade
 
-    def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
-        try:
-            probability_at_risk = self._model.predict_proba(
-                [feature_vector.as_model_input()]
-            )[0][1]
-        except Exception as exc:  # noqa: BLE001
-            raise PredictionEngineError(
-                f"logistic regression inference failed for {feature_vector.student_ref}: {exc}",
-                user_message="Could not compute a risk score for one or more students.",
-            ) from exc
-
-        score = round(probability_at_risk * 100, 1)
-        return RiskResult(
-            student_ref=feature_vector.student_ref,
-            risk_score=score,
-            risk_label=label_for(score, self._risk_threshold, feature_vector.average_grade, self._passing_grade),
-        )
+class LogisticRegressionRiskEngine(_ProbabilisticRiskEngine):
+    """Concrete strategy backed by a scikit-learn LogisticRegression (the validated default)."""
 
 
 def create_risk_engine(engine_type: str, **kwargs) -> IRiskPredictionEngine:
@@ -137,7 +122,7 @@ def create_risk_engine(engine_type: str, **kwargs) -> IRiskPredictionEngine:
 
     if engine_type == "logistic_regression":
         return LogisticRegressionRiskEngine(trained_model=kwargs.get("trained_model"), risk_threshold=risk_threshold,
-                                      passing_grade=passing_grade)
+                                            passing_grade=passing_grade)
 
     raise PredictionEngineError(
         f"Unknown engine_type '{engine_type}' requested from create_risk_engine",

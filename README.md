@@ -196,12 +196,18 @@ $env:MONGODB_TEST_URI="mongodb://localhost:27018"; venv\Scripts\python.exe -m py
 | `python scripts/evaluate_models.py` | `docs/evidence/model/`: cross-validation, confusion matrices, error list, fairness audit |
 | `python scripts/evaluate_models.py --gate` | quality gate: fails if recall, precision or F1 fall below their minimum |
 | `python scripts/collect_docker_evidence.py` | `docs/evidence/docker/`: image, start-up, persistence and failure drills |
+| `python scripts/benchmark.py` | `docs/evidence/performance/`: latency, throughput, container resources, time per stage |
 | `python scripts/smoke_test.py http://localhost:8000` | end-to-end check of a running instance |
 | `python scripts/build_evaluation_dataset.py --check` | verifies `data/grupo_evaluacion.xlsx` against the simulator |
 
 Every push runs all of this automatically on GitHub (`.github/workflows/ci.yml`): build and lint, the whole test suite against a
-real MongoDB, the model quality gate, and the container smoke test, in that order; a failing stage stops the pipeline. Pushes to
-`main` then publish the image to GitHub Container Registry. Details: [docs/evidence/cicd](docs/evidence/cicd/README.md).
+real MongoDB, the model quality gate, the container smoke test, and a deployment to a throw-away Kubernetes cluster (kind), in
+that order; a failing stage stops the pipeline. Pushes to `main` then publish the image to GitHub Container Registry. Details:
+[docs/evidence/cicd](docs/evidence/cicd/README.md), [k8s/README.md](k8s/README.md).
+
+Performance (10 concurrent users, group of 50): p95 76 ms, about 200 requests per second from one container, against a
+requirement of 10 s. How it was measured, the bottleneck found and the optimisations:
+[docs/evidence/performance](docs/evidence/performance/README.md).
 
 ---
 
@@ -243,8 +249,9 @@ core/            configuration, logging (PII-safe), exceptions, Observer, risk l
 
 **AI workflow** for one report (main_api.py):
 1. validate the request · 2. authorize the teacher (*not implemented: there is no login yet*) · 3. read the group ·
-4. reject invalid records (Fail-Fast) · 5. build feature vectors (no names: DR-1) · 6. predict (Strategy + Decorators) ·
-7. notify observers (alerts) · 8. store the prediction (best effort, NFR-5) · 9. render the dashboard, PDF or text report.
+4. reject invalid records (Fail-Fast) · 5. build feature vectors (no names: DR-1) · 6. predict the whole group in one call
+(Strategy + Decorators) · 7. notify observers (alerts) · 8. store the predictions in one batch (best effort, NFR-5) ·
+9. render the dashboard, PDF or text report.
 
 ### Project structure
 
@@ -264,8 +271,9 @@ core/            configuration, logging (PII-safe), exceptions, Observer, risk l
 ├── data/                         grupo_evaluacion.xlsx: fixed evaluation group (240 synthetic students)
 ├── scripts/                      train, seed, evaluate, evidence collection, smoke test, dataset builder, migration
 ├── tests/                        unit/, integration/, system/, performance/
-├── docs/                         DATABASE.md and evidence/ (testing, model, docker)
+├── docs/                         DATABASE.md and evidence/ (testing, model, docker, cicd, performance)
 ├── Dockerfile, docker-compose.yml, docker/entrypoint.sh, .dockerignore
+├── k8s/                          Kubernetes manifests (namespace, app, secret template, development MongoDB)
 └── api/index.py, vercel.json     Vercel entry point (exports the same application; not verified in this milestone)
 ```
 
@@ -305,8 +313,10 @@ core/            configuration, logging (PII-safe), exceptions, Observer, risk l
 | MongoDB and demo repositories, schema validation | sending alerts to teachers (only logged now) |
 | two models, validation, error analysis, fairness audit, quality gate | real institutional data |
 | 4-level test suite, memory profiling, reproducible evidence | publishing the image (configured for `main`, not exercised yet) |
-| Docker image and compose, health and readiness probes | Kubernetes manifests and performance benchmarks (in progress) |
-| CI/CD on GitHub Actions: lint, tests with MongoDB, quality gate, container smoke test | |
+| Docker image and compose, health and readiness probes | autoscaling verified under load (the HPA is only checked statically) |
+| Kubernetes manifests, deployed and self-healing checked in CI | a shared prediction cache between replicas |
+| performance benchmark, bottleneck analysis, batch inference and batch storage | |
+| CI/CD on GitHub Actions: lint, tests with MongoDB, quality gate, container smoke test, Kubernetes deployment | |
 | | Vercel deployment (configuration present, not verified) |
 
 ## 10. Known limitations

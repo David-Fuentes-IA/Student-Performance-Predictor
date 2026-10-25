@@ -114,22 +114,23 @@ def _run_risk_workflow(group_id: str, requesting_teacher: str):
     can't drift apart and produce different numbers for the same group -
     there is exactly one place this computation happens (SRP).
 
-    Returns (results, name_lookup) - never a name is left inside the
+    Returns (results, name_lookup, group) - never a name is left inside the
     result objects themselves (DR-1).
     """
     # Steps 1-2: validate and authorize request.
     _validate_request(group_id, requesting_teacher)
 
-    # Steps 3-5: retrieve data and run it through the ETL/Fail-Fast pipeline.
-    feature_vectors = _etl.process_group(group_id)
+    # Step 3: read the group ONCE; every later step works on this same snapshot.
+    group = _repository.get_group(group_id)
 
-    # Steps 6-8: execute IRiskPredictionEngine, notify observers, persist.
-    results = []
-    for feature_vector in feature_vectors:
-        result = _engine.predict_risk(feature_vector)
-        results.append(result)
+    # Steps 4-5: Fail-Fast validation and feature extraction.
+    feature_vectors = _etl.process(group)
 
-        # Step 7: notify observers (RiskAlertObserver + ModelMonitoringObserver).
+    # Step 6: one batch call through the Strategy and its Decorators (cache, audit).
+    results = _engine.predict_many(feature_vectors)
+
+    # Step 7: notify observers (RiskAlertObserver + ModelMonitoringObserver).
+    for feature_vector, result in zip(feature_vectors, results, strict=True):
         _publisher.notify_all(
             RiskEvent(
                 group_id=group_id,
@@ -140,16 +141,15 @@ def _run_risk_workflow(group_id: str, requesting_teacher: str):
             )
         )
 
-        # Step 8: persist the prediction. Best effort (NFR-5): if the secondary
-        # store fails, the report is still produced.
-        try:
-            _repository.save_prediction(result.student_ref, result.risk_score, result.risk_label)
-        except Exception as exc:  # noqa: BLE001 - isolation boundary
-            logger.warning("Prediction for %s could not be persisted: %s", result.student_ref, type(exc).__name__)
+    # Step 8: persist all predictions in one call. Best effort (NFR-5): if the
+    # secondary store fails, the report is still produced.
+    try:
+        _repository.save_predictions([(r.student_ref, r.risk_score, r.risk_label) for r in results])
+    except Exception as exc:  # noqa: BLE001 - isolation boundary
+        logger.warning("Predictions for group %s could not be persisted: %s", group_id, type(exc).__name__)
 
-    group = _repository.get_group(group_id)
     name_lookup = {s.student_id: s.name for s in group.students}
-    return results, name_lookup
+    return results, name_lookup, group
 
 
 @handle_errors
@@ -158,8 +158,8 @@ def generate_group_risk_report(
     requesting_teacher: str = "demo_teacher",
 ) -> str:
     """Run the full workflow in Figure 7 and return the rendered text report."""
-    results, name_lookup = _run_risk_workflow(group_id, requesting_teacher)
-    # Step 6: build the report. Names are looked up here, in the
+    results, name_lookup, _ = _run_risk_workflow(group_id, requesting_teacher)
+    # Step 9: build the report. Names are looked up here, in the
     # Presentation layer's data source - the AI layer never saw them.
     return TeacherReportUI.render_group_report(group_id, results, name_lookup)
 
@@ -181,8 +181,8 @@ def get_group_dashboard_data(
     student's data, "risk_score", "risk_label" and "alert_reasons" (why the student
     is high risk: "failing_average" and/or "high_predicted_risk").
     """
-    results, name_lookup = _run_risk_workflow(group_id, requesting_teacher)
-    records = {s.student_id: s for s in _repository.get_group(group_id).students}
+    results, name_lookup, group = _run_risk_workflow(group_id, requesting_teacher)
+    records = {s.student_id: s for s in group.students}
     ordered = sorted(results, key=lambda r: r.risk_score, reverse=True)
     return [
         {

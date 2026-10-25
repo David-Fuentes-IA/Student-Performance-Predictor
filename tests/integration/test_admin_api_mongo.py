@@ -111,3 +111,14 @@ class AdminPasswordTests(MongoAppTestCase):
         with patch.dict(os.environ, {"ADMIN_PASSWORD": ""}):
             self.assertEqual(self.client.get("/admin/api/groups").status_code, 200)
             self.assertFalse(self.client.get("/admin/api/auth-required").get_json()["required"])
+
+
+class PredictionPersistenceTests(MongoAppTestCase):
+    def test_a_dashboard_request_stores_every_prediction_in_one_round_trip(self):
+        self.client.post("/admin/api/seed", json={"count": 30})
+        before = self.db["predictions"].count_documents({})
+        with patch.object(self.repo, "save_predictions", wraps=self.repo.save_predictions) as writes:
+            students = self.client.get("/api/groups/301-A").get_json()["students"]
+        self.assertEqual(writes.call_count, 1)
+        self.assertEqual(self.db["predictions"].count_documents({}) - before, len(students))
+

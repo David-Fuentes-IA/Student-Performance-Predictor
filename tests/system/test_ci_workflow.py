@@ -26,10 +26,18 @@ class PipelineShapeTests(unittest.TestCase):
 
     def test_stages_follow_the_course_order_and_each_needs_the_previous_one(self):
         chain = [("test", "build"), ("model-validation", "test"), ("container", "model-validation"),
-                 ("deliver", "container")]
+                 ("kubernetes", "container"), ("deliver", "container"), ("deliver", "kubernetes")]
         for job, previous in chain:
-            with self.subTest(job):
-                self.assertRegex(job_block(self.text, job), rf"needs:\s*{re.escape(previous)}\b")
+            with self.subTest(job=job, needs=previous):
+                needs = re.search(r"needs:\s*(\[[^\]]*\]|\S+)", job_block(self.text, job)).group(1)
+                self.assertIn(previous, re.findall(r"[a-z][a-z0-9-]*", needs))
+
+    def test_kubernetes_manifests_are_deployed_and_self_healing_is_checked(self):
+        k8s = job_block(self.text, "kubernetes")
+        self.assertIn("kubectl apply -f k8s/app.yaml", k8s)
+        self.assertIn("rollout status deployment/spp-app", k8s)
+        self.assertIn("scripts/smoke_test.py", k8s)
+        self.assertIn("delete pod", k8s)
 
     def test_build_stage_lints_and_trains(self):
         build = job_block(self.text, "build")

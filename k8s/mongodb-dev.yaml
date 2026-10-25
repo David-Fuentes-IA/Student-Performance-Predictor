@@ -1,0 +1,51 @@
+# DEVELOPMENT / CI ONLY: a single MongoDB inside the cluster, so the application can be tried on a local
+# or throw-away cluster. A real deployment uses a managed, backed-up database (MongoDB Atlas) and does not
+# apply this file.
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: student-predictor
+spec:
+  clusterIP: None                   # headless: stable DNS name mongo-0.mongo for the StatefulSet's Pod
+  selector: {app: mongo}
+  ports:
+    - {name: mongo, port: 27017}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo
+  namespace: student-predictor
+spec:
+  serviceName: mongo
+  replicas: 1
+  selector:
+    matchLabels: {app: mongo}
+  template:
+    metadata:
+      labels: {app: mongo}
+    spec:
+      containers:
+        - name: mongo
+          image: mongo:7
+          ports:
+            - {name: mongo, containerPort: 27017}
+          readinessProbe:
+            exec:
+              command: ["mongosh", "--quiet", "--eval", "db.adminCommand({ping: 1}).ok"]
+            periodSeconds: 10
+            timeoutSeconds: 5
+          resources:
+            requests: {cpu: 100m, memory: 256Mi}
+            limits: {memory: 1Gi}
+          volumeMounts:
+            - {name: data, mountPath: /data/db}
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: [ReadWriteOnce]
+        resources:
+          requests: {storage: 1Gi}

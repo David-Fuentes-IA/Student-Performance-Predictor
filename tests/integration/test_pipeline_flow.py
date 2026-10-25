@@ -87,29 +87,47 @@ class FailureReachesTheUserSafelyTests(unittest.TestCase):
             self.assertNotIn(leak, response.get_data(as_text=True))
 
     def test_database_failure_returns_503_with_the_safe_message(self):
-        failing = unittest.mock.Mock()
-        failing.process_group.side_effect = DataAccessError(
-            "connection refused by db01.internal:27017", user_message="La base de datos no respondio correctamente.")
-        with patch.object(main_api, "_etl", failing):
+        error = DataAccessError("connection refused by db01.internal:27017",
+                                user_message="La base de datos no respondio correctamente.")
+        with patch.object(main_api._repository, "get_group", side_effect=error):
             self.assert_clean(self.client.get("/api/groups/301-A"), 503, "La base de datos no respondio correctamente.")
 
     def test_model_failure_returns_503_with_a_generic_message(self):
         failing = unittest.mock.Mock()
-        failing.predict_risk.side_effect = PredictionEngineError("model crashed at /opt/model/rf.bin")
+        failing.predict_many.side_effect = PredictionEngineError("model crashed at /opt/model/rf.bin")
         with patch.object(main_api, "_engine", failing):
             self.assert_clean(self.client.get("/api/groups/301-A"), 503, GENERIC)
 
     def test_unexpected_crash_returns_503_with_a_generic_message(self):
         failing = unittest.mock.Mock()
-        failing.predict_risk.side_effect = RuntimeError("something unforeseen")
+        failing.predict_many.side_effect = RuntimeError("something unforeseen")
         with patch.object(main_api, "_engine", failing):
             self.assert_clean(self.client.get("/api/groups/301-A"), 503, GENERIC)
 
     def test_pdf_endpoints_fail_just_as_safely(self):
-        failing = unittest.mock.Mock()
-        failing.process_group.side_effect = DataAccessError("db01.internal down", user_message="Base de datos no disponible.")
-        with patch.object(main_api, "_etl", failing):
+        error = DataAccessError("db01.internal down", user_message="Base de datos no disponible.")
+        with patch.object(main_api._repository, "get_group", side_effect=error):
             self.assert_clean(self.client.get("/reports/groups/301-A.pdf"), 503, "Base de datos no disponible.")
+
+
+class RequestEfficiencyTests(unittest.TestCase):
+    """Phase 8 optimisations, measured in docs/evidence/performance: one read of the group and one
+    write of the predictions per request (they were 3 reads and one write per student)."""
+
+    def test_one_read_of_the_group_and_one_batch_write_per_request(self):
+        repo = main_api._repository
+        with (patch.object(repo, "get_group", wraps=repo.get_group) as reads,
+              patch.object(repo, "save_predictions", wraps=repo.save_predictions) as writes):
+            rows = main_api.get_group_dashboard_data("301-B")
+        self.assertEqual(reads.call_count, 1)
+        self.assertEqual(writes.call_count, 1)
+        self.assertEqual(len(writes.call_args.args[0]), len(rows))
+
+    def test_the_engine_is_called_once_for_the_whole_group(self):
+        with patch.object(main_api._engine, "predict_many", wraps=main_api._engine.predict_many) as predict:
+            rows = main_api.get_group_dashboard_data("301-C")
+        self.assertEqual(predict.call_count, 1)
+        self.assertEqual(len(predict.call_args.args[0]), len(rows))
 
 
 if __name__ == "__main__":

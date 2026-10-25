@@ -71,6 +71,12 @@ class IAcademicDataRepository(ABC):
         """Persist a prediction result (Step 8 of the AI Workflow, §8)."""
         raise NotImplementedError
 
+    def save_predictions(self, predictions: list[tuple[str, float, str]]) -> None:
+        """Persist several (student_ref, risk_score, risk_label) at once. The default makes one call per
+        prediction; repositories that can batch (MongoDB) override it with a single round trip."""
+        for student_ref, risk_score, risk_label in predictions:
+            self.save_prediction(student_ref, risk_score, risk_label)
+
     @abstractmethod
     def list_groups(self) -> list[dict]:
         """Groups available to analyse: [{"group_id", "name", "student_count"}, ...]."""

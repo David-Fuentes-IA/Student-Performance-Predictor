@@ -126,6 +126,21 @@ class MongoAcademicRepository(IAcademicDataRepository):
         except PyMongoError as exc:
             logger.warning("Prediction could not be persisted: %s", type(exc).__name__)
 
+    def save_predictions(self, predictions: list[tuple[str, float, str]]) -> None:
+        """All of a request's predictions in ONE round trip (insert_many) instead of one per student.
+        Measured as the main bottleneck of a dashboard request (docs/evidence/performance). Best effort (NFR-5)."""
+        if not predictions:
+            return
+        recorded_at = _now()
+        try:
+            self._db[schema.PREDICTIONS].insert_many(
+                [{"student_ref": ref, "risk_score": float(score), "risk_label": label, "recorded_at": recorded_at}
+                 for ref, score, label in predictions],
+                ordered=False,
+            )
+        except PyMongoError as exc:
+            logger.warning("Predictions could not be persisted: %s", type(exc).__name__)
+
     # ------------------------------------------------------------------
     # Groups
     # ------------------------------------------------------------------

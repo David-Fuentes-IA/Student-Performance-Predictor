@@ -123,7 +123,7 @@ non-root user, gunicorn instead of the development server, a health check, no se
 | **2. One server for a faculty** | the same compose file on a Linux VM; HTTPS through a reverse proxy (Caddy or nginx); `ADMIN_PASSWORD`; backups of the `mongo_data` volume, or MongoDB Atlas through `DOCKER_MONGODB_URI` so the database is managed | compose and Atlas path implemented; proxy, HTTPS and backups are **not** configured |
 | **3. Image from a registry** | the CI builds the image on every merge and publishes it to GitHub Container Registry; servers `docker pull` a tag | designed in Phase 7 (CI/CD) |
 | **4. Managed container platform** (Azure Container Apps, Google Cloud Run, AWS ECS) | run the same image with the Atlas connection string; the image is stateless apart from a per-process cache | **design only**, not executed |
-| **5. Kubernetes** | Deployment, Service, probes on `/health` and `/ready`, HorizontalPodAutoscaler | designed in Phase 8; the image already has what it needs (non-root, configuration from environment, both probes) |
+| **5. Kubernetes** | Deployment, Service, probes on `/health` and `/ready`, HorizontalPodAutoscaler | manifests in [`k8s/`](../../../k8s/README.md), deployed to a throw-away cluster (kind) by the CI on every push |
 
 Not done, and needed before real use: HTTPS, **authentication for teachers** (the prototype's dashboard has none and `/admin`
 is open unless `ADMIN_PASSWORD` is set), managed secrets instead of environment files, backups, central log collection and an
@@ -132,7 +132,7 @@ image vulnerability scan.
 ## 6. Limitations
 
 - With the database down, requests for data take **8 s** to answer 503 (the driver's server-selection timeout). Shortening
-  it risks failing a cold start against Atlas; it is a candidate for the performance work (Phase 8).
+  it risks failing a cold start against Atlas, so it was left as is (team decision); `/health` is not affected.
 - Each gunicorn worker keeps its own prediction cache and its own 5 s readiness cache; with several workers or replicas the
   caches are not shared (correctness is preserved because the cache key includes the student's data).
 - The 435 MB dependency layer dominates the image size; scikit-learn, scipy and pandas are most of it.

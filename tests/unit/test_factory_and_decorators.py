@@ -119,5 +119,47 @@ class DecoratorTests(unittest.TestCase):
         self.assertTrue(any("Cache hit" in line for line in second.output))
 
 
+class BatchPredictionTests(unittest.TestCase):
+    """Phase 8 optimisation: one model call per group instead of one per student."""
+
+    def vectors(self, n=5):
+        return [FeatureVector(f"S{i}", 50.0 + i * 5, 0.0, 80.0, 70.0) for i in range(n)]
+
+    def test_batch_and_one_by_one_give_identical_results(self):
+        for engine_class in (RandomForestRiskEngine, LogisticRegressionRiskEngine):
+            with self.subTest(engine_class.__name__):
+                engine = engine_class(FixedModel(0.62))
+                vectors = self.vectors()
+                self.assertEqual(engine.predict_many(vectors), [engine.predict_risk(v) for v in vectors])
+
+    def test_empty_group(self):
+        self.assertEqual(RandomForestRiskEngine(FixedModel()).predict_many([]), [])
+
+    def test_a_failing_batch_names_the_students_but_hides_internals(self):
+        with self.assertRaises(PredictionEngineError) as ctx:
+            RandomForestRiskEngine(BrokenModel()).predict_many(self.vectors(3))
+        self.assertIn("S0", str(ctx.exception))
+        self.assertNotIn("/opt/models", ctx.exception.user_message)
+
+    def test_the_cache_sends_only_the_missing_students_to_the_engine_and_keeps_the_order(self):
+        inner = CountingEngine()
+        cache = CachingDecorator(inner)
+        first = self.vectors(3)
+        cache.predict_many(first)
+        self.assertEqual(inner.calls, 3)
+        mixed = [first[2], FeatureVector("NEW", 70.0, 0.0, 90.0, 80.0), first[0]]
+        results = cache.predict_many(mixed)
+        self.assertEqual(inner.calls, 4)
+        self.assertEqual([r.student_ref for r in results], ["S2", "NEW", "S0"])
+
+    def test_the_audit_trail_still_has_one_line_per_student(self):
+        engine = AuditDecorator(CountingEngine(), model_version="v-batch")
+        with self.assertLogs(CACHE_LOGGER, level="INFO") as logs:
+            engine.predict_many(self.vectors(4))
+        lines = [line for line in logs.output if "AUDIT-TRAIL" in line]
+        self.assertEqual(len(lines), 4)
+        self.assertTrue(all("batch=4" in line for line in lines))
+
+
 if __name__ == "__main__":
     unittest.main()

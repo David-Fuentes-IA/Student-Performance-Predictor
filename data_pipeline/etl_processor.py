@@ -39,7 +39,10 @@ class ETLProcessor:
         Extract a group's raw records, validate each one (Fail-Fast),
         and return feature vectors only for the records that passed.
         """
-        group: StudentGroup = self._repository.get_group(group_id)
+        return self.process(self._repository.get_group(group_id))
+
+    def process(self, group: StudentGroup) -> list[FeatureVector]:
+        """Validate and transform a group that was already read (lets a request read it only once)."""
 
         valid_records = []
         skipped = 0
@@ -59,6 +62,6 @@ class ETLProcessor:
 
         logger.info(
             "ETL complete for group '%s': %d valid, %d skipped",
-            group_id, len(feature_vectors), skipped,
+            group.group_id, len(feature_vectors), skipped,
         )
         return feature_vectors
