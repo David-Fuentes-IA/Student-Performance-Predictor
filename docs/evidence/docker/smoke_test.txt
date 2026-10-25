@@ -10,6 +10,6 @@ PASS  at least 3 groups exist  4 groups
 PASS  predictions for group 301-A  34 students
 PASS  risk scores are within 0-100  
 PASS  risk levels are valid  
-PASS  group PDF report downloads  47996 bytes
+PASS  group PDF report downloads  48013 bytes
 PASS  unknown group returns a clean 404  status=404
 PASS  malformed group id is rejected (400)  status=400

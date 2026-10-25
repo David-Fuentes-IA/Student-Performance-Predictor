@@ -63,14 +63,14 @@ which inside a container would be the container itself.
 
 | Measurement | Result |
 |---|---|
-| Cold build (`--no-cache`) | **76.5 s** |
+| Build | **76.5 s** cold (`--no-cache`, earlier run of this script with `--cold`); **11.3 s** with Docker's cache (this run, only the application layers rebuilt) |
 | Image | `linux/amd64`, 9 layers, runs as user `app`, exposes `8000/tcp` |
 | Image size | **739 MB** per `docker image inspect`; the layers in `image_layers.txt` add up to about 570 MB (I did not investigate the difference, which is how Docker Desktop's image store counts) |
 | Where the size goes | libraries (scikit-learn, scipy, pandas, numpy, …) **435 MB**; Debian base 88 MB; Python 46 MB; application code 0.8 MB; trained model under 1 KB |
 | Files that must not be inside | `.env`, `.git`, `venv`, `tests`, `docs`: **none present** |
-| Start-up | the application is `healthy` **6.9 s** after `docker compose up -d` returns (that command first waits about 7 s for MongoDB to be healthy) |
+| Start-up | the application is `healthy` **11.2 s** after `docker compose up -d` returns (that command first waits about 7 s for MongoDB to be healthy) |
 | Smoke test against the container | **15 / 15** checks pass (health, readiness, model loaded, pages, group list, predictions, score ranges, PDF, clean 404, 400) |
-| Import of `data/grupo_evaluacion.xlsx` through the admin API | 240 rows read, **240 created, 0 rejected**; 240 students analysed (31 high, 37 medium, 172 low at threshold 75) |
+| Import of `data/grupo_evaluacion.xlsx` through the admin API | 240 rows read, **240 created, 0 rejected**; 240 students analysed (58 high, 11 medium, 171 low with the school rule: average below 6.0 or model score at or above 75) |
 | Persistence | after `docker compose down` and `up` (no `-v`): healthy again in 6.8 s, groups `301-A` 34, `301-B` 33, `301-C` 33, `EVAL-240` 240 |
 
 ## 4. Failure drills, and the defects they exposed
@@ -79,11 +79,12 @@ which inside a container would be the container itself.
 
 | Observation | Result |
 |---|---|
-| Before | `/health` 0.02 s, `/ready` 0.01 s |
-| After the 5 s cache window | `/ready` answers **503** (the probes that actually checked took 2.0 s; the rest were served from the cache in 0.02 s) |
-| Data API (`/api/groups`) | **503** with the safe message "La base de datos no respondio correctamente. Intenta de nuevo." after **8.2 s** |
+| Before | `/health` 0.00 s, `/ready` 0.02 s |
+| Right after the stop | `/health` keeps answering **200**: first from its 5 s cache (`ok`), then `degraded` with `database: false` in 2.0 s (the bounded check) |
+| After the 5 s cache window | `/ready` answers **503** (the probe that actually checked took 2.0 s; the rest were served from the cache in 0.00 s) |
+| Data API (`/api/groups`) | **503** with the safe message "La base de datos no respondio correctamente. Intenta de nuevo." after **8.1 s** |
 | Container health over 92 s without MongoDB | **`healthy` in all 10 samples, 0 failed checks, 0 restarts** |
-| After MongoDB returns | `/ready` is green again after **1.2 s**; data API answers 200 in 0.01 s; no restart needed |
+| After MongoDB returns | `/ready` is green again after **6.0 s**; data API answers 200 in 0.11 s; no restart needed |
 
 *Interpretation:* the container is alive and should not be restarted (a restart cannot fix a database), but it must not
 receive traffic; this is exactly what liveness (`/health`) and readiness (`/ready`) separate. Probes made in the first
@@ -97,7 +98,7 @@ avoid pinging MongoDB on every probe.
 | Behaviour | the application **refuses to start**; the log shows `MONGODB_URI is set but the database is unreachable at start-up…`; Docker's restart policy retries (1 restart in 30 s) |
 | Demo fallback in the log | **no** |
 | Requests answered with fake data | **none** |
-| After MongoDB returns | real data served **4.3 s** later (39.5 s after the restart command); smoke test 15 / 15 |
+| After MongoDB returns | real data served **6.0 s** later (41.0 s after the restart command); container `healthy`; smoke test 15 / 15 |
 
 ### Defects found while building and drilling (all fixed, all with tests)
 

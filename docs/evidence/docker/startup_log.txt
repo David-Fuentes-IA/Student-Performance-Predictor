@@ -1,14 +1,14 @@
 SEED_DEMO=true: creating the demo groups (idempotent, only synthetic data)...
-[2026-10-25 20:53:28 +0000] [1] [INFO] Starting gunicorn 26.2.0
-[2026-10-25 20:53:28 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
-[2026-10-25 20:53:28 +0000] [1] [INFO] Using worker: gthread
-[2026-10-25 20:53:28 +0000] [11] [INFO] Booting worker with pid: 11
-[2026-10-25 20:53:28 +0000] [12] [INFO] Booting worker with pid: 12
-[2026-10-25 20:53:28 +0000] [1] [INFO] Control socket listening at /app/.gunicorn/gunicorn.ctl
-2026-10-25 20:53:30 | INFO     | student_predictor.data_access.schema | Database schema verified (6 collections).
-2026-10-25 20:53:30 | INFO     | student_predictor.data_access.repository_factory | Using MongoDB repository (database 'student_predictor').
-2026-10-25 20:53:30 | INFO     | student_predictor.data_access.schema | Database schema verified (6 collections).
-2026-10-25 20:53:30 | INFO     | student_predictor.data_access.repository_factory | Using MongoDB repository (database 'student_predictor').
-2026-10-25 20:53:30 | INFO     | student_predictor.learning_module.model_store | Model loaded from /app/models (version logistic_regression-seed7-n600)
-2026-10-25 20:53:30 | INFO     | student_predictor.learning_module.model_store | Model loaded from /app/models (version logistic_regression-seed7-n600)
-127.0.0.1 - - [25/Oct/2026:20:53:32 +0000] "GET /health HTTP/1.1" 200 70 "-" "Python-urllib/3.12"
+[2026-10-25 23:01:38 +0000] [1] [INFO] Starting gunicorn 26.2.0
+[2026-10-25 23:01:38 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+[2026-10-25 23:01:38 +0000] [1] [INFO] Using worker: gthread
+[2026-10-25 23:01:38 +0000] [19] [INFO] Booting worker with pid: 19
+[2026-10-25 23:01:38 +0000] [20] [INFO] Booting worker with pid: 20
+[2026-10-25 23:01:38 +0000] [1] [INFO] Control socket listening at /app/.gunicorn/gunicorn.ctl
+2026-10-25 23:01:40 | INFO     | student_predictor.data_access.schema | Database schema verified (6 collections).
+2026-10-25 23:01:40 | INFO     | student_predictor.data_access.repository_factory | Using MongoDB repository (database 'student_predictor').
+2026-10-25 23:01:40 | INFO     | student_predictor.learning_module.model_store | Model loaded from /app/models (version logistic_regression-seed7-n600)
+2026-10-25 23:01:40 | INFO     | student_predictor.data_access.schema | Database schema verified (6 collections).
+2026-10-25 23:01:40 | INFO     | student_predictor.data_access.repository_factory | Using MongoDB repository (database 'student_predictor').
+2026-10-25 23:01:40 | INFO     | student_predictor.learning_module.model_store | Model loaded from /app/models (version logistic_regression-seed7-n600)
+127.0.0.1 - - [25/Oct/2026:23:01:43 +0000] "GET /health HTTP/1.1" 200 70 "-" "Python-urllib/3.12"

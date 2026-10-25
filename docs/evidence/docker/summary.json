@@ -1,10 +1,11 @@
 {
-  "generated_at": "2026-10-25T14:51:56-0600",
+  "generated_at": "2026-10-25T17:01:01-0600",
   "docker": "29.9.2",
   "image": {
-    "cold_build_seconds": 76.5,
+    "build_seconds": 11.3,
+    "build_was_cold": false,
     "image": "student-performance-predictor:local",
-    "size_mb": 739.0,
+    "size_mb": 739.1,
     "architecture": "linux/amd64",
     "layers": 9,
     "user": "app",
@@ -36,8 +37,8 @@
     ]
   },
   "fresh_stack": {
-    "seconds_to_healthy": 6.9,
-    "total_seconds": 14.1
+    "seconds_to_healthy": 11.2,
+    "total_seconds": 21.9
   },
   "smoke_test": {
     "passed": 15,
@@ -53,9 +54,9 @@
     },
     "students_analysed": 240,
     "levels": {
-      "high": 31,
-      "medium": 37,
-      "low": 172
+      "high": 58,
+      "medium": 11,
+      "low": 171
     },
     "seconds_to_healthy_after_restart": 6.8,
     "groups_after_restart": {
@@ -71,13 +72,13 @@
       {
         "path": "/health",
         "status": 200,
-        "seconds": 0.02,
+        "seconds": 0.0,
         "body": "{\"status\":\"ok\",\"mode\":\"database\",\"model_loaded\":true,\"database\":true}\n"
       },
       {
         "path": "/ready",
         "status": 200,
-        "seconds": 0.01,
+        "seconds": 0.02,
         "body": "{\"ready\":true,\"mode\":\"database\",\"model_loaded\":true,\"database\":true}\n"
       }
     ],
@@ -92,20 +93,20 @@
         {
           "path": "/health",
           "status": 200,
-          "seconds": 0.02,
-          "body": "{\"status\":\"ok\",\"mode\":\"database\",\"model_loaded\":true,\"database\":true}\n"
-        },
-        {
-          "path": "/health",
-          "status": 200,
           "seconds": 0.0,
           "body": "{\"status\":\"ok\",\"mode\":\"database\",\"model_loaded\":true,\"database\":true}\n"
         },
         {
           "path": "/health",
           "status": 200,
-          "seconds": 0.01,
-          "body": "{\"status\":\"ok\",\"mode\":\"database\",\"model_loaded\":true,\"database\":true}\n"
+          "seconds": 2.01,
+          "body": "{\"status\":\"degraded\",\"mode\":\"database\",\"model_loaded\":true,\"database\":false}\n"
+        },
+        {
+          "path": "/health",
+          "status": 200,
+          "seconds": 2.0,
+          "body": "{\"status\":\"degraded\",\"mode\":\"database\",\"model_loaded\":true,\"database\":false}\n"
         }
       ]
     },
@@ -120,26 +121,26 @@
         {
           "path": "/ready",
           "status": 503,
-          "seconds": 2.02,
+          "seconds": 0.0,
           "body": "{\"ready\":false,\"mode\":\"database\",\"model_loaded\":true,\"database\":false}\n"
         },
         {
           "path": "/ready",
           "status": 503,
-          "seconds": 0.02,
+          "seconds": 0.0,
           "body": "{\"ready\":false,\"mode\":\"database\",\"model_loaded\":true,\"database\":false}\n"
         },
         {
           "path": "/ready",
           "status": 503,
-          "seconds": 0.02,
+          "seconds": 0.0,
           "body": "{\"ready\":false,\"mode\":\"database\",\"model_loaded\":true,\"database\":false}\n"
         }
       ],
       "groups_api": {
         "path": "/api/groups",
         "status": 503,
-        "seconds": 8.19,
+        "seconds": 8.06,
         "body": "{\"error\":\"La base de datos no respondio correctamente. Intenta de nuevo.\"}\n"
       }
     },
@@ -215,12 +216,12 @@
         "restart_count": 0
       }
     ],
-    "seconds_until_ready_again": 1.2,
+    "seconds_until_ready_again": 6.0,
     "groups_api_after_recovery": {
       "path": "/api/groups",
       "status": 200,
-      "seconds": 0.01,
-      "body": "{\"groups\":[{\"group_id\":\"301-A\",\"name\":\"Grupo de prueba\",\"period\":\"Demo\",\"teacher\":\"\",\"source\":\"synthetic\",\"created_at\":\"2026-10-25T20:53:27."
+      "seconds": 0.11,
+      "body": "{\"groups\":[{\"group_id\":\"301-A\",\"name\":\"Grupo de prueba\",\"period\":\"Demo\",\"teacher\":\"\",\"source\":\"synthetic\",\"created_at\":\"2026-10-25T23:01:38."
     }
   },
   "drill_boot_with_database_down": {
@@ -233,11 +234,11 @@
     "log_shows_fail_fast_error": true,
     "log_shows_demo_fallback": false,
     "serving_requests_with_fake_data": false,
-    "seconds_until_serving_real_data": 4.3,
-    "seconds_since_restart_until_serving_real_data": 39.5,
+    "seconds_until_serving_real_data": 6.0,
+    "seconds_since_restart_until_serving_real_data": 41.0,
     "final_container": {
       "status": "running",
-      "health": "starting",
+      "health": "healthy",
       "failing_streak": 0,
       "restart_count": 1
     },

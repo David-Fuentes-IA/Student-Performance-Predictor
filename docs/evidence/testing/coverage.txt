@@ -1,48 +1,48 @@
-....................................................... [ 22%]
-................................................................... [ 50%]
-............................................ [ 68%]
-........................................................ [ 91%]
-.....................                                                    [100%]
+....................................................... [ 19%]
+............................................................... [ 40%]
+........................................................ [ 60%]
+..................................................................................................... [ 95%]
+.............                                                            [100%]
 =============================== tests coverage ================================
 _______________ coverage: platform win32, python 3.12.3-final-0 _______________
 
 Name                                    Stmts   Miss  Cover   Missing
 ---------------------------------------------------------------------
-core\audit_observer.py                     47      1    98%   70
-core\config.py                             41      2    95%   42, 96
+core\audit_observer.py                     52      1    98%   76
+core\config.py                             46      2    96%   43, 107
 core\exception_handler.py                  25      0   100%
 core\logger.py                             45      4    91%   27-29, 64-65
-core\risk_levels.py                        10      0   100%
+core\risk_levels.py                        22      0   100%
 data_access\mongo_connection.py            27      4    85%   47-55, 72
-data_access\mongo_repository.py           203     48    76%   48-49, 63-64, 76, 93, 101-113, 126-127, 142-143, 151-152, 173-174, 187-188, 207-208, 226, 294-297, 310-311, 323-324, 336-337, 361-362, 376-377, 384-385, 392-393, 407-408, 446
+data_access\mongo_repository.py           211     52    75%   48-49, 63-64, 76, 93, 101-113, 117-127, 141-142, 157-158, 166-167, 188-189, 202-203, 222-223, 241, 309-312, 325-326, 338-339, 351-352, 376-377, 391-392, 399-400, 407-408, 422-423, 461
 data_access\repository_factory.py          20      2    90%   36-37
 data_access\schema.py                      32      3    91%   96, 105-107
-data_access\student_repository.py          68      4    94%   63, 67, 72, 77
+data_access\student_repository.py          71      4    94%   63, 67, 72, 83
 data_access\synthetic_students.py          55      0   100%
-data_pipeline\etl_processor.py             25      0   100%
+data_pipeline\etl_processor.py             26      0   100%
 data_pipeline\excel_importer.py           143      4    97%   85, 155, 192, 239
 data_pipeline\fail_fast_validator.py       22      0   100%
 data_pipeline\group_import_service.py      62      2    97%   100, 166
 data_pipeline\synthetic_seed.py            21      0   100%
 feature_store\feature_manager.py           30      0   100%
-inference_engine\cache_manager.py          50      1    98%   51
-inference_engine\risk_predictor.py         51      3    94%   43, 106-107
+inference_engine\cache_manager.py          60      1    98%   54
+inference_engine\risk_predictor.py         54      1    98%   45
 learning_module\evaluation_data.py         40      2    95%   48, 65
 learning_module\model_evaluator.py         26      0   100%
 learning_module\model_store.py             32      0   100%
 learning_module\model_trainer.py           40      1    98%   91
 learning_module\model_validation.py        94      1    99%   115
 learning_module\training_pipeline.py       22      0   100%
-main_api.py                                60      2    97%   92, 97
+main_api.py                                62      2    97%   96, 101
 presentation\pdf_reports.py                62      0   100%
-presentation\report_data.py                24      0   100%
+presentation\report_data.py                26      0   100%
 presentation\teacher_report_ui.py          18      2    89%   42-43
 webapp\__init__.py                         47      5    89%   35, 70, 73, 77-78
 webapp\admin.py                           121      1    99%   85
-webapp\dashboard.py                        94      3    97%   134, 142, 149
+webapp\dashboard.py                        94      3    97%   135, 143, 150
 ---------------------------------------------------------------------
-TOTAL                                    1657     95    94%
+TOTAL                                    1708     97    94%
 
 7 empty files skipped.
-Coverage JSON written to file C:\Users\Gabo\AppData\Local\Temp\tmph5nrxg7b\coverage.json
-243 passed, 66 subtests passed in 93.31s (0:01:33)
+Coverage JSON written to file C:\Users\Gabo\AppData\Local\Temp\tmpqk4yq6yc\coverage.json
+288 passed, 85 subtests passed in 249.00s (0:04:09)

@@ -4,7 +4,7 @@
 0B	EXPOSE [8000/tcp]
 0B	USER app
 36.9kB	RUN /bin/sh -c sed -i 's/\r$//' docker/entry…
-762kB	COPY --chown=app:app . . # buildkit
+795kB	COPY --chown=app:app . . # buildkit
 435MB	COPY /opt/venv /opt/venv # buildkit
 4.1kB	WORKDIR /app
 53.2kB	RUN /bin/sh -c groupadd --system app && user…
