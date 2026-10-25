@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 from pymongo import InsertOne, UpdateOne
 from pymongo.errors import BulkWriteError, DuplicateKeyError, PyMongoError
 
-from core.exception_handler import DataAccessError, ValidationError
+from core.exception_handler import DataAccessError, GroupNotFoundError, ValidationError
 from core.logger import get_logger
 from data_access import schema
 from data_access.mongo_connection import get_database
@@ -53,6 +53,8 @@ def _db_error(action: str, exc: Exception) -> DataAccessError:
 
 
 class MongoAcademicRepository(IAcademicDataRepository):
+    backend = "mongodb"
+
     def __init__(self, db=None, *, ensure_schema: bool = True) -> None:
         self._db = db if db is not None else get_database()
         if ensure_schema:
@@ -77,7 +79,7 @@ class MongoAcademicRepository(IAcademicDataRepository):
             )
         try:
             if self._db[schema.GROUPS].count_documents({"group_id": group_id}, limit=1) == 0:
-                raise DataAccessError(
+                raise GroupNotFoundError(
                     f"group '{group_id}' not found",
                     user_message=f"El grupo '{group_id}' no existe en la base de datos.",
                 )

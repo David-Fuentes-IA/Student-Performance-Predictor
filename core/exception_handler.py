@@ -39,6 +39,14 @@ class DataAccessError(AppError):
     """Raised when the repository layer cannot read/find academic data."""
 
 
+class NotFoundError(DataAccessError):
+    """A requested resource does not exist (maps to HTTP 404)."""
+
+
+class GroupNotFoundError(NotFoundError):
+    """Raised when a requested group does not exist."""
+
+
 class PredictionEngineError(AppError):
     """Raised when the AI/Prediction layer fails to produce a risk score."""
 

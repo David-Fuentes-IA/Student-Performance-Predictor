@@ -156,12 +156,12 @@ async function run(button, fn) {
 }
 
 async function refreshHeader() {
-  const health = await fetch("/api/health").then(r => r.json()).catch(() => ({ database: false }));
+  const health = await fetch("/admin/api/health").then(r => r.json()).catch(() => ({ database: false }));
   const badge = $("dbBadge");
   badge.className = "badge " + (health.database ? "ok" : "bad");
   badge.textContent = health.database ? "MongoDB conectado: " + health.db_name : "Sin conexion a la base de datos";
   if (!health.database) { $("chips").innerHTML = ""; if (health.message) toast(health.message, false); return false; }
-  const s = await api("/api/stats");
+  const s = await api("/admin/api/stats");
   const c = s.collections;
   $("chips").innerHTML = [["Grupos", c.groups], ["Alumnos", c.students], ["Registros", c.academic_records],
     ["Historial", c.record_history], ["Predicciones", c.predictions]]
@@ -170,7 +170,7 @@ async function refreshHeader() {
 }
 
 async function loadGroups() {
-  const { groups } = await api("/api/groups");
+  const { groups } = await api("/admin/api/groups");
   $("groupList").innerHTML = groups.length ? groups.map(g => `
     <li class="${g.group_id === currentGroup ? "active" : ""}" data-id="${esc(g.group_id)}" onclick="selectGroup(this.dataset.id)">
       <span><b>${esc(g.group_id)}</b><small>${esc(g.name || "Sin nombre")} ${g.period ? "&middot; " + esc(g.period) : ""}</small></span>
@@ -187,7 +187,7 @@ function fmtDate(v) { return v ? new Date(v).toLocaleString() : ""; }
 async function loadStudents() {
   if (!currentGroup) return;
   const g = currentGroup;
-  const { students } = await api("/api/groups/" + encodeURIComponent(g) + "/students");
+  const { students } = await api("/admin/api/groups/" + encodeURIComponent(g) + "/students");
   $("groupTitle").textContent = "Grupo " + g + " - " + students.length + " alumnos";
   $("groupBody").className = "";
   $("groupBody").innerHTML = `
@@ -244,7 +244,7 @@ async function loadStudents() {
 async function addStudent(form) {
   const f = new FormData(form);
   const grades = ["p1", "p2", "p3", "p4"].map(k => f.get(k)).filter(v => v !== "").map(Number);
-  await api("/api/groups/" + encodeURIComponent(currentGroup) + "/students", { method: "POST", json: {
+  await api("/admin/api/groups/" + encodeURIComponent(currentGroup) + "/students", { method: "POST", json: {
     student_id: f.get("student_id"), name: f.get("name"), grades,
     attendance_pct: Number(f.get("attendance")), participation_score: Number(f.get("participation")) } });
   toast("Alumno guardado."); await refreshAll();
@@ -261,22 +261,22 @@ function renderImport(r) {
 
 async function importExcel(form) {
   const data = new FormData(form);
-  const r = await api("/api/groups/" + encodeURIComponent(currentGroup) + "/import", { method: "POST", body: data });
+  const r = await api("/admin/api/groups/" + encodeURIComponent(currentGroup) + "/import", { method: "POST", body: data });
   await refreshAll(); $("importResult").innerHTML = renderImport(r); toast("Importacion completada.");
 }
 
 async function deleteStudent(id) {
   if (!confirm("Quitar al alumno " + id + " del grupo?")) return;
-  await run(null, async () => { await api("/api/groups/" + encodeURIComponent(currentGroup) + "/students/" + encodeURIComponent(id), { method: "DELETE" }); await refreshAll(); });
+  await run(null, async () => { await api("/admin/api/groups/" + encodeURIComponent(currentGroup) + "/students/" + encodeURIComponent(id), { method: "DELETE" }); await refreshAll(); });
 }
 async function clearStudents() {
   if (!confirm("Vaciar todos los alumnos del grupo " + currentGroup + "?")) return;
-  await run(null, async () => { await api("/api/groups/" + encodeURIComponent(currentGroup) + "/students", { method: "DELETE" }); toast("Grupo vaciado."); await refreshAll(); });
+  await run(null, async () => { await api("/admin/api/groups/" + encodeURIComponent(currentGroup) + "/students", { method: "DELETE" }); toast("Grupo vaciado."); await refreshAll(); });
 }
 async function deleteGroup() {
   if (!confirm("Eliminar el grupo " + currentGroup + " con todos sus datos?")) return;
   await run(null, async () => {
-    await api("/api/groups/" + encodeURIComponent(currentGroup), { method: "DELETE" });
+    await api("/admin/api/groups/" + encodeURIComponent(currentGroup), { method: "DELETE" });
     toast("Grupo eliminado."); currentGroup = null;
     $("groupTitle").textContent = "Selecciona un grupo"; $("groupBody").className = "muted";
     $("groupBody").textContent = "Elige un grupo de la izquierda para ver sus alumnos."; await refreshAll();
@@ -287,16 +287,16 @@ async function seed(reset) {
   const count = Number($("seedCount").value || 100);
   if (reset && !confirm("Regenerar borra primero los datos de prueba anteriores. Continuar?")) return;
   await run(null, async () => {
-    const r = await api("/api/seed", { method: "POST", json: { count, reset } });
+    const r = await api("/admin/api/seed", { method: "POST", json: { count, reset } });
     toast(`Datos de prueba: ${r.created} nuevos, ${r.updated} actualizados.`); await refreshAll();
   });
 }
 async function purgeSeed() {
   if (!confirm("Quitar todos los datos de prueba (synthetic)?")) return;
   await run(null, async () => {
-    const r = await api("/api/seed", { method: "DELETE" });
+    const r = await api("/admin/api/seed", { method: "DELETE" });
     toast(`Eliminados: ${r.records_deleted} registros, ${r.groups_deleted} grupos de prueba.`);
-    if (currentGroup && !(await api("/api/groups")).groups.some(g => g.group_id === currentGroup)) currentGroup = null;
+    if (currentGroup && !(await api("/admin/api/groups")).groups.some(g => g.group_id === currentGroup)) currentGroup = null;
     await refreshAll();
   });
 }
@@ -304,21 +304,21 @@ async function purgeSeed() {
 async function browse() {
   const name = $("collectionSelect").value;
   try {
-    const r = await api("/api/collections/" + name + "?limit=20");
+    const r = await api("/admin/api/collections/" + name + "?limit=20");
     $("browseInfo").textContent = `${r.total} documentos en "${name}" (mostrando ${r.documents.length})`;
     $("browseOut").textContent = JSON.stringify(r.documents, null, 2);
   } catch (e) { $("browseOut").textContent = e.message; }
 }
 
 async function loadImports() {
-  const { imports } = await api("/api/imports");
+  const { imports } = await api("/admin/api/imports");
   $("importRows").innerHTML = imports.length ? imports.map(i => `<tr><td class="muted">${fmtDate(i.created_at)}</td>
     <td>${esc(i.group_id)}</td><td>${esc(i.filename)}</td>
     <td>${esc(i.status)}: +${i.created} / ~${i.updated} / rechazadas ${i.rejected_count}</td></tr>`).join("")
     : '<tr><td colspan="4" class="muted">Sin importaciones todavia.</td></tr>';
 }
 
-function downloadTemplate() { window.location = "/api/template.xlsx"; }
+function downloadTemplate() { window.location = "/admin/api/template.xlsx"; }
 
 async function refreshAll() {
   if (!(await refreshHeader())) return;
@@ -329,14 +329,14 @@ async function refreshAll() {
 
 $("newGroupForm").onsubmit = e => { e.preventDefault(); run(e.submitter, async () => {
   const f = Object.fromEntries(new FormData(e.target));
-  await api("/api/groups", { method: "POST", json: f });
+  await api("/admin/api/groups", { method: "POST", json: f });
   e.target.reset(); toast("Grupo creado."); currentGroup = f.group_id; await refreshAll();
 }); };
 
 $("newGroupExcelForm").onsubmit = e => { e.preventDefault(); run(e.submitter, async () => {
   const data = new FormData(e.target); data.append("create_group", "true");
   const id = data.get("group_id");
-  const r = await api("/api/groups/" + encodeURIComponent(id) + "/import", { method: "POST", body: data });
+  const r = await api("/admin/api/groups/" + encodeURIComponent(id) + "/import", { method: "POST", body: data });
   e.target.reset(); currentGroup = id; await refreshAll();
   $("importResult").innerHTML = renderImport(r); toast("Grupo importado desde Excel.");
 }); };

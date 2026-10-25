@@ -15,6 +15,9 @@ python web_app.py
 En Linux/macOS: `python3 -m venv .venv` y `source .venv/bin/activate`,
 seguido de los mismos comandos de instalación y ejecución.
 Abre http://127.0.0.1:5000 en un navegador moderno. Mantén la terminal abierta.
+El panel de administración (grupos, alumnos e importación de Excel) está en la misma aplicación:
+http://127.0.0.1:5000/admin. `python admin_app.py` sirve la misma app en el puerto 5001
+(http://127.0.0.1:5001/admin).
 Para detener el servidor, usa Ctrl+C. El servidor de `main_api.py` no es necesario
 para utilizar la interfaz: inicia `web_app.py`.
 

@@ -67,8 +67,32 @@ async function download(url, button){
  }catch(e){error(e.message); $('notice').textContent=e.message; $('notice').hidden=false;}
  finally{button.disabled=false;button.textContent=previous;}
 }
-$('group-form').addEventListener('submit',e=>{e.preventDefault();load($('group').value.trim());});
-$('refresh').addEventListener('click',()=>load($('group').value.trim()));
+async function loadGroups(){
+  const response=await fetch('/api/groups');
+  const payload=await response.json();
+  if(!response.ok) throw new Error(payload.error || 'No se pudo obtener la lista de grupos.');
+  const current=$('group').value;
+  $('group').innerHTML=payload.groups.map(g=>`<option value="${esc(g.group_id)}">${esc(g.group_id)}${g.name?` · ${esc(g.name)}`:''} (${g.student_count} alumnos)</option>`).join('');
+  if(payload.groups.some(g=>g.group_id===current)) $('group').value=current;
+  $('demo-banner').hidden=payload.mode!=='demo';
+  $('no-groups').hidden=payload.groups.length>0;
+  $('load-group').disabled=$('refresh').disabled=payload.groups.length===0;
+  return payload.groups;
+}
+async function init(){
+  if(config.error){error(config.error);$('dashboard').setAttribute('aria-busy','false');return;}
+  try{
+    const groups=await loadGroups();
+    if(!groups.length){$('dashboard').setAttribute('aria-busy','false');return;}
+    const known=groups.some(g=>g.group_id===config.group);
+    await load(known?config.group:groups[0].group_id);
+    if(config.group && !known) error(`El grupo '${config.group}' no existe.`);
+  }catch(e){error(e.message || 'No se pudo conectar con el servidor.');$('dashboard').setAttribute('aria-busy','false');}
+}
+$('group-form').addEventListener('submit',e=>{e.preventDefault();load($('group').value);});
+$('group').addEventListener('change',()=>load($('group').value));
+$('refresh').addEventListener('click',async()=>{try{await loadGroups();}catch(e){error(e.message);}load($('group').value);});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden && !loading) loadGroups().catch(()=>{});});
 ['search','risk','sort'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',renderStudents));
 $('clear').addEventListener('click',()=>{$('search').value='';$('risk').value='all';$('sort').value='risk';renderStudents();});
 $('distribution').addEventListener('click',e=>{const b=e.target.closest('[data-tier]');if(b){$('risk').value=$('risk').value===b.dataset.tier?'all':b.dataset.tier;renderStudents();}});
@@ -77,4 +101,4 @@ $('close-dialog').addEventListener('click',()=>$('student-dialog').close());
 $('student-dialog').addEventListener('click',e=>{if(e.target===$('student-dialog')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)e.target.close();}});
 $('group-report').addEventListener('click',()=>{if(data)download(`${groupPath()}.pdf`,$('group-report'));});
 $('student-report').addEventListener('click',()=>{if(selectedStudent)download(studentPath(selectedStudent),$('student-report'));});
-if(config.error){error(config.error);$('dashboard').setAttribute('aria-busy','false');}else load(config.group);
+init();

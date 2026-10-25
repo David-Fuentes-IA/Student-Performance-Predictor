@@ -68,10 +68,10 @@ Local: copia `.env.example` a `.env` y rellénalo (`.env` está en `.gitignore`)
 
 ```powershell
 pip install -r requirements.txt
-python admin_app.py                       # interfaz de la BD  -> http://127.0.0.1:5001
+python admin_app.py                       # interfaz de la BD  -> http://127.0.0.1:5001/admin
 python generate_synthetic_data.py         # 100 alumnos de prueba (--count, --reset, --purge)
 python scripts/migrate_local_to_atlas.py --dry-run   # luego sin --dry-run
-python web_app.py                         # dashboard de riesgo (usa MongoDB si hay MONGODB_URI)
+python web_app.py                         # dashboard de riesgo -> http://127.0.0.1:5000 (admin en /admin)
 ```
 
 ## 6. MongoDB Atlas

@@ -14,9 +14,9 @@ the generator twice never duplicates data (records are upserted by
 import random
 
 from data_access.mongo_repository import MongoAcademicRepository
-from data_access.student_repository import StudentRecord
+from data_access.student_repository import DEMO_GROUP_IDS, StudentRecord
 
-DEFAULT_GROUPS = ("301-A", "301-B", "301-C")
+DEFAULT_GROUPS = DEMO_GROUP_IDS
 
 _FIRST_NAMES = [
     "Ana", "Luis", "Maria", "Jose", "Sofia", "Carlos", "Valeria", "Diego", "Camila", "Miguel",

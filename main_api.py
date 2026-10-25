@@ -20,9 +20,7 @@ Design note (traceability: §8 AI Workflow, Figure 7):
         9. Generate and display the report             (Presentation)
 """
 
-from flask import Flask, jsonify
-
-from core.exception_handler import handle_errors, ValidationError, AppError
+from core.exception_handler import handle_errors, ValidationError
 from core.logger import get_logger
 from core.audit_observer import RiskEventPublisher, RiskAlertObserver, ModelMonitoringObserver, RiskEvent
 
@@ -187,20 +185,14 @@ def get_group_dashboard_data(
     ]
 
 
+def get_repository():
+    """The single repository shared by the dashboard and the admin panel."""
+    return _repository
 
-# Thin Flask API (Technology Stack, §6.5)
 
-app = Flask(__name__)
-
-
-@app.route("/api/v1/groups/<group_id>/risk-report", methods=["GET"])
-def get_group_risk_report(group_id: str):
-    try:
-        report_text = generate_group_risk_report(group_id)
-        return jsonify({"group_id": group_id, "report": report_text})
-    except AppError as exc:
-        # user_message is always safe to return to the client (core/exception_handler.py).
-        return jsonify({"error": exc.user_message}), 400
+def get_runtime_status() -> dict:
+    """Non-sensitive runtime facts for /health and the demo-mode banner."""
+    return {"backend": _repository.backend, "model_loaded": _trained_model is not None}
 
 
 # Runnable demo: exercises the whole pipeline without needing a Flask
@@ -214,4 +206,5 @@ if __name__ == "__main__":
     print(ModelEvaluator.evaluate(_trained_model, _X_test, _y_test))
 
     print(f"\nAudit trail size after this run: {len(_monitoring_observer.history())} predictions recorded")
-    print(f"Predictions persisted: {len(_repository.get_prediction_log())} records in log")
+    if hasattr(_repository, "get_prediction_log"):
+        print(f"Predictions persisted: {len(_repository.get_prediction_log())} records in log")

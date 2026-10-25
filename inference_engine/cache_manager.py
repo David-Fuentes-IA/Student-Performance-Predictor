@@ -74,18 +74,23 @@ class AuditDecorator(RiskPredictionDecoratorBase):
 
 class CachingDecorator(RiskPredictionDecoratorBase):
     """
-    Caches predictions per student_ref with a 60-second TTL so an
-    identical repeated request (e.g. a teacher reopening the same report)
-    does not re-run inference, while guaranteeing a fresh score once the
-    TTL expires (NFR-1, §3).
+    Caches predictions for 60 s (NFR-1, §3) so an identical repeated request
+    (e.g. a teacher reopening the same report) does not re-run inference.
+
+    The key is the whole FeatureVector (student_ref + grades-derived features,
+    attendance, participation), not just the student id: if an Excel import or
+    an admin edit changes a student's data, the key changes and a fresh
+    prediction is computed immediately instead of serving a stale score.
     """
+
+    _MAX_ENTRIES = 10_000
 
     def __init__(self, wrappee: IRiskPredictionEngine) -> None:
         super().__init__(wrappee)
-        self._cache: dict[str, tuple[RiskResult, float]] = {}
+        self._cache: dict[FeatureVector, tuple[RiskResult, float]] = {}
 
     def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
-        entry = self._cache.get(feature_vector.student_ref)
+        entry = self._cache.get(feature_vector)
         if entry is not None:
             result, cached_at = entry
             age = time.monotonic() - cached_at
@@ -98,8 +103,17 @@ class CachingDecorator(RiskPredictionDecoratorBase):
             logger.debug("Cache expired for %s (age=%.1fs)", feature_vector.student_ref, age)
 
         result = self._wrappee.predict_risk(feature_vector)
-        self._cache[feature_vector.student_ref] = (result, time.monotonic())
+        self._evict_if_full()
+        self._cache[feature_vector] = (result, time.monotonic())
         return result
+
+    def _evict_if_full(self) -> None:
+        if len(self._cache) < self._MAX_ENTRIES:
+            return
+        now = time.monotonic()
+        self._cache = {k: v for k, v in self._cache.items() if now - v[1] < _TTL_SECONDS}
+        if len(self._cache) >= self._MAX_ENTRIES:
+            self._cache.clear()
 
     def clear_cache(self) -> None:
         self._cache.clear()

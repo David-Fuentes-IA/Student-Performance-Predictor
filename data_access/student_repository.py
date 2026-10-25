@@ -20,10 +20,13 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
-from core.exception_handler import DataAccessError
+from core.exception_handler import DataAccessError, GroupNotFoundError
 from core.logger import get_logger
 
 logger = get_logger(__name__)
+
+# The only groups the in-memory demo repository knows about.
+DEMO_GROUP_IDS = ("301-A", "301-B", "301-C")
 
 
 @dataclass(frozen=True)
@@ -52,6 +55,8 @@ class StudentGroup:
 class IAcademicDataRepository(ABC):
     """Abstraction the Business Logic / Data Pipeline layers depend on."""
 
+    backend = "unknown"  # "mongodb" | "memory"; surfaced by /health and the demo banner
+
     @abstractmethod
     def get_student(self, student_id: str) -> StudentRecord:
         raise NotImplementedError
@@ -65,6 +70,11 @@ class IAcademicDataRepository(ABC):
         """Persist a prediction result (Step 8 of the AI Workflow, §8)."""
         raise NotImplementedError
 
+    @abstractmethod
+    def list_groups(self) -> list[dict]:
+        """Groups available to analyse: [{"group_id", "name", "student_count"}, ...]."""
+        raise NotImplementedError
+
 
 class InMemoryAcademicRepository(IAcademicDataRepository):
     """
@@ -76,6 +86,8 @@ class InMemoryAcademicRepository(IAcademicDataRepository):
     implementation would replace this class with one built on SQLAlchemy
     over PostgreSQL, implementing the same interface.
     """
+
+    backend = "memory"
 
     def __init__(self, seed: int = 42) -> None:
         self._rng = random.Random(seed)
@@ -138,7 +150,19 @@ class InMemoryAcademicRepository(IAcademicDataRepository):
                 "get_group called with an empty/invalid group_id",
                 user_message="Please provide a valid group ID.",
             )
-        if group_id not in self._groups:
-            logger.info("Generating synthetic data for new group '%s'", group_id)
-            self._groups[group_id] = self._generate_group(group_id)
+        if group_id in self._groups:
+            return self._groups[group_id]
+        if group_id not in DEMO_GROUP_IDS:
+            raise GroupNotFoundError(
+                f"group '{group_id}' is not a demo group",
+                user_message=f"El grupo '{group_id}' no existe.",
+            )
+        logger.info("Generating synthetic data for demo group '%s'", group_id)
+        self._groups[group_id] = self._generate_group(group_id)
         return self._groups[group_id]
+
+    def list_groups(self) -> list[dict]:
+        return [
+            {"group_id": g, "name": f"Grupo demo {g}", "student_count": len(self.get_group(g).students)}
+            for g in DEMO_GROUP_IDS
+        ]
