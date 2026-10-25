@@ -28,9 +28,9 @@ import time
 from abc import ABC
 from datetime import datetime, timezone
 
-from inference_engine.risk_predictor import IRiskPredictionEngine, RiskResult
-from feature_store.feature_manager import FeatureVector
 from core.logger import get_logger
+from feature_store.feature_manager import FeatureVector
+from inference_engine.risk_predictor import IRiskPredictionEngine, RiskResult
 
 logger = get_logger(__name__)
 

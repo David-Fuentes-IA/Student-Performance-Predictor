@@ -1,12 +1,15 @@
 import unittest
 from io import BytesIO
 from unittest.mock import patch
+
 from pypdf import PdfReader
-from webapp import create_app
-from main_api import get_group_dashboard_data, _repository
-from presentation.report_data import summarize
-from presentation.pdf_reports import build_group_report, build_student_report
+
 from core.exception_handler import AppError
+from main_api import _repository, get_group_dashboard_data
+from presentation.pdf_reports import build_group_report, build_student_report
+from presentation.report_data import summarize
+from webapp import create_app
+
 
 class DashboardTests(unittest.TestCase):
     def setUp(self):
@@ -71,7 +74,11 @@ class DashboardTests(unittest.TestCase):
         self.assertIn('BIG-099','\n'.join(p.extract_text() for p in pages))
 
     def test_imported_records_with_unequal_grades_and_external_ids(self):
-        from data_access.student_repository import InMemoryAcademicRepository, StudentRecord, StudentGroup
+        from data_access.student_repository import (
+            InMemoryAcademicRepository,
+            StudentGroup,
+            StudentRecord,
+        )
         from data_pipeline.etl_processor import ETLProcessor
         repo = InMemoryAcademicRepository()
         repo._groups['MIX.1'] = StudentGroup('MIX.1', [

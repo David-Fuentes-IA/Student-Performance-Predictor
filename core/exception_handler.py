@@ -12,6 +12,7 @@ Design note (traceability: Fail-Fast, §4; FR-2):
 """
 
 import functools
+
 from core.logger import get_logger
 
 logger = get_logger(__name__)

@@ -1,18 +1,24 @@
 """PDF presentation: no temporary files or new model training per download."""
 from datetime import datetime, timezone
 from io import BytesIO
+from pathlib import Path
 from xml.sax.saxutils import escape
 
-from pathlib import Path
 import reportlab
+from reportlab.lib import colors
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import cm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.lib import colors
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER
-from reportlab.lib.units import cm
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, KeepTogether
-from presentation.report_data import STATUS_LABELS, summarize, recommendations
+from reportlab.platypus import (
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+)
+
+from presentation.report_data import STATUS_LABELS, recommendations, summarize
 
 INK = colors.HexColor('#202b46')
 PURPLE = colors.HexColor('#6454cc')

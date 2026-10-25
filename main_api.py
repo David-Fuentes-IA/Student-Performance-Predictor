@@ -20,19 +20,24 @@ Design note (traceability: §8 AI Workflow, Figure 7):
         9. Generate and display the report             (Presentation)
 """
 
-from core.exception_handler import handle_errors, ValidationError
+from core.audit_observer import (
+    ModelMonitoringObserver,
+    RiskAlertObserver,
+    RiskEvent,
+    RiskEventPublisher,
+)
+from core.exception_handler import ValidationError, handle_errors
 from core.logger import get_logger
-from core.audit_observer import RiskEventPublisher, RiskAlertObserver, ModelMonitoringObserver, RiskEvent
-
 from data_access.repository_factory import build_repository
 from data_pipeline.etl_processor import ETLProcessor
-
-from learning_module.model_trainer import ModelTrainer, generate_synthetic_training_set, split_dataset
-from learning_module.model_evaluator import ModelEvaluator
-
-from inference_engine.risk_predictor import create_risk_engine
 from inference_engine.cache_manager import AuditDecorator, CachingDecorator
-
+from inference_engine.risk_predictor import create_risk_engine
+from learning_module.model_evaluator import ModelEvaluator
+from learning_module.model_trainer import (
+    ModelTrainer,
+    generate_synthetic_training_set,
+    split_dataset,
+)
 from presentation.teacher_report_ui import TeacherReportUI
 
 logger = get_logger(__name__)

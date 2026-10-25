@@ -13,7 +13,7 @@ Etapa 2 · bloque 1 — *Base de datos e importación*.
 | Factory | `data_access/repository_factory.py` | Con `MONGODB_URI` → MongoDB; sin ella → repositorio en memoria (demo sin configuración). |
 | Importador Excel | `data_pipeline/excel_importer.py` | Lee el `.xlsx`, valida con `FailFastValidator`, genera la plantilla descargable. |
 | Casos de uso | `data_pipeline/group_import_service.py` | Crear grupo, agregar alumno, importar Excel (modo normal / estricto). |
-| Datos de prueba | `data_pipeline/synthetic_seed.py`, `generate_synthetic_data.py` | Alumnos ficticios marcados `source="synthetic"`; se pueden quitar sin tocar datos reales. |
+| Datos de prueba | `data_pipeline/synthetic_seed.py`, `scripts/seed_demo_data.py` | Alumnos ficticios marcados `source="synthetic"`; se pueden quitar sin tocar datos reales. |
 | Migración | `scripts/migrate_local_to_atlas.py` | Copia los 100 alumnos sintéticos de Mongo local a Atlas con el esquema nuevo. |
 | Interfaz mínima | `admin_app.py` + `templates/admin.html` | Muestra la BD y permite agregar/quitar grupos y alumnos, importar Excel y generar datos de prueba. |
 | Vercel | `api/index.py`, `vercel.json`, `.vercelignore` | Despliegue serverless de la app Flask. |
@@ -69,7 +69,7 @@ Local: copia `.env.example` a `.env` y rellénalo (`.env` está en `.gitignore`)
 ```powershell
 pip install -r requirements.txt
 python admin_app.py                       # interfaz de la BD  -> http://127.0.0.1:5001/admin
-python generate_synthetic_data.py         # 100 alumnos de prueba (--count, --reset, --purge)
+python scripts/seed_demo_data.py          # 100 alumnos de prueba (--count, --reset, --purge)
 python scripts/migrate_local_to_atlas.py --dry-run   # luego sin --dry-run
 python web_app.py                         # dashboard de riesgo -> http://127.0.0.1:5000 (admin en /admin)
 ```

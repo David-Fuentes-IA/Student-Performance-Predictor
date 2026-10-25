@@ -36,3 +36,12 @@ Thumbs.db
 
 # Vercel local link
 .vercel/
+
+# Logs, coverage and trained models (generated locally / in CI / in Docker)
+*.log
+*.pkl
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+models/*.joblib

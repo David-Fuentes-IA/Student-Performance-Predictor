@@ -14,7 +14,10 @@ when the data source does (FR-8, NFR-3).
 from core import config
 from core.exception_handler import DataAccessError
 from core.logger import get_logger
-from data_access.student_repository import IAcademicDataRepository, InMemoryAcademicRepository
+from data_access.student_repository import (
+    IAcademicDataRepository,
+    InMemoryAcademicRepository,
+)
 
 logger = get_logger(__name__)
 

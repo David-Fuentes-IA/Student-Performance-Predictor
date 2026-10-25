@@ -12,8 +12,8 @@ Design note (traceability: Fail-Fast, §4; FR-2; validation matrix, §8.0):
     retrieved from the repository.
 """
 
-from data_access.student_repository import StudentRecord
 from core.exception_handler import ValidationError
+from data_access.student_repository import StudentRecord
 
 _GRADE_RANGE = (0, 100)
 _ATTENDANCE_RANGE = (0, 100)

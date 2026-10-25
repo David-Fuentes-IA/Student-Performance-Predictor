@@ -18,9 +18,9 @@ Design note (traceability: Strategy + Factory, §5; DIP §6.3; FR-4, FR-8):
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
-from feature_store.feature_manager import FeatureVector
 from core.exception_handler import PredictionEngineError
 from core.logger import get_logger
+from feature_store.feature_manager import FeatureVector
 
 logger = get_logger(__name__)
 

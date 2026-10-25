@@ -4,7 +4,7 @@ import uuid
 from unittest.mock import patch
 
 import main_api
-from core.exception_handler import GroupNotFoundError
+from core.exception_handler import DataAccessError, GroupNotFoundError
 from data_access.student_repository import InMemoryAcademicRepository
 from feature_store.feature_manager import FeatureVector
 from inference_engine.cache_manager import CachingDecorator
@@ -102,7 +102,7 @@ class UnifiedAppDemoModeTests(unittest.TestCase):
         from webapp import admin
         self.assertIs(main_api.get_repository(), main_api._repository)
         with patch("webapp.admin.main_api.get_repository", return_value=InMemoryAcademicRepository()):
-            with self.assertRaises(Exception):
+            with self.assertRaises(DataAccessError):
                 admin.repo()
 
 
@@ -112,6 +112,7 @@ class AdminToDashboardIntegrationTests(unittest.TestCase):
 
     def setUp(self):
         from pymongo import MongoClient
+
         from data_access.mongo_repository import MongoAcademicRepository
         from data_pipeline.etl_processor import ETLProcessor
 

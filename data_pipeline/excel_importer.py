@@ -106,7 +106,7 @@ def build_template() -> bytes:
         cell.font = Font(bold=True, color="FFFFFF")
         cell.fill = header_fill
         cell.alignment = Alignment(horizontal="center")
-    for column, width in zip("ABCDEFGH", (14, 28, 11, 11, 11, 11, 16, 15)):
+    for column, width in zip("ABCDEFGH", (14, 28, 11, 11, 11, 11, 16, 15), strict=True):
         ws.column_dimensions[column].width = width
     ws.freeze_panes = "A2"
 
@@ -183,7 +183,7 @@ def parse_workbook(file_bytes: bytes) -> ParsedSheet:
                     user_message=f"El archivo supera el maximo de {MAX_ROWS} alumnos.",
                 )
 
-            def cell(name: str):
+            def cell(name: str, row=row):
                 index = column_index.get(name)
                 return row[index] if index is not None and index < len(row) else None
 
