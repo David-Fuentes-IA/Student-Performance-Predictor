@@ -65,7 +65,26 @@ delivery faster.
 | `test-evidence` | results per test level, coverage report, memory profile (the same files as `docs/evidence/testing/`) |
 | `model-evidence` | metrics, confusion matrices, error list and fairness audit (the same files as `docs/evidence/model/`) |
 
-## 5. Not configured, and why
+## 5. First run
+
+Run [#40238753531](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/runs/40238753531), triggered by the push of
+commit `cdfb5dd` to `milestone-3` on 2026-10-25; total 6 min 4 s:
+
+| Stage | Result | Duration |
+|---|---|---|
+| 1. Build: install, lint, train the model | ✅ success | 0:42 |
+| 2. Automated tests: unit, integration, system, memory | ✅ success | 3:24 |
+| 3. AI model validation: quality gate | ✅ success | 0:46 |
+| 4. Container: build the image, start the stack, smoke test | ✅ success | 1:02 |
+| 5. Deliver: publish the image | ⏭ skipped by design (not `main`) | — |
+
+Artefacts kept: `trained-model` (1 KB), `test-evidence` (17 KB), `model-evidence` (221 KB).
+
+Because stage 2 runs in strict mode with a database available, a green result means **no test failed and none was skipped**,
+on a clean Linux machine (the local evidence was produced on Windows). The per-test output is in the run's *Summary* step and in
+the `test-evidence` artefact; GitHub only serves logs and artefacts to signed-in users.
+
+## 6. Not configured, and why
 
 - **Merging into `main` is not yet blocked by a red pipeline.** That is a repository setting (*Settings → Branches → branch
   protection rule → require status checks*) that only the repository owner can enable. Recommended.
