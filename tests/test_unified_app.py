@@ -91,7 +91,9 @@ class UnifiedAppDemoModeTests(unittest.TestCase):
         self.assertEqual(body["status"], "degraded")
 
     def test_admin_page_loads_but_api_requires_database(self):
-        self.assertEqual(self.client.get("/admin/").status_code, 200)
+        page = self.client.get("/admin/")
+        self.assertEqual(page.status_code, 200)
+        self.assertIn('href="/"', page.get_data(as_text=True))  # link back to the dashboard
         response = self.client.get("/admin/api/groups")
         self.assertEqual(response.status_code, 503)
         self.assertIn("modo demo", response.get_json()["error"])

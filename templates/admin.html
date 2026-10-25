@@ -11,6 +11,8 @@
     body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; background:var(--bg); color:var(--text); font-size:14px; }
     header { background:var(--navy); color:#fff; padding:14px 24px; display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; }
     header h1 { font-size:18px; margin:0; font-weight:600; }
+    header a.back { color:#fff; text-decoration:none; font-weight:600; padding:6px 12px; border-radius:6px; background:#ffffff26; }
+    header a.back:hover { background:#ffffff40; }
     .badge { padding:3px 10px; border-radius:999px; font-size:12px; font-weight:600; background:#ffffff26; }
     .badge.ok { background:var(--green); } .badge.bad { background:var(--red); }
     .chips { display:flex; gap:8px; flex-wrap:wrap; margin-left:auto; }
@@ -45,6 +47,7 @@
 </head>
 <body>
 <header>
+  <a class="back" href="/">&larr; Volver al dashboard</a>
   <h1>Student Performance Predictor &middot; Base de datos</h1>
   <span id="dbBadge" class="badge">Comprobando...</span>
   <div class="chips" id="chips"></div>
@@ -160,7 +163,12 @@ async function refreshHeader() {
   const badge = $("dbBadge");
   badge.className = "badge " + (health.database ? "ok" : "bad");
   badge.textContent = health.database ? "MongoDB conectado: " + health.db_name : "Sin conexion a la base de datos";
-  if (!health.database) { $("chips").innerHTML = ""; if (health.message) toast(health.message, false); return false; }
+  if (!health.database) {
+    $("chips").innerHTML = "";
+    $("groupList").innerHTML = '<li class="muted">Modo demo: sin base de datos. Los grupos 301-A, 301-B y 301-C del dashboard son de ejemplo (en memoria) y no se pueden administrar aqui. Define MONGODB_URI en el archivo .env y reinicia el servidor para crear, importar y editar grupos reales.</li>';
+    if (health.message) toast(health.message, false);
+    return false;
+  }
   const s = await api("/admin/api/stats");
   const c = s.collections;
   $("chips").innerHTML = [["Grupos", c.groups], ["Alumnos", c.students], ["Registros", c.academic_records],
