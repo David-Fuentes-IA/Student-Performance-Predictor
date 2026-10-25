@@ -48,6 +48,10 @@ class GroupNotFoundError(NotFoundError):
     """Raised when a requested group does not exist."""
 
 
+class ModelLoadError(AppError):
+    """Raised when the trained model (or its model card) is missing or unreadable."""
+
+
 class PredictionEngineError(AppError):
     """Raised when the AI/Prediction layer fails to produce a risk score."""
 

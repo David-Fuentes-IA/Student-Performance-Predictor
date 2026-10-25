@@ -9,11 +9,15 @@ Desde la carpeta del proyecto, en Windows:
 py -m venv .venv
 .venv\Scripts\activate
 python -m pip install -r requirements.txt
+python scripts/train_model.py
 python web_app.py
 ```
 
 En Linux/macOS: `python3 -m venv .venv` y `source .venv/bin/activate`,
 seguido de los mismos comandos de instalación y ejecución.
+`scripts/train_model.py` entrena el modelo una sola vez y escribe `models/risk_model.joblib`
+(no se versiona) y `models/model_card.json`. La aplicación **no entrena al arrancar**: si falta el
+modelo, se detiene con un `ModelLoadError` que indica este mismo comando.
 Abre http://127.0.0.1:5000 en un navegador moderno. Mantén la terminal abierta.
 El panel de administración (grupos, alumnos e importación de Excel) está en la misma aplicación:
 http://127.0.0.1:5000/admin. `python admin_app.py` sirve la misma app en el puerto 5001

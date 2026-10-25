@@ -20,6 +20,7 @@ Design note (traceability: §8 AI Workflow, Figure 7):
         9. Generate and display the report             (Presentation)
 """
 
+from core import config
 from core.audit_observer import (
     ModelMonitoringObserver,
     RiskAlertObserver,
@@ -33,16 +34,12 @@ from data_pipeline.etl_processor import ETLProcessor
 from inference_engine.cache_manager import AuditDecorator, CachingDecorator
 from inference_engine.risk_predictor import create_risk_engine
 from learning_module.model_evaluator import ModelEvaluator
-from learning_module.model_trainer import (
-    ModelTrainer,
-    generate_synthetic_training_set,
-    split_dataset,
-)
+from learning_module.model_store import load_model
 from presentation.teacher_report_ui import TeacherReportUI
 
 logger = get_logger(__name__)
 
-DEFAULT_RISK_THRESHOLD = 75.0  # NFR-1 / FR-7: admin-configurable in a real deployment
+DEFAULT_RISK_THRESHOLD = config.risk_threshold()  # FR-7: RISK_THRESHOLD env var, default 75
 
 
 # --------------------------------------------------------------------------
@@ -55,11 +52,10 @@ def _bootstrap():
     repository = build_repository()  # MongoDB if MONGODB_URI is set, in-memory demo otherwise
     etl = ETLProcessor(repository)
 
-    # "Train or load model" (§9): proper 80/20 stratified split so the
-    # held-out test set evaluates generalisation, not training-set fit.
-    X, y = generate_synthetic_training_set()
-    X_train, X_test, y_train, y_test = split_dataset(X, y)
-    trained_model = ModelTrainer.train(X_train, y_train)
+    # "Train or load model" (§9): the model is trained offline by
+    # scripts/train_model.py and only LOADED here. A missing or corrupt model
+    # raises ModelLoadError with the command needed to generate it.
+    trained_model, model_card = load_model()
 
     # Strategy (base engine) wrapped in two Decorators, matching Figure 5:
     # AuditDecorator innermost (so it only logs real inference calls),
@@ -67,7 +63,7 @@ def _bootstrap():
     # write and the model entirely). The rest of the app only ever sees
     # an IRiskPredictionEngine, never these concrete classes.
     base_engine = create_risk_engine("random_forest", trained_model=trained_model)
-    audited_engine = AuditDecorator(base_engine)
+    audited_engine = AuditDecorator(base_engine, model_version=model_card["model_version"])
     engine = CachingDecorator(audited_engine)
 
     publisher = RiskEventPublisher()
@@ -75,10 +71,10 @@ def _bootstrap():
     publisher.attach(RiskAlertObserver())
     publisher.attach(monitoring_observer)
 
-    return repository, etl, engine, publisher, monitoring_observer, trained_model, X_test, y_test
+    return repository, etl, engine, publisher, monitoring_observer, trained_model
 
 
-_repository, _etl, _engine, _publisher, _monitoring_observer, _trained_model, _X_test, _y_test = _bootstrap()
+_repository, _etl, _engine, _publisher, _monitoring_observer, _trained_model = _bootstrap()
 
 
 # Business Logic layer
@@ -205,11 +201,24 @@ def get_runtime_status() -> dict:
 
 
 if __name__ == "__main__":
-    print(generate_group_risk_report("301-A"))
+    from learning_module.model_trainer import (
+        generate_synthetic_training_set,
+        split_dataset,
+    )
+    from learning_module.training_pipeline import DATA_SEED, N_SAMPLES
 
-    print("\n--- Model evaluation on held-out test set (80/20 stratified split) ---")
+    available = _repository.list_groups()
+    if not available:
+        raise SystemExit("No groups available. Create one in /admin or run scripts/seed_demo_data.py.")
+    print(generate_group_risk_report(available[0]["group_id"]))
+
+    print()
+    print("--- Model evaluation on the held-out test set (same split used at training time) ---")
+    _X, _y = generate_synthetic_training_set(n_samples=N_SAMPLES, seed=DATA_SEED)
+    _, _X_test, _, _y_test = split_dataset(_X, _y)
     print(ModelEvaluator.evaluate(_trained_model, _X_test, _y_test))
 
-    print(f"\nAudit trail size after this run: {len(_monitoring_observer.history())} predictions recorded")
+    print()
+    print(f"Audit trail size after this run: {len(_monitoring_observer.history())} predictions recorded")
     if hasattr(_repository, "get_prediction_log"):
         print(f"Predictions persisted: {len(_repository.get_prediction_log())} records in log")

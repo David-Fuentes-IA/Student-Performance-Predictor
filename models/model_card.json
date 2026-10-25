@@ -1,0 +1,32 @@
+{
+  "model_version": "random_forest-seed7-n300",
+  "algorithm": "RandomForestClassifier",
+  "trained_at": "2026-10-25T03:14:12+00:00",
+  "sklearn_version": "1.9.1",
+  "hyperparameters": {
+    "n_estimators": 100,
+    "max_depth": 6,
+    "random_state": 42
+  },
+  "features": [
+    "average_grade",
+    "grade_trend",
+    "attendance_pct",
+    "participation_score"
+  ],
+  "data": {
+    "source": "synthetic",
+    "n_samples": 300,
+    "data_seed": 7,
+    "n_train": 240,
+    "n_test": 60,
+    "test_size": 0.2,
+    "split_seed": 42
+  },
+  "metrics_on_holdout": {
+    "accuracy": 1.0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1_score": 1.0
+  }
+}

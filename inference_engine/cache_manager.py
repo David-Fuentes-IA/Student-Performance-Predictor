@@ -59,14 +59,22 @@ class AuditDecorator(RiskPredictionDecoratorBase):
     returning the result, independent of anything the Observer side does.
     """
 
+    def __init__(self, wrappee: IRiskPredictionEngine, model_version: str = "unknown") -> None:
+        super().__init__(wrappee)
+        self._model_version = model_version
+
     def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
+        started = time.perf_counter()
         result = self._wrappee.predict_risk(feature_vector)
+        latency_ms = (time.perf_counter() - started) * 1000
 
         logger.info(
-            "AUDIT-TRAIL | engine=%s student_ref=%s score=%.1f at=%s",
+            "AUDIT-TRAIL | engine=%s model_version=%s student_ref=%s score=%.1f latency_ms=%.2f at=%s",
             type(self._wrappee).__name__,
+            self._model_version,
             result.student_ref,
             result.risk_score,
+            latency_ms,
             datetime.now(timezone.utc).isoformat(),
         )
         return result
