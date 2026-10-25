@@ -49,6 +49,20 @@ MONGODB_TEST_URI=mongodb://localhost:27018 pytest
 `python scripts/collect_test_evidence.py` regenera la evidencia (resultados por nivel, cobertura y memoria)
 en `docs/evidence/testing/`, donde `README.md` interpreta los resultados.
 
+## Datos sintéticos y conjunto de evaluación
+
+Todos los datos de demostración, de entrenamiento y de evaluación salen de un solo simulador con ruido
+(`data_access/synthetic_students.py`): las clases se traslapan y parte del resultado depende de eventos
+que el modelo no puede ver, así que el modelo se equivoca como lo haría con datos reales.
+
+`data/grupo_evaluacion.xlsx` es un grupo fijo de 240 alumnos ficticios construido sobre la plantilla de importación,
+con una hoja extra `Resultado_real` que guarda el desenlace de cada alumno. Se puede importar desde `/admin`
+y sirve para validar el modelo con datos que no vio al entrenar. Ver `data/README.md`.
+
+```bash
+python scripts/build_evaluation_dataset.py --check   # comprueba que el archivo coincide con el simulador
+```
+
 ## Qué puedes hacer
 
 - Buscar alumnos por nombre o matrícula, filtrar por nivel de riesgo y ordenar

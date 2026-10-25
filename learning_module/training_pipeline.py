@@ -25,7 +25,7 @@ from learning_module.model_trainer import (
 logger = get_logger(__name__)
 
 DATA_SEED = 7
-N_SAMPLES = 300
+N_SAMPLES = 600
 FEATURES = ["average_grade", "grade_trend", "attendance_pct", "participation_score"]
 
 

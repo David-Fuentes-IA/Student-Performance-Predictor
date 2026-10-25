@@ -12,4 +12,4 @@ tests/performance/test_memory_profile.py::OtherComponentsMemoryTests::test_large
 tests/performance/test_memory_profile.py::OtherComponentsMemoryTests::test_model_load_is_small_and_nothing_large_is_retained PASSED [ 83%]
 tests/performance/test_memory_profile.py::OtherComponentsMemoryTests::test_prediction_cache_does_not_grow_without_limit PASSED [100%]
 
-============================== 6 passed in 2.12s ==============================
+============================== 6 passed in 2.27s ==============================

@@ -26,23 +26,23 @@ Run of 2026-10-25 on Windows 10, Python 3.12.3, scikit-learn 1.9.1, MongoDB 7 in
 
 | Level | Tests | Parametrised sub-cases | Failed | Skipped | Time |
 |---|---|---|---|---|---|
-| Unit | 90 | 29 | 0 | 0 | 1.4 s |
-| Integration | 50 | 17 | 0 | 0 | 7.7 s |
-| Memory profiling | 6 | 0 | 0 | 0 | 2.1 s |
-| System | 17 | 3 | 0 | 0 | 23.5 s |
-| **Total** | **163** | **49** | **0** | **0** | |
+| Unit | 106 | 31 | 0 | 0 | 2.3 s |
+| Integration | 50 | 17 | 0 | 0 | 7.9 s |
+| Memory profiling | 6 | 0 | 0 | 0 | 2.3 s |
+| System | 19 | 3 | 0 | 0 | 27.6 s |
+| **Total** | **181** | **51** | **0** | **0** | |
 
-163 test functions, plus 49 parametrised cases (`subTest`) executed inside them: 212 checks, all passing.
+181 test functions, plus 51 parametrised cases (`subTest`) executed inside them: 232 checks, all passing.
 
-Statement coverage: **93.3 %** overall.
+Statement coverage: **93.7 %** overall.
 
 | Package | Coverage | | Package | Coverage |
 |---|---|---|---|---|
 | `feature_store` | 100.0 % | | `core` | 95.5 % |
 | `presentation` | 98.1 % | | `webapp` | 95.4 % |
-| `data_pipeline` | 97.9 % | | `inference_engine` | 96.0 % |
-| `main_api` | 96.7 % | | `learning_module` | 96.6 % |
-| `data_access` | **82.8 %** | | | |
+| `data_pipeline` | 97.8 % | | `inference_engine` | 96.0 % |
+| `main_api` | 96.7 % | | `learning_module` | 98.7 % |
+| `data_access` | **84.8 %** | | | |
 
 ## The four levels
 
@@ -91,18 +91,18 @@ while the function runs and reports the peak (`memory_profile.json`).
 
 | Measurement | Result |
 |---|---|
-| Feature extraction, 1,000 students | pure Python loop 0.16 MiB / 8 ms · `extract_many` (pandas + numpy) 0.30 MiB / 28 ms |
-| Feature extraction, 10,000 students | pure Python loop 1.5 MiB / 88 ms · `extract_many` 2.9 MiB / 366 ms |
+| Feature extraction, 1,000 students | pure Python loop 0.16 MiB / 9 ms · `extract_many` (pandas + numpy) 0.30 MiB / 26 ms |
+| Feature extraction, 10,000 students | pure Python loop 1.5 MiB / 84 ms · `extract_many` 2.9 MiB / 333 ms |
 | Scaling 1,000 → 10,000 students | memory ×9.8 (loop) and ×9.5 (`extract_many`) for ×10 students: linear, no leak |
-| Model load | 68 KiB file, 0.6 MiB peak, 0.14 MiB retained, 62 ms |
-| Largest allowed Excel (1,000 rows, 36 KiB) | 0.9 MiB peak, 0.3 s |
+| Model load | 0.48 MiB file, 1.0 MiB peak, 0.13 MiB retained, 65 ms |
+| Largest allowed Excel (1,000 rows, 36 KiB) | 1.1 MiB peak, 0.3 s |
 | Prediction cache, 15,000 distinct predictions | bounded: 5,000 entries kept (limit 10,000), 3.9 MiB peak |
 
 **Interpretation.**
 - Memory grows **linearly** with the number of students and nothing large is retained: no leak.
 - **The pandas/numpy batch uses about 2× the memory and 3–4× the time of a plain Python loop** at these sizes
   (DataFrame construction dominates). It is not an optimisation, and it must not be presented as one.
-  It is also irrelevant in absolute terms (10,000 students take 0.37 s and 3 MiB), so feature extraction
+  It is also irrelevant in absolute terms (10,000 students take 0.33 s and 2.9 MiB), so feature extraction
   is not a bottleneck. *Measure first, optimise second*: the request-level benchmark
   (`docs/evidence/performance/`, Phase 8) decides where effort is worthwhile.
 - The cache is bounded, but its eviction is crude: when full it drops everything that has not expired
@@ -133,15 +133,16 @@ requirement.
 | startup-failure test | a missing model printed the cause but not how to fix it | the fix command is part of the error message |
 | cache tests (earlier) | the cache returned stale scores after an import (key was only the student id) | key is the full feature vector; bounded size |
 | threshold tests | "high risk" colours ignored the configured threshold | one definition of the levels (`core/risk_levels.py`) |
+| model metrics review | every metric was 1.0 because the synthetic classes did not overlap, so validation had nothing to analyse | noisy simulator with hidden traits and unobservable events, plus a fixed evaluation workbook (`data/README.md`) |
 
 ## Limitations (stated, not hidden)
 
-- The real-MongoDB tests (30 of the 163) need `MONGODB_TEST_URI`; without it they are skipped and
+- The real-MongoDB tests (32 of the 181) need `MONGODB_TEST_URI`; without it they are skipped and
   `summary.json` records `real_mongodb_tests_included: false`. The CI workflow provides a Mongo service container.
-- Coverage is lowest in `data_access` (82.8 %): the uncovered lines are mostly database-outage branches
+- Coverage is lowest in `data_access` (84.8 %): the uncovered lines are mostly database-outage branches
   that need a Mongo that fails on demand.
 - Measurements come from one development machine; use them for orders of magnitude and for the ratios
   between alternatives, not as absolute guarantees.
 - There is no concurrent-load test here; latency, throughput and 10 simultaneous sessions (NFR-1) are measured in
   `docs/evidence/performance/` (Phase 8).
-- The data are synthetic; a passing test suite does not make the predictions trustworthy (see Phase 5).
+- The data are synthetic; a passing test suite does not make the predictions trustworthy (see Phase 5 and `data/README.md`).

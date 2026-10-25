@@ -15,13 +15,14 @@ Design note (traceability: DIP, §4; FR-3; IAcademicDataRepository, §6):
     is a real student.
 """
 
-import random
+import zlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 from core.exception_handler import DataAccessError, GroupNotFoundError
 from core.logger import get_logger
+from data_access.synthetic_students import simulate_students
 
 logger = get_logger(__name__)
 
@@ -90,35 +91,23 @@ class InMemoryAcademicRepository(IAcademicDataRepository):
     backend = "memory"
 
     def __init__(self, seed: int = 42) -> None:
-        self._rng = random.Random(seed)
+        self._seed = seed
         self._groups: dict[str, StudentGroup] = {}
         self._prediction_log: list[dict] = []
 
     def _generate_group(self, group_id: str, size: int = 12) -> StudentGroup:
-        students = []
-        for i in range(size):
-            # A handful of students are deliberately generated as
-            # "at risk" (low grades/attendance) so the demo run in
-            # main_api.py actually triggers a Risk Alert.
-            at_risk = i < max(1, size // 6)
-            if at_risk:
-                grades = [self._rng.uniform(30, 55) for _ in range(4)]
-                attendance = self._rng.uniform(40, 65)
-                participation = self._rng.uniform(20, 50)
-            else:
-                grades = [self._rng.uniform(65, 98) for _ in range(4)]
-                attendance = self._rng.uniform(75, 100)
-                participation = self._rng.uniform(60, 100)
-
-            students.append(
-                StudentRecord(
-                    student_id=f"{group_id}-{i:03d}",
-                    name=f"Demo Student {i + 1}",
-                    grades=[round(g, 1) for g in grades],
-                    attendance_pct=round(attendance, 1),
-                    participation_score=round(participation, 1),
-                )
+        """Simulated class (noisy, see data_access/synthetic_students.py), same for the same seed."""
+        simulated = simulate_students(size, seed=self._seed + zlib.crc32(group_id.encode()) % 10_000)
+        students = [
+            StudentRecord(
+                student_id=f"{group_id}-{i:03d}",
+                name=f"Demo Student {i + 1}",
+                grades=s.grades,
+                attendance_pct=s.attendance_pct,
+                participation_score=s.participation_score,
             )
+            for i, s in enumerate(simulated)
+        ]
         return StudentGroup(group_id=group_id, students=students)
 
     def get_student(self, student_id: str) -> StudentRecord:

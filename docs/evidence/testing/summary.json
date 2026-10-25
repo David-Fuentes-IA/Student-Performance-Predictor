@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-10-25T15:59:49+00:00",
+  "generated_at": "2026-10-25T16:14:22+00:00",
   "python": "3.12.3",
   "sklearn": "1.9.1",
   "platform": "Windows-10-10.0.19045-SP0",
   "real_mongodb_tests_included": true,
   "levels": {
     "unit": {
-      "tests": 90,
-      "passed": 90,
+      "tests": 106,
+      "passed": 106,
       "failed": 0,
       "skipped": 0,
-      "subtests_passed": 29,
-      "seconds": 1.37,
+      "subtests_passed": 31,
+      "seconds": 2.31,
       "exit_code": 0
     },
     "integration": {
@@ -20,16 +20,16 @@
       "failed": 0,
       "skipped": 0,
       "subtests_passed": 17,
-      "seconds": 7.67,
+      "seconds": 7.88,
       "exit_code": 0
     },
     "system": {
-      "tests": 17,
-      "passed": 17,
+      "tests": 19,
+      "passed": 19,
       "failed": 0,
       "skipped": 0,
       "subtests_passed": 3,
-      "seconds": 23.45,
+      "seconds": 27.56,
       "exit_code": 0
     },
     "performance": {
@@ -38,19 +38,19 @@
       "failed": 0,
       "skipped": 0,
       "subtests_passed": 0,
-      "seconds": 2.12,
+      "seconds": 2.27,
       "exit_code": 0
     }
   },
   "coverage": {
-    "total_percent": 93.3,
+    "total_percent": 93.7,
     "by_package": {
       "core": 95.5,
-      "data_access": 82.8,
-      "data_pipeline": 97.9,
+      "data_access": 84.8,
+      "data_pipeline": 97.8,
       "feature_store": 100.0,
       "inference_engine": 96.0,
-      "learning_module": 96.6,
+      "learning_module": 98.7,
       "main_api": 96.7,
       "presentation": 98.1,
       "webapp": 95.4

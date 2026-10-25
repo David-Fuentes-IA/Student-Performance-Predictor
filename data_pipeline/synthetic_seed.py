@@ -11,58 +11,25 @@ the generator twice never duplicates data (records are upserted by
 (group, matricula)).
 """
 
-import random
-
 from data_access.mongo_repository import MongoAcademicRepository
 from data_access.student_repository import DEMO_GROUP_IDS, StudentRecord
+from data_access.synthetic_students import simulate_students
 
 DEFAULT_GROUPS = DEMO_GROUP_IDS
 
-_FIRST_NAMES = [
-    "Ana", "Luis", "Maria", "Jose", "Sofia", "Carlos", "Valeria", "Diego", "Camila", "Miguel",
-    "Fernanda", "Javier", "Daniela", "Andres", "Paola", "Ricardo", "Regina", "Emilio", "Ximena",
-    "Hugo", "Renata", "Mateo", "Natalia", "Sergio", "Lucia", "Oscar", "Abril", "Ivan", "Julia", "Raul",
-]
-_LAST_NAMES = [
-    "Garcia", "Hernandez", "Lopez", "Martinez", "Gonzalez", "Perez", "Rodriguez", "Sanchez",
-    "Ramirez", "Cruz", "Flores", "Gomez", "Morales", "Vazquez", "Reyes", "Jimenez", "Torres",
-    "Diaz", "Ortiz", "Mendoza", "Castillo", "Romero", "Alvarez", "Ruiz", "Herrera", "Medina",
-]
 
+def generate_records(count: int = 100, *, groups=DEFAULT_GROUPS, seed: int = 42) -> dict[str, list[StudentRecord]]:
+    """Deal `count` simulated students round-robin into `groups`.
 
-def fake_name(index: int) -> str:
-    """Deterministic fictitious name for the n-th synthetic student."""
-    first = _FIRST_NAMES[index % len(_FIRST_NAMES)]
-    last_1 = _LAST_NAMES[(index * 7 + 3) % len(_LAST_NAMES)]
-    last_2 = _LAST_NAMES[(index * 11 + 5) % len(_LAST_NAMES)]
-    return f"{first} {last_1} {last_2}"
-
-
-def generate_records(count: int = 100, *, groups=DEFAULT_GROUPS, seed: int = 42,
-                     grade_count: int = 4) -> dict[str, list[StudentRecord]]:
-    """~25% of students are generated 'at risk' so the demo shows real alerts."""
-    rng = random.Random(seed)
+    The students come from the noisy simulator (data_access/synthetic_students.py), so the demo
+    data show a realistic spread of risk scores instead of only clear-cut cases.
+    """
     by_group: dict[str, list[StudentRecord]] = {g: [] for g in groups}
-
-    for i in range(count):
-        group_id = groups[i % len(groups)]
-        at_risk = rng.random() < 0.25
-        if at_risk:
-            grades = [rng.uniform(30, 62) for _ in range(grade_count)]
-            attendance, participation = rng.uniform(40, 70), rng.uniform(15, 55)
-        else:
-            grades = [rng.uniform(65, 98) for _ in range(grade_count)]
-            attendance, participation = rng.uniform(75, 100), rng.uniform(55, 100)
-
-        by_group[group_id].append(
-            StudentRecord(
-                student_id=f"S{i + 1:04d}",
-                name=fake_name(i),
-                grades=[round(g, 1) for g in grades],
-                attendance_pct=round(attendance, 1),
-                participation_score=round(participation, 1),
-            )
-        )
+    for i, student in enumerate(simulate_students(count, seed=seed)):
+        by_group[groups[i % len(groups)]].append(StudentRecord(
+            student_id=student.student_id, name=student.name, grades=student.grades,
+            attendance_pct=student.attendance_pct, participation_score=student.participation_score,
+        ))
     return by_group
 
 
