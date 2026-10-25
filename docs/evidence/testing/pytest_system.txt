@@ -3,27 +3,34 @@ platform win32 -- Python 3.12.3, pytest-9.1.1, pluggy-1.7.0 -- D:\1_Universidad\
 rootdir: D:\1_Universidad\5-SEMESTRE\IngenieríaSoft2Jessica\Proyecto\student_predictor_project
 configfile: pytest.ini
 plugins: cov-7.1.0
-collecting ... collected 19 items
+collecting ... collected 26 items
 
-tests/system/test_evaluation_workbook_import.py::EvaluationWorkbookImportTests::test_import_the_fixed_group_and_get_realistic_predictions PASSED [  5%]
-tests/system/test_evaluation_workbook_import.py::EvaluationWorkbookImportTests::test_importing_the_fixed_file_twice_changes_nothing PASSED [ 10%]
-tests/system/test_excel_error_scenarios.py::UploadRejectedBeforeReachingTheDatabaseTests::test_extremely_large_file PASSED [ 15%]
-tests/system/test_excel_error_scenarios.py::UploadRejectedBeforeReachingTheDatabaseTests::test_no_file_at_all PASSED [ 21%]
-tests/system/test_excel_error_scenarios.py::UploadRejectedBeforeReachingTheDatabaseTests::test_wrong_extension PASSED [ 26%]
-tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_corrupted_excel PASSED [ 31%]
-tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_empty_file PASSED [ 36%]
-tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_excel_without_the_required_columns PASSED [ 42%]
-tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_pdf_content_disguised_as_excel PASSED [ 47%]
-tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_valid_file_is_accepted PASSED [ 52%]
-tests/system/test_failure_scenarios.py::StartupFailureTests::test_a_valid_configuration_starts_normally PASSED [ 57%]
-tests/system/test_failure_scenarios.py::StartupFailureTests::test_corrupted_model_file_stops_the_app PASSED [ 63%]
+tests/system/test_evaluation_workbook_import.py::EvaluationWorkbookImportTests::test_import_the_fixed_group_and_get_realistic_predictions PASSED [  3%]
+tests/system/test_evaluation_workbook_import.py::EvaluationWorkbookImportTests::test_importing_the_fixed_file_twice_changes_nothing PASSED [  7%]
+tests/system/test_excel_error_scenarios.py::UploadRejectedBeforeReachingTheDatabaseTests::test_extremely_large_file PASSED [ 11%]
+tests/system/test_excel_error_scenarios.py::UploadRejectedBeforeReachingTheDatabaseTests::test_no_file_at_all PASSED [ 15%]
+tests/system/test_excel_error_scenarios.py::UploadRejectedBeforeReachingTheDatabaseTests::test_wrong_extension PASSED [ 19%]
+tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_corrupted_excel PASSED [ 23%]
+tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_empty_file PASSED [ 26%]
+tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_excel_without_the_required_columns PASSED [ 30%]
+tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_pdf_content_disguised_as_excel PASSED [ 34%]
+tests/system/test_excel_error_scenarios.py::UploadValidatedAgainstARealDatabaseTests::test_valid_file_is_accepted PASSED [ 38%]
+tests/system/test_failure_scenarios.py::StartupFailureTests::test_a_valid_configuration_starts_normally PASSED [ 42%]
+tests/system/test_failure_scenarios.py::StartupFailureTests::test_corrupted_model_file_stops_the_app PASSED [ 46%]
 tests/system/test_failure_scenarios.py::StartupFailureTests::test_invalid_risk_threshold_stops_the_app_and_names_the_variable 
-tests/system/test_failure_scenarios.py::StartupFailureTests::test_invalid_risk_threshold_stops_the_app_and_names_the_variable PASSED [ 68%]
-tests/system/test_failure_scenarios.py::StartupFailureTests::test_missing_model_stops_the_app_and_names_the_fix PASSED [ 73%]
-tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_a_group_with_no_students_is_a_valid_empty_report PASSED [ 78%]
-tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_changing_a_students_data_changes_the_prediction_for_the_next_report PASSED [ 84%]
-tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_create_group_import_excel_analyse_and_download_reports PASSED [ 89%]
-tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_health_reports_a_working_database PASSED [ 94%]
+tests/system/test_failure_scenarios.py::StartupFailureTests::test_invalid_risk_threshold_stops_the_app_and_names_the_variable PASSED [ 50%]
+tests/system/test_failure_scenarios.py::StartupFailureTests::test_missing_model_stops_the_app_and_names_the_fix PASSED [ 53%]
+tests/system/test_model_quality_gate.py::QualityGateTests::test_the_configured_model_passes_the_gate_on_unseen_data PASSED [ 57%]
+tests/system/test_model_quality_gate.py::QualityGateTests::test_the_gate_really_fails_for_a_degraded_model PASSED [ 61%]
+tests/system/test_model_quality_gate.py::EvidenceReproducibilityTests::test_the_perfect_score_problem_is_gone PASSED [ 65%]
+tests/system/test_model_quality_gate.py::EvidenceReproducibilityTests::test_the_results_are_internally_consistent PASSED [ 69%]
+tests/system/test_model_quality_gate.py::EvidenceReproducibilityTests::test_the_script_writes_every_deliverable PASSED [ 73%]
+tests/system/test_model_quality_gate.py::CommittedEvidenceMatchesTheCodeTests::test_the_committed_model_card_names_the_same_model PASSED [ 76%]
+tests/system/test_model_quality_gate.py::CommittedEvidenceMatchesTheCodeTests::test_the_validated_model_is_the_configured_default PASSED [ 80%]
+tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_a_group_with_no_students_is_a_valid_empty_report PASSED [ 84%]
+tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_changing_a_students_data_changes_the_prediction_for_the_next_report PASSED [ 88%]
+tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_create_group_import_excel_analyse_and_download_reports PASSED [ 92%]
+tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_health_reports_a_working_database PASSED [ 96%]
 tests/system/test_threshold_end_to_end.py::EndToEndThresholdTests::test_lowering_the_threshold_turns_more_students_high_risk PASSED [100%]
 
-=================== 19 passed, 3 subtests passed in 27.56s ====================
+=================== 26 passed, 3 subtests passed in 35.96s ====================

@@ -28,7 +28,7 @@ class ModelStoreTests(unittest.TestCase):
     def test_round_trip_keeps_card_and_predictions(self):
         with tempfile.TemporaryDirectory() as tmp:
             model = tiny_model()
-            save_model(model, {"model_version": "v-test"}, Path(tmp))
+            save_model(model, {"model_version": "v-test", "engine_type": "logistic_regression"}, Path(tmp))
             loaded, card = load_model(Path(tmp))
             self.assertEqual(card["model_version"], "v-test")
             self.assertEqual(loaded.predict([[0, 0, 0, 0]]).tolist(), model.predict([[0, 0, 0, 0]]).tolist())
@@ -45,6 +45,12 @@ class ModelStoreTests(unittest.TestCase):
             with self.assertRaises(ModelLoadError):
                 load_model(Path(tmp))
 
+    def test_card_without_engine_type_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            save_model(tiny_model(), {"model_version": "v"}, Path(tmp))
+            with self.assertRaises(ModelLoadError):
+                load_model(Path(tmp))
+
     def test_card_without_version_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             save_model(tiny_model(), {"algorithm": "x"}, Path(tmp))
@@ -55,6 +61,8 @@ class ModelStoreTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             card = run_training(Path(tmp))
             self.assertTrue((Path(tmp) / CARD_FILENAME).is_file())
+            self.assertEqual(card["engine_type"], config.model_type())
+            self.assertEqual(card["algorithm"], type(load_model(Path(tmp))[0]).__name__)
             self.assertEqual(set(card["metrics_on_holdout"]), {"accuracy", "precision", "recall", "f1_score"})
             self.assertEqual(card["data"]["n_train"] + card["data"]["n_test"], card["data"]["n_samples"])
 
@@ -100,3 +108,41 @@ class AuditDecoratorTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ModelTypeConfigTests(unittest.TestCase):
+    def model_type(self, value):
+        with patch.dict(os.environ, {} if value is None else {"RISK_MODEL": value}):
+            if value is None:
+                os.environ.pop("RISK_MODEL", None)
+            return config.model_type()
+
+    def test_default_is_the_validated_model(self):
+        self.assertEqual(self.model_type(None), config.DEFAULT_MODEL_TYPE)
+        self.assertEqual(self.model_type(""), config.DEFAULT_MODEL_TYPE)
+
+    def test_valid_values_are_case_insensitive(self):
+        self.assertEqual(self.model_type("Random_Forest"), "random_forest")
+        self.assertEqual(self.model_type(" logistic_regression "), "logistic_regression")
+
+    def test_unknown_model_fails_fast(self):
+        for bad in ("xgboost", "svm", "random forest"):
+            with self.subTest(bad), self.assertRaises(ValidationError):
+                self.model_type(bad)
+
+
+class ServingFollowsTheModelCardTests(unittest.TestCase):
+    def test_each_trained_model_is_served_by_its_own_engine_through_the_factory(self):
+        from inference_engine.risk_predictor import (
+            LogisticRegressionRiskEngine,
+            RandomForestRiskEngine,
+            create_risk_engine,
+        )
+
+        for model_type, engine_class in (("random_forest", RandomForestRiskEngine),
+                                         ("logistic_regression", LogisticRegressionRiskEngine)):
+            with self.subTest(model_type), tempfile.TemporaryDirectory() as tmp:
+                run_training(Path(tmp), model_type)
+                model, card = load_model(Path(tmp))
+                self.assertEqual(card["engine_type"], model_type)
+                self.assertIsInstance(create_risk_engine(card["engine_type"], trained_model=model), engine_class)

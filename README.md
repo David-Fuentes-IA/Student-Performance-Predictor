@@ -49,6 +49,15 @@ MONGODB_TEST_URI=mongodb://localhost:27018 pytest
 `python scripts/collect_test_evidence.py` regenera la evidencia (resultados por nivel, cobertura y memoria)
 en `docs/evidence/testing/`, donde `README.md` interpreta los resultados.
 
+## Validación del modelo
+
+`python scripts/evaluate_models.py` compara Random Forest y Logistic Regression con validación cruzada, mide el ganador
+una sola vez con `data/grupo_evaluacion.xlsx` (alumnos que no vio al entrenar), lista cada error, audita el subgrupo
+sintético por turno y escribe la evidencia en `docs/evidence/model/` (el `README.md` de esa carpeta la interpreta).
+El modelo que usa la aplicación es el validado (`core/config.py`, `DEFAULT_MODEL_TYPE`); `RISK_MODEL` permite cambiarlo
+al entrenar. `python scripts/evaluate_models.py --gate` es la puerta de calidad que usará el CI: falla si el recall,
+la precisión o el F1 bajan de un mínimo.
+
 ## Datos sintéticos y conjunto de evaluación
 
 Todos los datos de demostración, de entrenamiento y de evaluación salen de un solo simulador con ruido

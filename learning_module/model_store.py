@@ -58,7 +58,7 @@ def load_model(directory: Path | None = None):
             user_message=f"The prediction model could not be loaded (corrupt files). {_TRAIN_HINT}",
         ) from exc
 
-    if not hasattr(model, "predict_proba") or "model_version" not in card:
+    if not hasattr(model, "predict_proba") or "model_version" not in card or "engine_type" not in card:
         raise ModelLoadError(
             f"model artifacts in {directory} are not a valid classifier + card. {_TRAIN_HINT}",
             user_message=f"The prediction model files are invalid. {_TRAIN_HINT}",

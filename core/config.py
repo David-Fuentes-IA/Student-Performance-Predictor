@@ -28,6 +28,9 @@ from core.exception_handler import ValidationError
 
 DEFAULT_DB_NAME = "student_predictor"
 DEFAULT_RISK_THRESHOLD = 75.0
+MODEL_TYPES = ("random_forest", "logistic_regression")
+# Chosen by scripts/evaluate_models.py (cross-validation, see docs/evidence/model/README.md).
+DEFAULT_MODEL_TYPE = "logistic_regression"
 
 
 def mongodb_uri() -> str:
@@ -63,6 +66,19 @@ def risk_threshold() -> float:
         raise ValidationError(
             f"RISK_THRESHOLD={raw!r} is not a number between 0 and 100",
             user_message="RISK_THRESHOLD must be a number between 0 and 100.",
+        )
+    return value
+
+
+def model_type() -> str:
+    """Prediction model to train and serve (FR-8). RISK_MODEL overrides the validated default."""
+    value = os.environ.get("RISK_MODEL", "").strip().lower()
+    if not value:
+        return DEFAULT_MODEL_TYPE
+    if value not in MODEL_TYPES:
+        raise ValidationError(
+            f"RISK_MODEL={value!r} is not one of {MODEL_TYPES}",
+            user_message=f"RISK_MODEL must be one of: {', '.join(MODEL_TYPES)}.",
         )
     return value
 

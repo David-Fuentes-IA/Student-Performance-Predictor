@@ -11,6 +11,7 @@ from pathlib import Path
 
 import sklearn
 
+from core import config
 from core.logger import get_logger
 from learning_module.model_evaluator import ModelEvaluator
 from learning_module.model_store import save_model
@@ -29,19 +30,28 @@ N_SAMPLES = 600
 FEATURES = ["average_grade", "grade_trend", "attendance_pct", "participation_score"]
 
 
-def run_training(directory: Path | None = None) -> dict:
-    """Train the Random Forest, evaluate it on the held-out split, save it. Returns the card."""
+_CARD_HYPERPARAMETERS = {
+    "random_forest": ("n_estimators", "max_depth", "random_state"),
+    "logistic_regression": ("C", "max_iter", "random_state"),
+}
+
+
+def run_training(directory: Path | None = None, model_type: str | None = None) -> dict:
+    """Train the configured model (RISK_MODEL, default: the validated one), evaluate it on the
+    held-out split, save it. Returns the model card."""
+    model_type = model_type or config.model_type()
     X, y = generate_synthetic_training_set(n_samples=N_SAMPLES, seed=DATA_SEED)
     X_train, X_test, y_train, y_test = split_dataset(X, y)
-    model = ModelTrainer.train(X_train, y_train)
+    model = ModelTrainer.fit(model_type, X_train, y_train)
     metrics = ModelEvaluator.evaluate(model, X_test, y_test)
 
     card = {
-        "model_version": f"random_forest-seed{DATA_SEED}-n{N_SAMPLES}",
-        "algorithm": "RandomForestClassifier",
+        "model_version": f"{model_type}-seed{DATA_SEED}-n{N_SAMPLES}",
+        "engine_type": model_type,
+        "algorithm": type(model).__name__,
         "trained_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "sklearn_version": sklearn.__version__,
-        "hyperparameters": {k: model.get_params()[k] for k in ("n_estimators", "max_depth", "random_state")},
+        "hyperparameters": {k: model.get_params()[k] for k in _CARD_HYPERPARAMETERS[model_type]},
         "features": FEATURES,
         "data": {
             "source": "synthetic",

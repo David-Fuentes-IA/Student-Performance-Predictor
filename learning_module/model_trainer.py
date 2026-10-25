@@ -26,6 +26,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
+from core.config import MODEL_TYPES
 from core.logger import get_logger
 from data_access.student_repository import StudentRecord
 from data_access.synthetic_students import SimulatedStudent, simulate_students
@@ -81,19 +82,24 @@ class ModelTrainer:
     """One job: fit models on features and labels (SRP)."""
 
     @staticmethod
-    def train(X: list[list[float]], y: list[int]) -> RandomForestClassifier:
-        model = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=6,
-            random_state=42,
-        )
-        model.fit(X, y)
-        logger.info("Trained RandomForestClassifier on %d samples", len(X))
+    def build(model_type: str):
+        """An unfitted estimator. The single place where hyperparameters are defined."""
+        if model_type == "random_forest":
+            return RandomForestClassifier(n_estimators=100, max_depth=6, random_state=42)
+        if model_type == "logistic_regression":
+            return LogisticRegression(max_iter=500, random_state=42)
+        raise ValueError(f"unknown model type '{model_type}' (expected one of {MODEL_TYPES})")
+
+    @classmethod
+    def fit(cls, model_type: str, X: list[list[float]], y: list[int]):
+        model = cls.build(model_type).fit(X, y)
+        logger.info("Trained %s on %d samples", type(model).__name__, len(X))
         return model
 
-    @staticmethod
-    def train_logistic_regression(X: list[list[float]], y: list[int]) -> LogisticRegression:
-        model = LogisticRegression(max_iter=500, random_state=42)
-        model.fit(X, y)
-        logger.info("Trained LogisticRegression on %d samples", len(X))
-        return model
+    @classmethod
+    def train(cls, X: list[list[float]], y: list[int]) -> RandomForestClassifier:
+        return cls.fit("random_forest", X, y)
+
+    @classmethod
+    def train_logistic_regression(cls, X: list[list[float]], y: list[int]) -> LogisticRegression:
+        return cls.fit("logistic_regression", X, y)

@@ -64,7 +64,7 @@ def _bootstrap():
     # CachingDecorator outermost (so a cache hit skips both the audit
     # write and the model entirely). The rest of the app only ever sees
     # an IRiskPredictionEngine, never these concrete classes.
-    base_engine = create_risk_engine("random_forest", trained_model=trained_model, risk_threshold=RISK_THRESHOLD)
+    base_engine = create_risk_engine(model_card["engine_type"], trained_model=trained_model, risk_threshold=RISK_THRESHOLD)
     audited_engine = AuditDecorator(base_engine, model_version=model_card["model_version"])
     engine = CachingDecorator(audited_engine)
 

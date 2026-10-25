@@ -60,4 +60,4 @@ tests/integration/test_unified_app.py::UnifiedAppDemoModeTests::test_nonexistent
 tests/integration/test_unified_app.py::AdminToDashboardIntegrationTests::test_created_group_and_student_appear_in_dashboard PASSED [ 98%]
 tests/integration/test_unified_app.py::AdminToDashboardIntegrationTests::test_missing_group_is_404_not_503 PASSED [100%]
 
-=================== 50 passed, 17 subtests passed in 7.88s ====================
+=================== 50 passed, 17 subtests passed in 7.52s ====================

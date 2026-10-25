@@ -1,11 +1,12 @@
 {
-  "model_version": "random_forest-seed7-n600",
-  "algorithm": "RandomForestClassifier",
-  "trained_at": "2026-10-25T16:11:22+00:00",
+  "model_version": "logistic_regression-seed7-n600",
+  "engine_type": "logistic_regression",
+  "algorithm": "LogisticRegression",
+  "trained_at": "2026-10-25T16:23:11+00:00",
   "sklearn_version": "1.9.1",
   "hyperparameters": {
-    "n_estimators": 100,
-    "max_depth": 6,
+    "C": 1.0,
+    "max_iter": 500,
     "random_state": 42
   },
   "features": [
@@ -24,9 +25,9 @@
     "split_seed": 42
   },
   "metrics_on_holdout": {
-    "accuracy": 0.883,
-    "precision": 0.828,
-    "recall": 0.727,
-    "f1_score": 0.774
+    "accuracy": 0.925,
+    "precision": 0.929,
+    "recall": 0.788,
+    "f1_score": 0.852
   }
 }
