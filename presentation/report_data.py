@@ -1,5 +1,17 @@
 """Shared definitions used by the dashboard and both PDF reports."""
+from core.config import DEFAULT_RISK_THRESHOLD
+from core.risk_levels import risk_bands
+
 STATUS_LABELS = {'high': 'Alto riesgo', 'medium': 'En observación', 'low': 'Buen camino'}
+
+
+def describe_levels(threshold=DEFAULT_RISK_THRESHOLD):
+    """Spanish description of the risk levels, derived from the configured threshold."""
+    medium_floor, high_floor = risk_bands(threshold)
+    if medium_floor >= high_floor:
+        return f'bajo <{high_floor:g}; alto desde {high_floor:g}'
+    return (f'bajo <{medium_floor:g}; observación desde {medium_floor:g} y <{high_floor:g}; '
+            f'alto desde {high_floor:g}')
 
 
 def summarize(students):

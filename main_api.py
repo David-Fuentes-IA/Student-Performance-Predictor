@@ -39,7 +39,9 @@ from presentation.teacher_report_ui import TeacherReportUI
 
 logger = get_logger(__name__)
 
-DEFAULT_RISK_THRESHOLD = config.risk_threshold()  # FR-7: RISK_THRESHOLD env var, default 75
+# FR-7: RISK_THRESHOLD env var (default 75). It sets the alert line AND the "high" level
+# (core/risk_levels.py), and is read once at startup.
+RISK_THRESHOLD = config.risk_threshold()
 
 
 # --------------------------------------------------------------------------
@@ -62,7 +64,7 @@ def _bootstrap():
     # CachingDecorator outermost (so a cache hit skips both the audit
     # write and the model entirely). The rest of the app only ever sees
     # an IRiskPredictionEngine, never these concrete classes.
-    base_engine = create_risk_engine("random_forest", trained_model=trained_model)
+    base_engine = create_risk_engine("random_forest", trained_model=trained_model, risk_threshold=RISK_THRESHOLD)
     audited_engine = AuditDecorator(base_engine, model_version=model_card["model_version"])
     engine = CachingDecorator(audited_engine)
 
@@ -100,7 +102,7 @@ def _validate_request(group_id: str, requesting_teacher: str) -> None:
     # service here (NFR-2). Out of scope for this milestone.
 
 
-def _run_risk_workflow(group_id: str, requesting_teacher: str, threshold: float):
+def _run_risk_workflow(group_id: str, requesting_teacher: str):
     """
     Steps 1-8 of the Figure 7 workflow, shared by every consumer of a risk
     report (the text report below, the JSON API, and the dashboard). This
@@ -129,7 +131,7 @@ def _run_risk_workflow(group_id: str, requesting_teacher: str, threshold: float)
                 group_id=group_id,
                 student_ref=result.student_ref,
                 risk_score=result.risk_score,
-                threshold=threshold,
+                threshold=RISK_THRESHOLD,
             )
         )
 
@@ -145,10 +147,9 @@ def _run_risk_workflow(group_id: str, requesting_teacher: str, threshold: float)
 def generate_group_risk_report(
     group_id: str,
     requesting_teacher: str = "demo_teacher",
-    threshold: float = DEFAULT_RISK_THRESHOLD,
 ) -> str:
     """Run the full workflow in Figure 7 and return the rendered text report."""
-    results, name_lookup = _run_risk_workflow(group_id, requesting_teacher, threshold)
+    results, name_lookup = _run_risk_workflow(group_id, requesting_teacher)
     # Step 6: build the report. Names are looked up here, in the
     # Presentation layer's data source - the AI layer never saw them.
     return TeacherReportUI.render_group_report(group_id, results, name_lookup)
@@ -158,7 +159,6 @@ def generate_group_risk_report(
 def get_group_dashboard_data(
     group_id: str,
     requesting_teacher: str = "demo_teacher",
-    threshold: float = DEFAULT_RISK_THRESHOLD,
 ) -> list[dict]:
     """
     Same workflow as generate_group_risk_report, but returns structured
@@ -167,7 +167,7 @@ def get_group_dashboard_data(
     list of plain dicts, sorted highest-risk-first, one per student:
     {"name", "risk_score", "risk_label"}.
     """
-    results, name_lookup = _run_risk_workflow(group_id, requesting_teacher, threshold)
+    results, name_lookup = _run_risk_workflow(group_id, requesting_teacher)
     records = {s.student_id: s for s in _repository.get_group(group_id).students}
     ordered = sorted(results, key=lambda r: r.risk_score, reverse=True)
     return [

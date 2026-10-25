@@ -18,7 +18,13 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-from presentation.report_data import STATUS_LABELS, recommendations, summarize
+from core.config import DEFAULT_RISK_THRESHOLD
+from presentation.report_data import (
+    STATUS_LABELS,
+    describe_levels,
+    recommendations,
+    summarize,
+)
 
 INK = colors.HexColor('#202b46')
 PURPLE = colors.HexColor('#6454cc')
@@ -80,7 +86,7 @@ def document(title, group_id, content):
     return output.getvalue()
 
 
-def build_student_report(group_id, student, summary):
+def build_student_report(group_id, student, summary, threshold=DEFAULT_RISK_THRESHOLD):
     s = student
     body = [para(s['name'], 'Heading2'), para(f"Matrícula: {s['student_id']}"),
             para(f"Riesgo estimado: {s['risk_score']:.1f}/100 | {STATUS_LABELS[s['risk_label']]}"),
@@ -94,12 +100,12 @@ def build_student_report(group_id, student, summary):
             para('Sugerencias de seguimiento', 'Heading2')]
     body += [para(f'{i+1}. {action}') for i, action in enumerate(recommendations(s))]
     body += [para('Estas sugerencias se basan en los indicadores observados; no explican causalmente la predicción. '
-                  'Niveles del modelo: bajo <40; observación desde 40 y <75; alto desde 75. '
+                  f'Niveles del modelo: {describe_levels(threshold)}. '
                   'La interpretación final corresponde al docente.', 'SmallNote')]
     return document('Reporte individual', group_id, body)
 
 
-def build_group_report(group_id, students):
+def build_group_report(group_id, students, threshold=DEFAULT_RISK_THRESHOLD):
     summary = summarize(students)
     n = summary['total']
     body = [para('Resumen de todo el grupo', 'Heading2'),
@@ -123,6 +129,6 @@ def build_group_report(group_id, students):
             para(f"Priorizar la revisión individual de {summary['counts']['high']} alumnos con riesgo alto y "
                  f"dar seguimiento a {summary['counts']['medium']} en observación. "
                  'Contrastar los indicadores con el contexto de cada alumno antes de decidir acciones.'),
-            para('Los promedios son medias aritméticas por alumno; cada registro usa los alumnos que lo tienen disponible. Niveles de riesgo: bajo <40; '
-                 'observación desde 40 y <75; alto desde 75. El puntaje de riesgo no mide directamente el rendimiento.', 'SmallNote')]
+            para('Los promedios son medias aritméticas por alumno; cada registro usa los alumnos que lo tienen disponible. Niveles de riesgo: '
+                 f'{describe_levels(threshold)}. El puntaje de riesgo no mide directamente el rendimiento.', 'SmallNote')]
     return document('Reporte de rendimiento grupal', group_id, body)

@@ -33,6 +33,7 @@ function renderOverview(){
  const metrics=[['Alumnos del grupo',s.total,'Vista completa del grupo'],['Promedio de calificaciones',fmt(s.average_grade),'Escala de 0 a 100'],['Asistencia promedio',`${fmt(s.attendance_pct)}%`,'Media de todos los alumnos'],['Alumnos con riesgo alto',s.counts.high,'Requieren revisión del docente']];
  $('metrics').innerHTML=metrics.map(([label,value,note])=>`<div class="metric"><p>${label}</p><strong>${value}</strong><small>${note}</small></div>`).join('');
  $('group-tag').textContent=data.group_id;
+ $('risk-legend').textContent=`Riesgo estimado: ${data.risk_levels}.`;
  $('distribution').innerHTML=Object.entries(labels).map(([tier,label])=>`<button class="distribution-row" data-tier="${tier}" aria-pressed="false"><span>${label}</span><span class="track"><span class="fill" style="display:block;width:${s.total?100*s.counts[tier]/s.total:0}%;background:${colors[tier]}"></span></span><b>${s.counts[tier]} <small>/${s.total}</small></b></button>`).join('');
  $('grade-chart').innerHTML=s.period_averages.map((g,i)=>`<div class="grade-col"><strong>${fmt(g)}</strong><div class="column" style="height:${g}px" title="Registro ${i+1}: ${fmt(g)}"></div><span>Registro ${i+1}</span></div>`).join('');
 }

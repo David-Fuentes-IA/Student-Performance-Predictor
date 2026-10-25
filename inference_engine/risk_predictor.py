@@ -18,8 +18,10 @@ Design note (traceability: Strategy + Factory, §5; DIP §6.3; FR-4, FR-8):
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
+from core.config import DEFAULT_RISK_THRESHOLD
 from core.exception_handler import PredictionEngineError
 from core.logger import get_logger
+from core.risk_levels import label_for
 from feature_store.feature_manager import FeatureVector
 
 logger = get_logger(__name__)
@@ -30,14 +32,6 @@ class RiskResult:
     student_ref: str
     risk_score: float   # 0-100, higher = more at risk
     risk_label: str      # "low" | "medium" | "high"
-
-
-def _label_for(score: float) -> str:
-    if score >= 75:
-        return "high"
-    if score >= 40:
-        return "medium"
-    return "low"
 
 
 class IRiskPredictionEngine(ABC):
@@ -58,13 +52,14 @@ class RandomForestRiskEngine(IRiskPredictionEngine):
     (SRP; training lives in learning_module.model_trainer).
     """
 
-    def __init__(self, trained_model) -> None:
+    def __init__(self, trained_model, risk_threshold: float = DEFAULT_RISK_THRESHOLD) -> None:
         if trained_model is None:
             raise PredictionEngineError(
                 "RandomForestRiskEngine created without a trained model",
                 user_message="The prediction model is not available right now.",
             )
         self._model = trained_model
+        self._risk_threshold = risk_threshold
 
     def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
         try:
@@ -83,7 +78,7 @@ class RandomForestRiskEngine(IRiskPredictionEngine):
         return RiskResult(
             student_ref=feature_vector.student_ref,
             risk_score=score,
-            risk_label=_label_for(score),
+            risk_label=label_for(score, self._risk_threshold),
         )
 
 
@@ -94,13 +89,14 @@ class LogisticRegressionRiskEngine(IRiskPredictionEngine):
     inference; training lives in learning_module.model_trainer.
     """
 
-    def __init__(self, trained_model) -> None:
+    def __init__(self, trained_model, risk_threshold: float = DEFAULT_RISK_THRESHOLD) -> None:
         if trained_model is None:
             raise PredictionEngineError(
                 "LogisticRegressionRiskEngine created without a trained model",
                 user_message="The prediction model is not available right now.",
             )
         self._model = trained_model
+        self._risk_threshold = risk_threshold
 
     def predict_risk(self, feature_vector: FeatureVector) -> RiskResult:
         try:
@@ -117,7 +113,7 @@ class LogisticRegressionRiskEngine(IRiskPredictionEngine):
         return RiskResult(
             student_ref=feature_vector.student_ref,
             risk_score=score,
-            risk_label=_label_for(score),
+            risk_label=label_for(score, self._risk_threshold),
         )
 
 
@@ -128,12 +124,13 @@ def create_risk_engine(engine_type: str, **kwargs) -> IRiskPredictionEngine:
     no if/else chains scattered around the rest of the application.
     """
     engine_type = engine_type.lower().strip()
+    risk_threshold = kwargs.get("risk_threshold", DEFAULT_RISK_THRESHOLD)
 
     if engine_type == "random_forest":
-        return RandomForestRiskEngine(trained_model=kwargs.get("trained_model"))
+        return RandomForestRiskEngine(trained_model=kwargs.get("trained_model"), risk_threshold=risk_threshold)
 
     if engine_type == "logistic_regression":
-        return LogisticRegressionRiskEngine(trained_model=kwargs.get("trained_model"))
+        return LogisticRegressionRiskEngine(trained_model=kwargs.get("trained_model"), risk_threshold=risk_threshold)
 
     raise PredictionEngineError(
         f"Unknown engine_type '{engine_type}' requested from create_risk_engine",
