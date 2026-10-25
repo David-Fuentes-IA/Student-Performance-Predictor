@@ -1,5 +1,7 @@
 # Student Performance Predictor
 
+[![CI/CD](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/workflows/ci.yml/badge.svg?branch=milestone-3)](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/workflows/ci.yml)
+
 **Team 5, Software Engineering II (UAEMéx)**: Gabriel de Anda Romero · David Nava Fuentes · Marco Uriel Romero Hurtado ·
 Axel Rubén López Soto
 
@@ -10,7 +12,8 @@ All the data in this repository are synthetic; no real student appears anywhere.
 
 > Current work lives on the branch `milestone-3`. Evidence for the Milestone 3 report:
 > [testing](docs/evidence/testing/README.md) · [model validation](docs/evidence/model/README.md) ·
-> [containers and deployment](docs/evidence/docker/README.md) · [evaluation dataset](data/README.md)
+> [containers and deployment](docs/evidence/docker/README.md) · [CI/CD](docs/evidence/cicd/README.md) ·
+> [evaluation dataset](data/README.md)
 
 ---
 
@@ -196,6 +199,10 @@ $env:MONGODB_TEST_URI="mongodb://localhost:27018"; venv\Scripts\python.exe -m py
 | `python scripts/smoke_test.py http://localhost:8000` | end-to-end check of a running instance |
 | `python scripts/build_evaluation_dataset.py --check` | verifies `data/grupo_evaluacion.xlsx` against the simulator |
 
+Every push runs all of this automatically on GitHub (`.github/workflows/ci.yml`): build and lint, the whole test suite against a
+real MongoDB, the model quality gate, and the container smoke test, in that order; a failing stage stops the pipeline. Pushes to
+`main` then publish the image to GitHub Container Registry. Details: [docs/evidence/cicd](docs/evidence/cicd/README.md).
+
 ---
 
 ## 5. Model
@@ -297,8 +304,9 @@ core/            configuration, logging (PII-safe), exceptions, Observer, risk l
 | dashboard, administration, Excel import, PDF and text reports | teacher authentication and HTTPS |
 | MongoDB and demo repositories, schema validation | sending alerts to teachers (only logged now) |
 | two models, validation, error analysis, fairness audit, quality gate | real institutional data |
-| 4-level test suite, memory profiling, reproducible evidence | CI/CD pipeline (Milestone 3, in progress) |
+| 4-level test suite, memory profiling, reproducible evidence | publishing the image (configured for `main`, not exercised yet) |
 | Docker image and compose, health and readiness probes | Kubernetes manifests and performance benchmarks (in progress) |
+| CI/CD on GitHub Actions: lint, tests with MongoDB, quality gate, container smoke test | |
 | | Vercel deployment (configuration present, not verified) |
 
 ## 10. Known limitations

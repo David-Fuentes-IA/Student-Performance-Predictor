@@ -14,6 +14,7 @@ Writes to docs/evidence/testing/:
     summary.json           tests per level, coverage per package, environment
 """
 
+import argparse
 import json
 import os
 import platform
@@ -142,6 +143,10 @@ def replace_block(text: str, name: str, content: str) -> str:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="Run every test level and write the testing evidence.")
+    parser.add_argument("--strict", action="store_true",
+                        help="exit 1 if any test fails, or if any test is skipped while MONGODB_TEST_URI is set (CI)")
+    args = parser.parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
     mongo = bool(os.environ.get("MONGODB_TEST_URI"))
     if not mongo:
@@ -172,6 +177,15 @@ def main() -> None:
         text = replace_block(text, "memory", render_memory(memory))
         readme.write_text(text, encoding="utf-8")
     print(json.dumps(summary, indent=2))
+
+    if args.strict:
+        problems = [f"{level}: {v['failed']} failed" for level, v in summary["levels"].items() if v["failed"]]
+        problems += [f"{level}: exit code {v['exit_code']}" for level, v in summary["levels"].items()
+                     if v["exit_code"] not in (0, 5) and not v["failed"]]
+        if mongo:   # with a database available nothing may be skipped
+            problems += [f"{level}: {v['skipped']} skipped" for level, v in summary["levels"].items() if v["skipped"]]
+        if problems:
+            raise SystemExit("TEST STAGE FAILED: " + "; ".join(problems))
 
 
 if __name__ == "__main__":

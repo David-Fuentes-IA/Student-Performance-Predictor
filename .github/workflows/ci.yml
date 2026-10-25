@@ -1,0 +1,170 @@
+# CI/CD pipeline. Same order as the course: Push -> Build -> Automated Testing -> AI Model Validation -> Deploy.
+# Every stage needs the previous one: if anything fails, the pipeline stops and nothing is delivered.
+# What each stage checks and why it makes the software more reliable: docs/evidence/cicd/README.md
+
+name: CI/CD
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read            # least privilege; only the delivery job may write packages
+
+concurrency:                # a newer push to the same branch cancels the run that became obsolete
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.12"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+
+jobs:
+  build:
+    name: "1. Build: install, lint, train the model"
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Static analysis (ruff)
+        run: ruff check .
+      - name: Train the model from scratch
+        run: python scripts/train_model.py
+      - name: The fixed evaluation dataset still matches the simulator
+        run: python scripts/build_evaluation_dataset.py --check
+      - name: Keep the trained model
+        uses: actions/upload-artifact@v4
+        with:
+          name: trained-model
+          path: models/
+          retention-days: 14
+
+  test:
+    name: "2. Automated tests: unit, integration, system, memory"
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      mongo:                # a real, empty MongoDB only for this job: no shared or production data is touched
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ping: 1}).ok'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      MONGODB_TEST_URI: mongodb://localhost:27017
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Run every test level with coverage and memory profiling (strict, nothing may be skipped)
+        run: python scripts/collect_test_evidence.py --strict
+      - name: Summary
+        if: always()
+        run: cat docs/evidence/testing/summary.json
+      - name: Keep the test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-evidence
+          path: docs/evidence/testing/
+          retention-days: 30
+
+  model-validation:
+    name: "3. AI model validation: quality gate"
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+      - name: Install dependencies
+        run: python -m pip install -r requirements-dev.txt
+      - name: Quality gate on students the model never saw (recall, precision, F1; perfect scores rejected)
+        run: python scripts/evaluate_models.py --gate
+      - name: Full validation report
+        if: always()
+        run: python scripts/evaluate_models.py --out model-evidence
+      - name: Keep the validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-evidence
+          path: model-evidence/
+          retention-days: 30
+
+  container:
+    name: "4. Container: build the image, start the stack, smoke test"
+    needs: model-validation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image and start the application with its MongoDB
+        run: docker compose up -d --build
+      - name: Smoke test against the running container
+        run: python3 scripts/smoke_test.py http://localhost:8000 --expect-groups 3 --timeout 180
+      - name: Container state and logs
+        if: always()
+        run: |
+          docker compose ps
+          docker compose logs app --no-log-prefix | tail -n 60
+      - name: Stop and remove the stack
+        if: always()
+        run: docker compose down -v
+
+  deliver:
+    name: "5. Deliver: publish the image to GitHub Container Registry"
+    needs: container
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'    # only verified code on main is delivered
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha
+            type=raw,value=latest
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
