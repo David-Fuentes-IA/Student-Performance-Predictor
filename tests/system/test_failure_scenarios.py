@@ -47,6 +47,19 @@ class StartupFailureTests(unittest.TestCase):
                 self.assertNotEqual(result.returncode, 0)
                 self.assertIn("RISK_THRESHOLD", result.stderr)
 
+    def test_a_configured_but_unreachable_database_stops_the_app_instead_of_serving_fake_data(self):
+        # Found in Docker: the container restarted while MongoDB was down, fell back to demo data
+        # and kept serving fake students for good, even after MongoDB came back.
+        result = start_app(MONGODB_URI="mongodb://127.0.0.1:1")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("DataAccessError", result.stderr)
+        self.assertIn("ALLOW_DEMO_FALLBACK", result.stderr)
+
+    def test_demo_fallback_must_be_requested_explicitly(self):
+        result = start_app(MONGODB_URI="mongodb://127.0.0.1:1", ALLOW_DEMO_FALLBACK="true")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("NOT the real ones", result.stdout + result.stderr)
+
     def test_a_valid_configuration_starts_normally(self):
         result = start_app()
         self.assertEqual(result.returncode, 0, result.stderr)

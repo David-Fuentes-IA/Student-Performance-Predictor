@@ -15,3 +15,7 @@ python-dotenv>=1.0
 
 # PDF individual y grupal
 reportlab>=4.0
+
+# Production WSGI server used by the Docker image (the Flask development server is not for production).
+# gunicorn needs POSIX, so it is skipped on Windows, where `python web_app.py` is used instead.
+gunicorn>=22.0; sys_platform != "win32"

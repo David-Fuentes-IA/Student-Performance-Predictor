@@ -7,6 +7,8 @@ panel writes to.
 """
 
 import re
+import time
+from concurrent.futures import ThreadPoolExecutor
 from io import BytesIO
 
 from flask import Blueprint, jsonify, render_template, request, send_file
@@ -56,17 +58,40 @@ def index():
     return render_template("index.html", group_id=group_id, initial_error=None)
 
 
+# --- health -------------------------------------------------------------------------------------
+# Two different questions, answered by two endpoints (the Docker HEALTHCHECK and Kubernetes probes use them):
+#   /health  liveness : "is the process alive?"  Always 200 while the app runs, never blocked by the
+#            database, so a database outage does not get a healthy container restarted for nothing.
+#   /ready   readiness: "can it serve requests now?"  503 when the model is missing or the database is
+#            unreachable, so traffic is routed elsewhere until it recovers.
+_DB_CHECK_TIMEOUT_SECONDS = 2.0   # pymongo itself waits up to 8 s; a health check must not
+_DB_CHECK_CACHE_SECONDS = 5.0
+_db_checker = ThreadPoolExecutor(max_workers=1, thread_name_prefix="db-health")
+_db_last = {"repository": None, "at": 0.0, "reachable": False}
+
+
+def _database_reachable() -> bool:
+    """Bounded, briefly cached MongoDB ping. False for the in-memory repository."""
+    repository = main_api.get_repository()
+    if main_api.get_runtime_status()["backend"] != "mongodb":
+        return False
+    now = time.monotonic()
+    if _db_last["repository"] is repository and now - _db_last["at"] < _DB_CHECK_CACHE_SECONDS:
+        return _db_last["reachable"]
+    try:
+        _db_checker.submit(lambda: repository.db.command("ping")).result(timeout=_DB_CHECK_TIMEOUT_SECONDS)
+        reachable = True
+    except Exception:  # noqa: BLE001 - timeout or any driver error just means "not reachable"
+        reachable = False
+    _db_last.update(repository=repository, at=now, reachable=reachable)
+    return reachable
+
+
 @dashboard_bp.get("/health")
 def health():
-    """Liveness + readiness without leaking details (used by Docker/Kubernetes)."""
+    """Liveness plus a summary of the dependencies (no internal details)."""
     status = main_api.get_runtime_status()
-    database = False
-    if status["backend"] == "mongodb":
-        try:
-            main_api.get_repository().db.command("ping")
-            database = True
-        except Exception:  # noqa: BLE001 - any failure just means "not reachable"
-            database = False
+    database = _database_reachable()
     healthy = status["model_loaded"] and database
     return _no_store(jsonify(
         status="ok" if healthy else "degraded",
@@ -74,6 +99,17 @@ def health():
         model_loaded=status["model_loaded"],
         database=database,
     ))
+
+
+@dashboard_bp.get("/ready")
+def ready():
+    """Readiness: 200 only when requests can be served (demo mode needs no database)."""
+    status = main_api.get_runtime_status()
+    demo = status["backend"] == "memory"
+    database = False if demo else _database_reachable()
+    is_ready = status["model_loaded"] and (demo or database)
+    response = jsonify(ready=is_ready, mode=_mode(), model_loaded=status["model_loaded"], database=database)
+    return _no_store(response), (200 if is_ready else 503)
 
 
 @dashboard_bp.get("/api/groups")

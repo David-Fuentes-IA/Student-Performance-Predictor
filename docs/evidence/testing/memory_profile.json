@@ -8,11 +8,11 @@
       "pure_python_loop": {
         "peak_kib": 159.7,
         "retained_kib": 159.6,
-        "seconds": 0.0084
+        "seconds": 0.008
       },
       "extract_many_pandas_numpy": {
-        "peak_kib": 309.5,
-        "retained_kib": 212.0,
+        "peak_kib": 309.6,
+        "retained_kib": 212.1,
         "seconds": 0.0256
       }
     },
@@ -21,12 +21,12 @@
       "pure_python_loop": {
         "peak_kib": 1565.3,
         "retained_kib": 1565.2,
-        "seconds": 0.0845
+        "seconds": 0.0798
       },
       "extract_many_pandas_numpy": {
-        "peak_kib": 2944.7,
+        "peak_kib": 2944.6,
         "retained_kib": 2039.4,
-        "seconds": 0.3508
+        "seconds": 0.3206
       }
     }
   ],
@@ -34,15 +34,15 @@
     "model_file_kib": 0.9,
     "peak_kib": 21.4,
     "retained_kib": 4.0,
-    "seconds": 0.0083
+    "seconds": 0.0091
   },
   "excel_parse": {
     "rows": 1000,
     "file_kib": 36.4,
     "records_parsed": 1000,
-    "peak_kib": 956.9,
-    "retained_kib": 526.9,
-    "seconds": 0.3096
+    "peak_kib": 956.8,
+    "retained_kib": 526.7,
+    "seconds": 0.2606
   },
   "cache_growth": {
     "distinct_predictions": 15000,
@@ -51,6 +51,6 @@
     "bounded": true,
     "peak_kib": 3971.2,
     "retained_kib": 1712.1,
-    "seconds": 0.2226
+    "seconds": 0.2143
   }
 }

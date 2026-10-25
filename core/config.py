@@ -70,6 +70,15 @@ def risk_threshold() -> float:
     return value
 
 
+def allow_demo_fallback() -> bool:
+    """Run on in-memory demo data when MongoDB is configured but unreachable at start-up.
+
+    Off by default: silently serving fake students in place of the real database is never what a
+    deployment wants. Meant for local development only (ALLOW_DEMO_FALLBACK=true).
+    """
+    return os.environ.get("ALLOW_DEMO_FALLBACK", "").strip().lower() in ("1", "true", "yes")
+
+
 def model_type() -> str:
     """Prediction model to train and serve (FR-8). RISK_MODEL overrides the validated default."""
     value = os.environ.get("RISK_MODEL", "").strip().lower()

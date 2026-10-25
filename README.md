@@ -25,6 +25,53 @@ http://127.0.0.1:5000/admin. `python admin_app.py` sirve la misma app en el puer
 Para detener el servidor, usa Ctrl+C. El servidor de `main_api.py` no es necesario
 para utilizar la interfaz: inicia `web_app.py`.
 
+## Docker (un solo comando)
+
+Requisito: Docker Desktop abierto. Sin instalar Python ni MongoDB:
+
+```bash
+docker compose up --build
+```
+
+Abre http://localhost:8000. Levanta dos contenedores: `app` (gunicorn, usuario no root, con el modelo ya entrenado
+dentro de la imagen) y `mongo` (MongoDB 7 con un volumen que conserva los datos). Al arrancar siembra los grupos demo.
+
+| Dirección | Para qué |
+|---|---|
+| `/` | dashboard docente |
+| `/admin` | administración: grupos, alumnos, importación de Excel |
+| `/health` | *liveness*: ¿el proceso está vivo? (siempre 200, no depende de la base) |
+| `/ready` | *readiness*: ¿puede atender solicitudes? (503 si falta el modelo o la base) |
+
+Variables (en un archivo `.env` junto al `docker-compose.yml`; ver `.env.example`):
+
+| Variable | Por defecto | Efecto |
+|---|---|---|
+| `APP_PORT` | `8000` | puerto publicado en tu máquina |
+| `SEED_DEMO` | `true` | siembra los grupos demo al arrancar (idempotente; solo datos sintéticos) |
+| `ADMIN_PASSWORD` | vacío | si se define, el panel `/admin` exige la contraseña. **Defínela si el puerto es alcanzable desde otras máquinas** |
+| `RISK_THRESHOLD` | `75` | umbral de alerta y de "alto riesgo" |
+| `MONGODB_DB` | `student_predictor` | nombre de la base |
+| `DOCKER_MONGODB_URI` | `mongodb://mongo:27017` | para usar MongoDB Atlas en vez de la base del compose |
+
+`DOCKER_MONGODB_URI` es distinta de `MONGODB_URI` a propósito: tu `.env` de desarrollo suele apuntar a `localhost`, y dentro de un
+contenedor `localhost` es el propio contenedor.
+
+```bash
+docker compose logs -f app                 # registros (la consola; los de archivo quedan en /app/logs)
+docker compose down                        # apaga; los datos se conservan en el volumen
+docker compose down -v                     # apaga y BORRA los datos del compose
+docker compose up --build --no-deps app    # solo la app, contra Atlas (con DOCKER_MONGODB_URI definido)
+python scripts/smoke_test.py http://localhost:8000 --expect-groups 3   # comprobación de punta a punta
+```
+
+**Si la base no responde cuando el contenedor arranca**, `app` se detiene con un mensaje claro y Docker lo reintenta hasta que la
+base esté disponible; nunca sirve alumnos ficticios en lugar de los reales. (`ALLOW_DEMO_FALLBACK=true`, solo para desarrollo local, lo permite.)
+Si la base cae con la app ya en marcha, las pantallas de datos responden un error claro y todo se recupera al volver la base.
+
+La evidencia (construcción, tamaño, arranque, persistencia y pruebas de falla) y la explicación del despliegue están en
+`docs/evidence/docker/README.md`.
+
 ## Pruebas
 
 Las pruebas viven en `tests/`, organizadas por nivel: `unit/`, `integration/`, `system/` y `performance/`

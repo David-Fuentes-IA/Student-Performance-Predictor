@@ -23,7 +23,7 @@ from core.logger import get_logger
 
 logger = get_logger(__name__)
 
-_JSON_PREFIXES = ("/api/", "/admin/api/", "/reports/", "/health")
+_JSON_PREFIXES = ("/api/", "/admin/api/", "/reports/", "/health", "/ready")
 
 _GENERIC_MESSAGE = "No se pudo generar la información del grupo. Inténtalo de nuevo."
 

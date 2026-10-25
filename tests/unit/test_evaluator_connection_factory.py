@@ -1,8 +1,10 @@
+import os
 import unittest
 from unittest.mock import MagicMock, patch
 
 from pymongo.errors import ServerSelectionTimeoutError
 
+from core import config
 from core.exception_handler import DataAccessError
 from data_access import mongo_connection
 from data_access.repository_factory import build_repository
@@ -75,14 +77,31 @@ class RepositoryFactoryTests(unittest.TestCase):
     def test_without_configuration_the_in_memory_demo_repository_is_used(self):
         self.assertIsInstance(build_repository(), InMemoryAcademicRepository)
 
-    def test_if_mongodb_is_unreachable_it_falls_back_to_demo_and_warns(self):
-        with patch("data_access.repository_factory.config.mongodb_uri", return_value="mongodb://configured"), \
-             patch("data_access.mongo_repository.MongoAcademicRepository",
-                   side_effect=DataAccessError("down", user_message="down")), \
-             self.assertLogs("student_predictor.data_access.repository_factory", level="WARNING") as logs:
+    def configured_but_down(self):
+        return (patch("data_access.repository_factory.config.mongodb_uri", return_value="mongodb://configured"),
+                patch("data_access.mongo_repository.MongoAcademicRepository",
+                      side_effect=DataAccessError("down", user_message="down")))
+
+    def test_a_configured_database_that_is_down_stops_the_application(self):
+        uri, repo = self.configured_but_down()
+        with uri, repo, self.assertLogs("student_predictor.data_access.repository_factory", level="ERROR"),                 self.assertRaises(DataAccessError) as ctx:
+            build_repository()
+        self.assertIn("ALLOW_DEMO_FALLBACK", ctx.exception.user_message)
+
+    def test_demo_fallback_is_an_explicit_development_opt_in_and_warns_loudly(self):
+        uri, repo = self.configured_but_down()
+        with uri, repo, patch.dict(os.environ, {"ALLOW_DEMO_FALLBACK": "true"}),                 self.assertLogs("student_predictor.data_access.repository_factory", level="WARNING") as logs:
             repository = build_repository()
         self.assertIsInstance(repository, InMemoryAcademicRepository)
-        self.assertIn("falling back", "\n".join(logs.output))
+        self.assertIn("NOT the real ones", " ".join(logs.output))
+
+    def test_the_fallback_switch_is_off_by_default_and_parses_common_spellings(self):
+        for value, expected in ((None, False), ("", False), ("false", False), ("true", True), ("TRUE", True),
+                                ("1", True), ("yes", True)):
+            with self.subTest(value), patch.dict(os.environ, {} if value is None else {"ALLOW_DEMO_FALLBACK": value}):
+                if value is None:
+                    os.environ.pop("ALLOW_DEMO_FALLBACK", None)
+                self.assertEqual(config.allow_demo_fallback(), expected)
 
 
 if __name__ == "__main__":

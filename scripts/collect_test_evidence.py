@@ -81,6 +81,66 @@ def run_coverage() -> dict:
     }
 
 
+def _size(kib: float) -> str:
+    return f"{kib / 1024:.2f} MiB" if kib >= 100 else f"{kib:.1f} KiB"
+
+
+def render_results(summary: dict) -> str:
+    levels = summary["levels"]
+    names = {"performance": "Memory profiling"}
+    rows = [f"| {names.get(level, level.capitalize())} | {v['tests']} | {v['subtests_passed']} | {v['failed']} "
+            f"| {v['skipped']} | {v['seconds']:.1f} s |" for level, v in levels.items()]
+    tests = sum(v["tests"] for v in levels.values())
+    subs = sum(v["subtests_passed"] for v in levels.values())
+    failed = sum(v["failed"] for v in levels.values())
+    skipped = sum(v["skipped"] for v in levels.values())
+    packages = summary["coverage"]["by_package"]
+    weakest = min(packages, key=packages.get)
+    verdict = "all passing" if not failed else f"{failed} FAILING"
+    return "\n".join([
+        "| Level | Tests | Parametrised sub-cases | Failed | Skipped | Time |",
+        "|---|---|---|---|---|---|",
+        *rows,
+        f"| **Total** | **{tests}** | **{subs}** | **{failed}** | **{skipped}** | |",
+        "",
+        f"{tests} test functions, plus {subs} parametrised cases (`subTest`) executed inside them: "
+        f"{tests + subs} checks, {verdict}.",
+        "",
+        f"Statement coverage: **{summary['coverage']['total_percent']} %** overall "
+        f"(lowest: `{weakest}`, {packages[weakest]} %).",
+        "",
+        "| Package | Coverage |",
+        "|---|---|",
+        *[f"| `{name}` | {value} % |" for name, value in sorted(packages.items(), key=lambda kv: -kv[1])],
+    ])
+
+
+def render_memory(memory: dict) -> str:
+    lines = ["| Measurement | Result |", "|---|---|"]
+    for row in memory["feature_extraction"]:
+        loop, batch = row["pure_python_loop"], row["extract_many_pandas_numpy"]
+        lines.append(f"| Feature extraction, {row['students']:,} students | pure Python loop {_size(loop['peak_kib'])} / "
+                     f"{loop['seconds'] * 1000:.0f} ms; `extract_many` (pandas + numpy) {_size(batch['peak_kib'])} / "
+                     f"{batch['seconds'] * 1000:.0f} ms |")
+    m, e, c = memory["model_load"], memory["excel_parse"], memory["cache_growth"]
+    lines += [
+        f"| Model load | {m['model_file_kib']} KiB file, {_size(m['peak_kib'])} peak, "
+        f"{_size(m['retained_kib'])} retained, {m['seconds'] * 1000:.0f} ms |",
+        f"| Largest allowed Excel ({e['rows']:,} rows, {e['file_kib']} KiB) | {_size(e['peak_kib'])} peak, {e['seconds']:.1f} s |",
+        f"| Prediction cache, {c['distinct_predictions']:,} distinct predictions | "
+        f"{'bounded' if c['bounded'] else 'UNBOUNDED'}: {c['cache_entries']:,} entries kept "
+        f"(limit {c['max_entries']:,}), {_size(c['peak_kib'])} peak |",
+    ]
+    return "\n".join(lines)
+
+
+def replace_block(text: str, name: str, content: str) -> str:
+    begin = text.index(f"<!-- BEGIN:{name}")
+    header_end = text.index("-->", begin) + 3
+    end = text.index(f"<!-- END:{name} -->", header_end)
+    return text[:header_end] + "\n" + content + "\n" + text[end:]
+
+
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     mongo = bool(os.environ.get("MONGODB_TEST_URI"))
@@ -101,8 +161,16 @@ def main() -> None:
     }
     summary["coverage"] = run_coverage()
 
-    (OUT / "memory_profile.json").write_text(json.dumps(run_all(), indent=2) + "\n", encoding="utf-8")
+    memory = run_all()
+    (OUT / "memory_profile.json").write_text(json.dumps(memory, indent=2) + "\n", encoding="utf-8")
     (OUT / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
+
+    readme = OUT / "README.md"
+    if readme.exists():                      # keep the numbers in the report in sync with the files above
+        text = readme.read_text(encoding="utf-8")
+        text = replace_block(text, "results", render_results(summary))
+        text = replace_block(text, "memory", render_memory(memory))
+        readme.write_text(text, encoding="utf-8")
     print(json.dumps(summary, indent=2))
 
 

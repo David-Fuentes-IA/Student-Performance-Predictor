@@ -1,0 +1,3 @@
+SERVICE   STATE     <no value>   PORTS
+app       running   healthy      0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp
+mongo     running   healthy      27017/tcp

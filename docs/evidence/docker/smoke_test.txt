@@ -1,0 +1,15 @@
+PASS  health answers 200  status=200
+PASS  model is loaded  model_loaded=True
+PASS  health reports a mode  mode=database database=True status=ok
+PASS  readiness answers 200  status=200
+PASS  dashboard page loads  status=200
+PASS  static assets are served  
+PASS  admin page loads  
+PASS  group list is available  4 groups
+PASS  at least 3 groups exist  4 groups
+PASS  predictions for group 301-A  34 students
+PASS  risk scores are within 0-100  
+PASS  risk levels are valid  
+PASS  group PDF report downloads  47996 bytes
+PASS  unknown group returns a clean 404  status=404
+PASS  malformed group id is rejected (400)  status=400
