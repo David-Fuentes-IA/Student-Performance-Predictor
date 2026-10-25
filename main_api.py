@@ -135,8 +135,12 @@ def _run_risk_workflow(group_id: str, requesting_teacher: str):
             )
         )
 
-        # Step 8: persist prediction (IAcademicDataRepository.save_prediction).
-        _repository.save_prediction(result.student_ref, result.risk_score, result.risk_label)
+        # Step 8: persist the prediction. Best effort (NFR-5): if the secondary
+        # store fails, the report is still produced.
+        try:
+            _repository.save_prediction(result.student_ref, result.risk_score, result.risk_label)
+        except Exception as exc:  # noqa: BLE001 - isolation boundary
+            logger.warning("Prediction for %s could not be persisted: %s", result.student_ref, type(exc).__name__)
 
     group = _repository.get_group(group_id)
     name_lookup = {s.student_id: s.name for s in group.students}

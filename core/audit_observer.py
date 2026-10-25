@@ -87,8 +87,15 @@ class RiskEventPublisher:
         self._observers.remove(observer)
 
     def notify_all(self, event: RiskEvent) -> None:
-        for observer in self._observers:
-            observer.update(event)
+        # NFR-5: a failing secondary service (an observer) must never stop the
+        # report from being generated, nor the remaining observers from running.
+        for observer in list(self._observers):
+            try:
+                observer.update(event)
+            except Exception as exc:  # noqa: BLE001 - isolation boundary
+                logger.error(
+                    "Observer %s failed and was skipped: %s", type(observer).__name__, exc, exc_info=True
+                )
 
 
 class RiskAlertObserver(RiskObserver):
