@@ -69,7 +69,7 @@ missing, unexpected type, empty and extreme input.
 | Excel importer | the downloadable template is itself importable; header aliases and accents; `123.0`, `"85,5"`, `"90%"` normalised; empty file, PDF content, random text, truncated workbook, missing column, header-only file, 1,001 rows; 11 kinds of invalid row reported with their Excel row number |
 | Factory and engines | both strategies built, name case/whitespace tolerant, unknown type, missing model, model crash wrapped in a safe error that hides internals |
 | Decorators | cache hit/miss/expiry, key includes the student's data, clear, bounded size, **a cache hit does not reach the audit trail** (Figure 5 order), audit line carries model version and latency |
-| Observer | inclusive threshold, no personal-name field in the event, alert only at/above threshold, history returned as a copy, **a failing observer does not stop the others** |
+| Observer | inclusive threshold, no personal-name field in the event, alert only for a failing average or a score at/above the threshold (with its reason), history returned as a copy, **a failing observer does not stop the others** |
 | Risk levels / threshold | label boundaries for default, 90, 50 and 30; the legend text is derived from the threshold; invalid `RISK_THRESHOLD` values (`abc`, `-1`, `101`, `nan`, `inf`) rejected |
 | Model store | save/load round trip, missing file, corrupt file, card without version |
 | Logging | personal-data keys are redacted case-insensitively without mutating the input |
@@ -129,7 +129,7 @@ while the function runs and reports the peak (`memory_profile.json`).
 | Change propagates | re-importing worse grades for a student raises their risk in the next report (cache keyed by data) |
 | Edge cases | a group with no students is a valid empty report; `/health` reports database, model and mode |
 | Excel error catalogue (lesson 17) | valid file; empty; PDF content disguised as `.xlsx`; truncated file; missing columns; no file; wrong extension; 5 MB file: each answered with a meaningful message, no traceback, no data changed |
-| Startup failures | missing model, corrupt model file and invalid `RISK_THRESHOLD` each stop the application with a message naming the cause and the fix; a valid configuration starts |
+| Startup failures | missing model, corrupt model file, invalid `RISK_THRESHOLD`, invalid `PASSING_GRADE` and a configured but unreachable database each stop the application with a message naming the cause and the fix; the demo fallback happens only when `ALLOW_DEMO_FALLBACK=true`; a valid configuration starts |
 | Threshold end to end | restarting with `RISK_THRESHOLD=1` produces more high-risk students than the default |
 
 **Interpretation.** The complete flow meets the lesson-17 checklist: valid input accepted, invalid input

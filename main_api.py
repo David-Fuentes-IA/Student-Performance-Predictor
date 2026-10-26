@@ -10,13 +10,14 @@ Design note (traceability: §8 AI Workflow, Figure 7):
     `generate_group_risk_report` follows the exact steps of the workflow
     diagram, in the exact same order:
         1. Validate permissions and academic input   (Business Logic Fail-Fast)
-        2. Authorize request                          (teacher check)
+        2. Authorize request                          (placeholder: a requester must be named;
+                                                       there is no teacher login yet)
         3. Retrieve academic data                     (IAcademicDataRepository)
         4. Data quality check                         (ETLProcessor/FailFastValidator)
         5. Run the ML pipeline                         (ETLProcessor)
-        6. Execute IRiskPredictionEngine               (Strategy + Decorator)
-        7. Notify on threshold                         (Observer)
-        8. Persist prediction result                   (save_prediction)
+        6. Execute IRiskPredictionEngine               (Strategy + Decorator, whole group in one call)
+        7. Notify high-risk students                   (Observer)
+        8. Persist prediction results                  (save_predictions, one batch)
         9. Generate and display the report             (Presentation)
 """
 
@@ -117,7 +118,8 @@ def _run_risk_workflow(group_id: str, requesting_teacher: str):
     Returns (results, name_lookup, group) - never a name is left inside the
     result objects themselves (DR-1).
     """
-    # Steps 1-2: validate and authorize request.
+    # Steps 1-2: validate the request. "Authorization" only requires a named requester:
+    # real teacher authentication is not implemented.
     _validate_request(group_id, requesting_teacher)
 
     # Step 3: read the group ONCE; every later step works on this same snapshot.

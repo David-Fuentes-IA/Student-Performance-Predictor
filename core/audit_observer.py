@@ -17,8 +17,8 @@ Design note (traceability: Observer, §5; FR-5; §5.1 Observer Instances table):
 
     2. ModelMonitoringObserver  -> "Model Monitoring" instance. Accumulates
        every prediction (regardless of risk level) into an in-memory
-       history used for the semiannual retraining/drift review described
-       in the Risks section.
+       history, the input a drift review (the design's semiannual
+       retraining check) would need; that review is not automated.
 
     Note this is NOT the same job as AuditDecorator
     (inference_engine/cache_manager.py), even though both involve
@@ -131,8 +131,9 @@ class RiskAlertObserver(RiskObserver):
 class ModelMonitoringObserver(RiskObserver):
     """
     'Model Monitoring' instance. Accumulates every prediction (regardless
-    of risk level) into an in-memory history for the semiannual
-    retraining/drift review described in the Risks section.
+    of risk level) into an in-memory history (lost on restart), the input
+    a drift review would need; the semiannual review of the design document
+    is not automated.
 
     This does NOT write a per-call log line - AuditDecorator already owns
     that (inference_engine/cache_manager.py). Logging the same event twice

@@ -215,7 +215,8 @@ Other defects found and fixed during this milestone (they are also corrections):
 |---|---|---|---|---|
 | Training / cross-validation | 600 simulated students | 7 | 27.5 % | compare models, every decision |
 | Independent evaluation | 240 students, `data/grupo_evaluacion.xlsx` (built on the team's import template) | 2026 | 26.7 % (64) | measure the chosen model **once** |
-| Demo groups | 3 groups, 100 students (301-A 34, 301-B 33, 301-C 33) | fixed | — | demonstration |
+| Demo data seeded into MongoDB (Docker, `/admin` → Generar, `seed_demo_data.py`) | 3 groups, 100 students (301-A 34, 301-B 33, 301-C 33) | fixed | — | demonstration |
+| Demo mode without a database | 3 in-memory groups of 12 students (301-A, 301-B, 301-C) | fixed | — | demonstration without MongoDB |
 
 The simulator (`data_access/synthetic_students.py`) gives each student hidden traits (aptitude, engagement), noise and
 unforeseeable events (5 % crisis, 4 % recovery) so that a reasonable model is mostly right and **visibly imperfect**.
