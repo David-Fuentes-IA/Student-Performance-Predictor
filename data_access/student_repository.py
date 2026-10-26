@@ -5,14 +5,14 @@ Design note (traceability: DIP, §4; FR-3; IAcademicDataRepository, §6):
     `IAcademicDataRepository` is the abstraction the rest of the system
     depends on. Nothing outside this file ever imports
     `InMemoryAcademicRepository` directly by name in business logic code -
-    everything talks to the interface, so swapping this for a real
-    SQLAlchemy + PostgreSQL implementation later (per the Technology Stack)
-    means writing ONE new class here and changing zero lines anywhere else.
+    everything talks to the interface. That is how the database decision
+    changed from the design document's PostgreSQL + SQLAlchemy to MongoDB:
+    one new class (`MongoAcademicRepository`, data_access/mongo_repository.py)
+    and the factory (repository_factory.py), with no change anywhere else.
 
-    `InMemoryAcademicRepository` exists so this project runs end to end
-    without a real institutional database, which is out of scope for this
-    milestone. It generates small, clearly-fake sample data - nothing here
-    is a real student.
+    `InMemoryAcademicRepository` is the demo mode used when no database is
+    configured. It holds three fixed groups of synthetic students - nothing
+    here is a real student.
 """
 
 import zlib
@@ -89,9 +89,8 @@ class InMemoryAcademicRepository(IAcademicDataRepository):
 
     Holds a small in-memory dataset of synthetic students per group, so the
     rest of the pipeline (validation -> features -> prediction -> report)
-    can be exercised without a real academic database. A production
-    implementation would replace this class with one built on SQLAlchemy
-    over PostgreSQL, implementing the same interface.
+    can be exercised without a database. The real implementation of the same
+    interface is `MongoAcademicRepository` (MongoDB, local or Atlas).
     """
 
     backend = "memory"

@@ -7,9 +7,10 @@ Design note (traceability: Observer, §5; FR-5; §5.1 Observer Instances table):
     The design doc defines exactly TWO canonical Observer instances, and
     this file keeps that distinction instead of collapsing them into one:
 
-    1. RiskAlertObserver        -> "Risk Alert" instance. Fires ONLY when a
-       student's score crosses the configured threshold. Notifies the
-       teacher and academic tutor. This is a decision-support alert, not
+    1. RiskAlertObserver        -> "Risk Alert" instance. Fires ONLY for a
+       high-risk student (failing average or score at/above the threshold).
+       It logs the alert with its reason; sending it to the teacher and
+       academic tutor is future work. This is a decision-support alert, not
        an automatic action (DR-2, Academic Sovereignty / human-in-the-loop):
        the observer never changes a grade or flags the student itself, it
        only surfaces the alert for a human to act on.
@@ -107,7 +108,8 @@ class RiskEventPublisher:
 class RiskAlertObserver(RiskObserver):
     """
     'Risk Alert' instance (FR-5). Only acts for high-risk students (failing
-    average or score at/above the threshold), and only *notifies* - the actual
+    average or score at/above the threshold), and only *records* the alert for
+    the teacher to review on the dashboard - nothing is sent to anyone, and the
     intervention is always a human decision (DR-2).
     """
 
@@ -116,12 +118,12 @@ class RiskAlertObserver(RiskObserver):
             return
         reasons = [text for flag, text in ((event.below_passing_grade, "failing average"),
                                            (event.exceeds_threshold, "risk score at/above threshold")) if flag]
-        # In production this would call the Notification Service (email/
-        # SMS/push to the teacher and academic tutor). For this milestone
-        # we log the alert so the workflow is visible end to end.
+        # Sending the alert to the teacher and academic tutor (e-mail/SMS/push,
+        # the design's Notification Service) is future work; for now the alert
+        # is only logged, and the dashboard shows it with its reason.
         logger.warning(
             "RISK ALERT | group=%s student_ref=%s score=%.1f (threshold=%.1f) reason=%s "
-            "-> teacher and academic tutor notified for review",
+            "-> for teacher review (not sent: notifications are not implemented)",
             event.group_id, event.student_ref, event.risk_score, event.threshold, " + ".join(reasons),
         )
 

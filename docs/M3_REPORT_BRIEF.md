@@ -149,7 +149,7 @@ Questions the professor asked in the Milestone 2 review, with the current answer
 | Where are PostgreSQL/SQLAlchemy actually used? | Nowhere: replaced by MongoDB (ADR, section 5) |
 | How does the user choose the group? | A selector filled from `GET /api/groups` (real groups from the database); a group created in `/admin` appears without restarting |
 | What happens if the model or a dependency fails? | Model missing/corrupt → the application refuses to start with `ModelLoadError` naming the fix. Model crashes during a request → HTTP 503 with a safe message, no traceback. Database down at start-up → refuses to start (no silent fake data). Database down while running → `/ready` 503, data requests 503 with a safe message, container stays alive. Observer or prediction store fails → report still produced (NFR-5). All tested |
-| Show an error in the log | e.g. `RISK ALERT | group=… student_ref=… score=… reason=failing average + risk score at/above threshold`, the AUDIT-TRAIL line per prediction, and the start-up error `MONGODB_URI is set but the database is unreachable at start-up…` (`docs/evidence/docker/startup_log.txt`) |
+| Show an error in the log | e.g. `RISK ALERT | group=… student_ref=… score=… reason=failing average + risk score at/above threshold -> for teacher review (not sent: notifications are not implemented)`, the AUDIT-TRAIL line per prediction, and the start-up error `MONGODB_URI is set but the database is unreachable at start-up…` (`docs/evidence/docker/startup_log.txt`) |
 | Run the automated tests | `python -m pytest` (or `scripts/collect_test_evidence.py`); CI does it on every push |
 | Full traceability requirement → diagram → code → execution → result | Section 2 table (requirement → file → evidence) plus the evidence folders |
 
@@ -668,8 +668,9 @@ Milestone 4 forbids new features, so these are facts about what already exists.
   student ID (matrícula) does appear in AUDIT-TRAIL and RISK ALERT log lines and in the `predictions` collection
   (`student_ref`, score, label, timestamp); names appear, by design, on the dashboard and PDFs for the teacher. There is no
   retention period or deletion policy for predictions and logs (gap to discuss).
-- **Small inconsistency to correct (text only):** the RISK ALERT log line ends with "-> teacher and academic tutor notified
-  for review", but no notification is sent (alerts are only logged). The team should fix the wording or state it.
+- **Alerts are not sent to anyone:** they are logged (`-> for teacher review (not sent: notifications are not implemented)`)
+  and shown on the dashboard with their reason. (Corrected in commit after `2bf6723`: the log line used to say "teacher and
+  academic tutor notified".)
 - **Bias sources:** synthetic data and labels; proxy variables (attendance penalises evening students in the simulation:
   more false alarms for them, more misses for morning students; not statistically confirmed); a fixed threshold;
   students with fewer partials missed more often; the model barely uses the trend.
