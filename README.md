@@ -13,7 +13,7 @@ All the data in this repository are synthetic; no real student appears anywhere.
 > Current work lives on the branch `milestone-3`. Evidence for the Milestone 3 report:
 > [testing](docs/evidence/testing/README.md) · [model validation](docs/evidence/model/README.md) ·
 > [containers and deployment](docs/evidence/docker/README.md) · [CI/CD](docs/evidence/cicd/README.md) ·
-> [evaluation dataset](data/README.md)
+> [performance](docs/evidence/performance/README.md) · [Kubernetes](k8s/README.md) · [evaluation dataset](data/README.md)
 
 ---
 

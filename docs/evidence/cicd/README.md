@@ -54,7 +54,7 @@ delivery faster.
 | Tool | Fit for this project |
 |---|---|
 | **GitHub Actions** | the code already lives on GitHub; no server to maintain; free for public repositories; MongoDB and Docker available on the runners. **Chosen.** |
-| Jenkins | powerful, but needs its own server and maintenance: unjustified for a five-person team |
+| Jenkins | powerful, but needs its own server and maintenance: unjustified for a small student team |
 | GitLab CI/CD | equivalent features, but would mean moving the repository |
 | Azure DevOps | geared to organisations already on Azure |
 

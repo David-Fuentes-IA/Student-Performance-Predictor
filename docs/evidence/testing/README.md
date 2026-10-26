@@ -76,7 +76,7 @@ missing, unexpected type, empty and extreme input.
 | Error handling | exception hierarchy; unexpected errors never leak their message to the user |
 | Repository, evaluator, connection | demo groups only (no invented groups), seed determinism; metrics for a known confusion matrix; fairness audit per group; passwords redacted from connection strings; fallback to demo mode logs a warning |
 
-**Interpretation.** 90 passing unit tests (plus 29 parametrised cases) say the building blocks honour their contracts, including
+**Interpretation.** 150 passing unit tests (plus 52 parametrised cases) say the building blocks honour their contracts, including
 the unhappy paths. They say nothing yet about how the blocks behave together or whether the model is good.
 
 ### 2. Integration testing: "Do these components work correctly together?"
@@ -151,9 +151,9 @@ requirement.
 
 ## Limitations (stated, not hidden)
 
-- The real-MongoDB tests (32 of the 243) need `MONGODB_TEST_URI`; without it they are skipped and
+- The real-MongoDB tests (33 of the 288) need `MONGODB_TEST_URI`; without it they are skipped and
   `summary.json` records `real_mongodb_tests_included: false`. The CI workflow provides a Mongo service container.
-- Coverage is lowest in `data_access` (84.8 %): the uncovered lines are mostly database-outage branches
+- Coverage is lowest in `data_access` (84.4 %): the uncovered lines are mostly database-outage branches
   that need a Mongo that fails on demand.
 - Measurements come from one development machine; use them for orders of magnitude and for the ratios
   between alternatives, not as absolute guarantees.
