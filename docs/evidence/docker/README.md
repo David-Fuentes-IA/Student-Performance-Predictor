@@ -20,7 +20,7 @@ python scripts/collect_docker_evidence.py --cold       # --cold measures a first
 
 ## 1. Why containers for this project
 
-Five people develop on different machines, mostly Windows, and "it works on my machine" has already happened here: a system
+The team develops on different machines, mostly Windows, and "it works on my machine" has already happened here: a system
 Python with a broken `numpy`, virtual environments that did not activate, a model file that existed locally but not in git.
 A container packages the application, its libraries, the runtime and the configuration, so it behaves the same everywhere.
 
@@ -122,7 +122,7 @@ non-root user, gunicorn instead of the development server, a health check, no se
 |---|---|---|
 | **1. One machine (classroom, demo)** | `docker compose up --build` | **implemented and tested** (section 3) |
 | **2. One server for a faculty** | the same compose file on a Linux VM; HTTPS through a reverse proxy (Caddy or nginx); `ADMIN_PASSWORD`; backups of the `mongo_data` volume, or MongoDB Atlas through `DOCKER_MONGODB_URI` so the database is managed | compose and Atlas path implemented; proxy, HTTPS and backups are **not** configured |
-| **3. Image from a registry** | the CI builds the image on every merge and publishes it to GitHub Container Registry; servers `docker pull` a tag | designed in Phase 7 (CI/CD) |
+| **3. Image from a registry** | the CI builds the image on every merge and publishes it to GitHub Container Registry; servers `docker pull` a tag | configured in the CI (`deliver` job, runs only on `main`); not exercised yet because `milestone-3` is not merged |
 | **4. Managed container platform** (Azure Container Apps, Google Cloud Run, AWS ECS) | run the same image with the Atlas connection string; the image is stateless apart from a per-process cache | **design only**, not executed |
 | **5. Kubernetes** | Deployment, Service, probes on `/health` and `/ready`, HorizontalPodAutoscaler | manifests in [`k8s/`](../../../k8s/README.md), deployed to a throw-away cluster (kind) by the CI on every push |
 

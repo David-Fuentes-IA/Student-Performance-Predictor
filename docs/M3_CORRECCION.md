@@ -99,7 +99,7 @@ Map each row to the FR/NFR/DR identifiers of the design document, which you have
 | Teacher dashboard: group selector, cards, level overview, per-exam averages, searchable/sortable table, alert reason, student card | **Implemented** | `templates/index.html`, `static/dashboard.js`, `webapp/dashboard.py` | system tests; smoke test |
 | Group and individual PDF reports (with alert reason and level legend) | **Implemented** | `presentation/pdf_reports.py` | tests read the PDFs with `pypdf` |
 | Text report endpoint `/api/v1/groups/<id>/risk-report` | **Implemented** | `webapp/dashboard.py`, `presentation/` | integration tests |
-| Administration: groups and students CRUD, Excel import (partial / strict), template, demo data, database browser, import log | **Implemented** | `webapp/admin.py`, `templates/admin.html`, `data_pipeline/` | integration tests against real MongoDB |
+| Administration: groups and students CRUD, Excel import (partial / strict), template, demo data, database browser, import log | **Implemented** (a student's change history is stored and exposed by the API, but no screen shows it) | `webapp/admin.py`, `templates/admin.html`, `data_pipeline/` | integration tests against real MongoDB |
 | Optional admin password (`ADMIN_PASSWORD`) | **Implemented** | admin blueprint | `AdminPasswordTests` |
 | Teacher authentication, roles, HTTPS | **Future work** | — | — |
 | MongoDB repository with JSON-Schema validators and unique indexes | **Implemented** | `data_access/mongo_repository.py`, `data_access/schema.py` | real-MongoDB tests |
@@ -169,6 +169,7 @@ Other defects found and fixed during this milestone (they are also corrections):
 | `/health` waited 8 s for MongoDB, so Docker marked a healthy container `unhealthy` | Liveness `/health` bounded to 2 s; separate readiness `/ready` |
 | Database down at start-up → silently served fake data until the next restart | Fail fast unless `ALLOW_DEMO_FALLBACK=true` |
 | One database insert and one model call per student; group read 3 times per request | Batch insert, batch prediction, one read (section 11) |
+| Code comments, log lines and documents that contradicted the behaviour: the alert log said "teacher and academic tutor notified" (nothing is sent), docstrings still described SQLAlchemy + PostgreSQL, `docs/DATABASE.md` listed admin routes without their `/admin` prefix and a history screen that does not exist, step 2 of the workflow was called "authorize" with no login | Rewritten to describe what the code does (commits `ff3b946`, `96fd0d0`) |
 | Dead code: `generate_synthetic_data.py`, `risk_model.pkl`, `system_audit.log`, an unused Flask app in `main_api.py` | Removed |
 
 ---
@@ -419,6 +420,7 @@ Not configured: branch protection on `main` (owner-only setting, recommended).
 |---|---|---|---|
 | [#40238753531](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/runs/40238753531) (first) | `cdfb5dd` | all green, deliver skipped (not main), total 6:04 | build 0:42, tests 3:24, gate 0:46, container 1:02 |
 | [#40241401044](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/runs/40241401044) (with Kubernetes) | `c1f41f8` | all green, deliver skipped, total 7:49 | build 0:40, tests 2:39, gate 0:47, container 0:50, **kubernetes 2:44** |
+| [#40261774028](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/runs/40261774028) (final consistency review) | `96fd0d0` | all green, deliver skipped | all six stages as above |
 
 Artefacts per run: `trained-model`, `test-evidence`, `model-evidence`.
 `[SCREENSHOT: GitHub Actions run #40241401044 with the six jobs]`, `[SCREENSHOT: CI badge in README]`.
@@ -460,7 +462,7 @@ Artefacts per run: `trained-model`, `test-evidence`, `model-evidence`.
 |---|---|
 | One machine (classroom/demo): `docker compose up --build` | implemented and tested |
 | One faculty server: same compose on a Linux VM + HTTPS reverse proxy + Atlas or volume backups | compose/Atlas implemented; proxy, HTTPS, backups not configured |
-| Image from a registry (GHCR, published by CI from `main`) | configured |
+| Image from a registry (GHCR, published by CI from `main`) | configured, not exercised yet (`milestone-3` is not merged) |
 | Managed container platform (Cloud Run, Azure Container Apps, ECS) | design only |
 | Kubernetes | manifests implemented, deployed in CI |
 
@@ -617,6 +619,8 @@ healthy; `kubectl get pods` (from CI log); `operating_points.png` and `confusion
 | `cdfb5dd`, `d1c6b72` | CI/CD pipeline and its first run |
 | `c1f41f8` | performance (batch storage, batch prediction, one read) and Kubernetes |
 | `f0c4877`, `3971f7a` | CI run with Kubernetes; final regenerated evidence |
+| `2bf6723` | this brief; stale counts in the testing evidence corrected |
+| `ff3b946`, `96fd0d0` and the commit that adds this file | code and documents made consistent with the behaviour (alerts not sent, MongoDB instead of SQLAlchemy, real admin routes, no teacher login) |
 
 ---
 
@@ -670,8 +674,8 @@ Milestone 4 forbids new features, so these are facts about what already exists.
   (`student_ref`, score, label, timestamp); names appear, by design, on the dashboard and PDFs for the teacher. There is no
   retention period or deletion policy for predictions and logs (gap to discuss).
 - **Alerts are not sent to anyone:** they are logged (`-> for teacher review (not sent: notifications are not implemented)`)
-  and shown on the dashboard with their reason. (Corrected in commit after `2bf6723`: the log line used to say "teacher and
-  academic tutor notified".)
+  and shown on the dashboard with their reason. (Corrected in `ff3b946`: the log line used to say "teacher and academic
+  tutor notified".)
 - **Bias sources:** synthetic data and labels; proxy variables (attendance penalises evening students in the simulation:
   more false alarms for them, more misses for morning students; not statistically confirmed); a fixed threshold;
   students with fewer partials missed more often; the model barely uses the trend.
