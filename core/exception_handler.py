@@ -12,6 +12,7 @@ Design note (traceability: Fail-Fast, §4; FR-2):
 """
 
 import functools
+
 from core.logger import get_logger
 
 logger = get_logger(__name__)
@@ -37,6 +38,18 @@ class ValidationError(AppError):
 
 class DataAccessError(AppError):
     """Raised when the repository layer cannot read/find academic data."""
+
+
+class NotFoundError(DataAccessError):
+    """A requested resource does not exist (maps to HTTP 404)."""
+
+
+class GroupNotFoundError(NotFoundError):
+    """Raised when a requested group does not exist."""
+
+
+class ModelLoadError(AppError):
+    """Raised when the trained model (or its model card) is missing or unreadable."""
 
 
 class PredictionEngineError(AppError):

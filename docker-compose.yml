@@ -1,0 +1,44 @@
+# One command brings up the whole system:   docker compose up --build   ->  http://localhost:8000
+#
+#   app    the Flask application (dashboard at /, administration at /admin)
+#   mongo  a private MongoDB with a persistent volume (data survive `docker compose down`;
+#          `docker compose down -v` deletes them)
+#
+# Configuration comes from environment variables or a `.env` file next to this file.
+# To use MongoDB Atlas instead of the bundled database, set DOCKER_MONGODB_URI (see README) and run
+#   docker compose up --build --no-deps app
+
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  app:
+    build: .
+    image: student-performance-predictor:local
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    environment:
+      # A separate variable from MONGODB_URI on purpose: a developer's .env usually points to
+      # "localhost", which inside a container would be the container itself.
+      MONGODB_URI: ${DOCKER_MONGODB_URI:-mongodb://mongo:27017}
+      MONGODB_DB: ${MONGODB_DB:-student_predictor}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-}
+      RISK_THRESHOLD: ${RISK_THRESHOLD:-75}
+      PASSING_GRADE: ${PASSING_GRADE:-60}
+      SEED_DEMO: ${SEED_DEMO:-true}
+
+volumes:
+  mongo_data:

@@ -24,7 +24,14 @@ try:  # python-dotenv is only a convenience for local development
 except ImportError:  # pragma: no cover - dotenv is listed in requirements.txt
     pass
 
+from core.exception_handler import ValidationError
+
 DEFAULT_DB_NAME = "student_predictor"
+DEFAULT_RISK_THRESHOLD = 75.0
+DEFAULT_PASSING_GRADE = 60.0   # 6.0 on the usual 0-10 school scale
+MODEL_TYPES = ("random_forest", "logistic_regression")
+# Chosen by scripts/evaluate_models.py (cross-validation, see docs/evidence/model/README.md).
+DEFAULT_MODEL_TYPE = "logistic_regression"
 
 
 def mongodb_uri() -> str:
@@ -39,6 +46,61 @@ def mongodb_db_name() -> str:
 def admin_password() -> str:
     """Optional shared password for the admin web interface ('' = open)."""
     return os.environ.get("ADMIN_PASSWORD", "").strip()
+
+
+def model_dir() -> Path:
+    """Folder holding risk_model.joblib and model_card.json (MODEL_DIR overrides)."""
+    configured = os.environ.get("MODEL_DIR", "").strip()
+    return Path(configured) if configured else Path(__file__).resolve().parent.parent / "models"
+
+
+def _percent_from_env(name: str, default: float) -> float:
+    """A 0-100 number from the environment; anything else stops the application (Fail-Fast)."""
+    raw = os.environ.get(name, "").strip()
+    if not raw:
+        return default
+    try:
+        value = float(raw)
+    except ValueError:
+        value = float("nan")
+    if not 0.0 <= value <= 100.0:  # NaN fails this comparison too
+        raise ValidationError(
+            f"{name}={raw!r} is not a number between 0 and 100",
+            user_message=f"{name} must be a number between 0 and 100.",
+        )
+    return value
+
+
+def risk_threshold() -> float:
+    """Model risk score (0-100) from which a student is high risk (FR-7). RISK_THRESHOLD overrides 75."""
+    return _percent_from_env("RISK_THRESHOLD", DEFAULT_RISK_THRESHOLD)
+
+
+def passing_grade() -> float:
+    """Average grade (0-100) below which a student is failing and therefore high risk. Default 60 (= 6.0)."""
+    return _percent_from_env("PASSING_GRADE", DEFAULT_PASSING_GRADE)
+
+
+def allow_demo_fallback() -> bool:
+    """Run on in-memory demo data when MongoDB is configured but unreachable at start-up.
+
+    Off by default: silently serving fake students in place of the real database is never what a
+    deployment wants. Meant for local development only (ALLOW_DEMO_FALLBACK=true).
+    """
+    return os.environ.get("ALLOW_DEMO_FALLBACK", "").strip().lower() in ("1", "true", "yes")
+
+
+def model_type() -> str:
+    """Prediction model to train and serve (FR-8). RISK_MODEL overrides the validated default."""
+    value = os.environ.get("RISK_MODEL", "").strip().lower()
+    if not value:
+        return DEFAULT_MODEL_TYPE
+    if value not in MODEL_TYPES:
+        raise ValidationError(
+            f"RISK_MODEL={value!r} is not one of {MODEL_TYPES}",
+            user_message=f"RISK_MODEL must be one of: {', '.join(MODEL_TYPES)}.",
+        )
+    return value
 
 
 def running_on_vercel() -> bool:

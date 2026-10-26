@@ -1,13 +1,13 @@
 """
-generate_synthetic_data.py
+scripts/seed_demo_data.py
 
 Command-line way to (re)generate demo data in the configured MongoDB
 (MONGODB_URI in .env -> Atlas, or any other Mongo).
 
-    python generate_synthetic_data.py                 # 100 students, 3 groups
-    python generate_synthetic_data.py --count 200
-    python generate_synthetic_data.py --reset         # remove old demo data first
-    python generate_synthetic_data.py --purge         # only remove demo data
+    python scripts/seed_demo_data.py                 # 100 students, 3 groups
+    python scripts/seed_demo_data.py --count 200
+    python scripts/seed_demo_data.py --reset         # remove old demo data first
+    python scripts/seed_demo_data.py --purge         # only remove demo data
 
 Only data tagged source="synthetic" is ever touched - groups and students
 created manually or imported from Excel are never modified or deleted.
@@ -16,9 +16,13 @@ created manually or imported from Excel are never modified or deleted.
 
 import argparse
 import json
+import sys
+from pathlib import Path
 
-from data_access.mongo_repository import MongoAcademicRepository
-from data_pipeline.synthetic_seed import seed_database
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from data_access.mongo_repository import MongoAcademicRepository  # noqa: E402
+from data_pipeline.synthetic_seed import seed_database  # noqa: E402
 
 
 def main() -> None:

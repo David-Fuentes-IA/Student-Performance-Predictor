@@ -1,0 +1,56 @@
+{
+  "tool": "tracemalloc",
+  "python": "3.12.3",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "feature_extraction": [
+    {
+      "students": 1000,
+      "pure_python_loop": {
+        "peak_kib": 159.7,
+        "retained_kib": 159.6,
+        "seconds": 0.0079
+      },
+      "extract_many_pandas_numpy": {
+        "peak_kib": 309.6,
+        "retained_kib": 212.1,
+        "seconds": 0.0247
+      }
+    },
+    {
+      "students": 10000,
+      "pure_python_loop": {
+        "peak_kib": 1565.3,
+        "retained_kib": 1565.2,
+        "seconds": 0.0779
+      },
+      "extract_many_pandas_numpy": {
+        "peak_kib": 2944.6,
+        "retained_kib": 2039.4,
+        "seconds": 0.3266
+      }
+    }
+  ],
+  "model_load": {
+    "model_file_kib": 0.9,
+    "peak_kib": 21.4,
+    "retained_kib": 4.0,
+    "seconds": 0.0089
+  },
+  "excel_parse": {
+    "rows": 1000,
+    "file_kib": 36.4,
+    "records_parsed": 1000,
+    "peak_kib": 956.8,
+    "retained_kib": 526.7,
+    "seconds": 0.3317
+  },
+  "cache_growth": {
+    "distinct_predictions": 15000,
+    "cache_entries": 5000,
+    "max_entries": 10000,
+    "bounded": true,
+    "peak_kib": 3971.5,
+    "retained_kib": 1712.2,
+    "seconds": 0.4076
+  }
+}

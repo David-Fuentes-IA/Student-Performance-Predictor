@@ -8,16 +8,18 @@
 <script src="{{ url_for('static', filename='dashboard.js') }}" defer></script>
 </head>
 <body>
-<header><a class="brand" href="/" aria-label="Inicio"><span class="brand-icon">S</span> Student Predictor</a><span class="faculty">Ingeniería en IA · UAEMéx</span><span class="demo">DEMOSTRACIÓN</span></header>
+<header><a class="brand" href="/" aria-label="Inicio"><span class="brand-icon">S</span> Student Predictor</a><span class="faculty">Ingeniería en IA · UAEMéx</span><nav class="topnav"><a href="/admin">Administrar grupos</a></nav><span class="demo">DEMOSTRACIÓN</span></header>
+<div id="demo-banner" role="status" hidden>Modo demo: sin conexión a la base de datos. Los grupos mostrados son de ejemplo y no se pueden administrar.</div>
 <main>
 <div class="eyebrow">PANEL DOCENTE / SEGUIMIENTO ACADÉMICO</div>
 <section class="page-heading"><div><h1>Cada alumno cuenta.</h1><p>Explora el rendimiento, identifica señales y prepara tu siguiente acción.</p></div><button id="group-report" class="primary" disabled>↓ Descargar reporte del grupo</button></section>
-<section class="context"><form id="group-form"><label for="group">Grupo</label><input id="group" name="group" value="{{ group_id }}" maxlength="40" pattern="[A-Za-z0-9][A-Za-z0-9._-]{0,39}" required><button type="submit" id="load-group">Cargar grupo</button></form><p>Modelo de demostración entrenado con datos sintéticos.</p><button id="refresh" class="subtle">↻ Actualizar</button></section>
+<section class="context"><form id="group-form"><label for="group">Grupo</label><select id="group" name="group" required></select><button type="submit" id="load-group">Cargar grupo</button></form><span id="threshold-tag" class="tag"></span><p>Modelo de demostración entrenado con datos sintéticos.</p><button id="refresh" class="subtle">↻ Actualizar</button></section>
 <div id="notice" role="status" aria-live="polite" hidden></div>
+<div id="no-groups" class="empty" hidden><strong>Selecciona o crea un grupo.</strong> Aún no hay grupos disponibles. <a href="/admin">Ir a administrar grupos</a></div>
 <div id="error" role="alert" hidden></div>
 <section id="dashboard" aria-busy="true">
 <div class="metrics" id="metrics"></div>
-<div class="charts"><section class="panel"><div class="section-heading"><div><h2>Panorama del grupo</h2><p>Selecciona un nivel para filtrar alumnos.</p></div><span id="group-tag" class="tag"></span></div><div id="distribution"></div><div class="legend-note">Riesgo estimado: bajo &lt;40 · observación 40–&lt;75 · alto ≥75.</div></section>
+<div class="charts"><section class="panel"><div class="section-heading"><div><h2>Panorama del grupo</h2><p>Selecciona un nivel para filtrar alumnos.</p></div><span id="group-tag" class="tag"></span></div><div id="distribution"></div><div class="legend-note" id="risk-legend"></div></section>
 <section class="panel"><div class="section-heading"><div><h2>Calificaciones por registro</h2><p>Promedio de todo el grupo · escala de 0 a 100.</p></div></div><div id="grade-chart" class="grade-chart"></div></section></div>
 <section class="panel roster"><div class="section-heading"><div><h2>Alumnos <span id="result-count" class="tag"></span></h2><p>Consulta el detalle o descarga un reporte individual.</p></div><button id="clear" class="subtle">Limpiar filtros</button></div>
 <div class="filters"><div class="search-field"><label for="search">Buscar alumno</label><input id="search" type="search" placeholder="Nombre o matrícula…"></div><div><label for="risk">Nivel de riesgo</label><select id="risk"><option value="all">Todos los niveles</option><option value="high">Alto riesgo</option><option value="medium">En observación</option><option value="low">Buen camino</option></select></div><div><label for="sort">Ordenar por</label><select id="sort"><option value="risk">Mayor riesgo</option><option value="grade-desc">Mayor promedio</option><option value="grade-asc">Menor promedio</option><option value="name">Nombre (A–Z)</option></select></div></div>

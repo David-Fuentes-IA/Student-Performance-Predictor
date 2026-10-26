@@ -1,16 +1,19 @@
 import unittest
 from io import BytesIO
 from unittest.mock import patch
+
 from pypdf import PdfReader
-import web_app
-from main_api import get_group_dashboard_data, _repository
-from presentation.report_data import summarize
-from presentation.pdf_reports import build_group_report, build_student_report
+
 from core.exception_handler import AppError
+from main_api import _repository, get_group_dashboard_data
+from presentation.pdf_reports import build_group_report, build_student_report
+from presentation.report_data import summarize
+from webapp import create_app
+
 
 class DashboardTests(unittest.TestCase):
     def setUp(self):
-        self.client = web_app.app.test_client()
+        self.client = create_app().test_client()
 
     def test_dashboard_and_static(self):
         for path in ('/', '/static/dashboard.js', '/static/dashboard.css'):
@@ -58,7 +61,7 @@ class DashboardTests(unittest.TestCase):
         rows=[dict(average_grade=50,attendance_pct=70,participation_score=60,grades=[40,60],risk_score=50,risk_label=t) for t in ('low','medium','high')]
         self.assertEqual(summarize(rows)['counts'],dict(low=1,medium=1,high=1))
         self.assertTrue(build_group_report('EMPTY',[]).startswith(b'%PDF'))
-        with patch('web_app.get_group_dashboard_data',return_value=[]):
+        with patch('webapp.dashboard.get_group_dashboard_data',return_value=[]):
             self.assertEqual(self.client.get('/api/groups/EMPTY').get_json()['students'],[])
 
     def test_long_names_and_large_pdf(self):
@@ -71,7 +74,11 @@ class DashboardTests(unittest.TestCase):
         self.assertIn('BIG-099','\n'.join(p.extract_text() for p in pages))
 
     def test_imported_records_with_unequal_grades_and_external_ids(self):
-        from data_access.student_repository import InMemoryAcademicRepository, StudentRecord, StudentGroup
+        from data_access.student_repository import (
+            InMemoryAcademicRepository,
+            StudentGroup,
+            StudentRecord,
+        )
         from data_pipeline.etl_processor import ETLProcessor
         repo = InMemoryAcademicRepository()
         repo._groups['MIX.1'] = StudentGroup('MIX.1', [
@@ -87,7 +94,7 @@ class DashboardTests(unittest.TestCase):
             self.assertIn('REG / 1', PdfReader(BytesIO(pdf.data)).pages[0].extract_text())
 
     def test_safe_errors(self):
-        with patch('web_app.get_group_dashboard_data',side_effect=AppError('private/path')):
+        with patch('webapp.dashboard.get_group_dashboard_data',side_effect=AppError('private/path')):
             for path in ('/api/groups/301-A','/reports/groups/301-A.pdf'):
                 r=self.client.get(path)
                 self.assertEqual(r.status_code,503)

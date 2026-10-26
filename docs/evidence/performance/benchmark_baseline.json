@@ -1,0 +1,337 @@
+{
+  "label": "baseline",
+  "generated_at": "2026-10-25T16:26:25-0600",
+  "python": "3.12.3",
+  "platform": "Windows-10-10.0.19045-SP0",
+  "cpus": 12,
+  "in_process": {
+    "request_breakdown": {
+      "BENCH-50 / cold cache": {
+        "students": 50,
+        "total": {
+          "n": 20,
+          "p50_ms": 56.71,
+          "p95_ms": 70.23,
+          "max_ms": 283.71,
+          "mean_ms": 69.21
+        },
+        "stages_median_ms": {
+          "store predictions in MongoDB": 31.48,
+          "model inference (incl. cache, audit)": 14.52,
+          "load group from MongoDB": 7.69,
+          "extract features": 0.99,
+          "other (orchestration, sorting, dict building)": 0.96,
+          "observers (alerts, monitoring)": 0.69,
+          "serialise JSON": 0.19,
+          "validate records (Fail-Fast)": 0.09
+        },
+        "stages_share_pct": {
+          "store predictions in MongoDB": 55.5,
+          "model inference (incl. cache, audit)": 25.6,
+          "load group from MongoDB": 13.6,
+          "extract features": 1.7,
+          "other (orchestration, sorting, dict building)": 1.7,
+          "observers (alerts, monitoring)": 1.2,
+          "serialise JSON": 0.3,
+          "validate records (Fail-Fast)": 0.2
+        },
+        "calls_per_request": {
+          "load group from MongoDB": 3,
+          "validate records (Fail-Fast)": 50,
+          "extract features": 1,
+          "model inference (incl. cache, audit)": 50,
+          "observers (alerts, monitoring)": 50,
+          "store predictions in MongoDB": 50
+        }
+      },
+      "BENCH-50 / warm cache": {
+        "students": 50,
+        "total": {
+          "n": 20,
+          "p50_ms": 47.87,
+          "p95_ms": 55.31,
+          "max_ms": 58.81,
+          "mean_ms": 49.13
+        },
+        "stages_median_ms": {
+          "store predictions in MongoDB": 32.46,
+          "load group from MongoDB": 7.86,
+          "model inference (incl. cache, audit)": 4.76,
+          "other (orchestration, sorting, dict building)": 1.07,
+          "extract features": 1.01,
+          "observers (alerts, monitoring)": 0.73,
+          "serialise JSON": 0.19,
+          "validate records (Fail-Fast)": 0.09
+        },
+        "stages_share_pct": {
+          "store predictions in MongoDB": 67.8,
+          "load group from MongoDB": 16.4,
+          "model inference (incl. cache, audit)": 9.9,
+          "other (orchestration, sorting, dict building)": 2.2,
+          "extract features": 2.1,
+          "observers (alerts, monitoring)": 1.5,
+          "serialise JSON": 0.4,
+          "validate records (Fail-Fast)": 0.2
+        },
+        "calls_per_request": {
+          "load group from MongoDB": 3,
+          "validate records (Fail-Fast)": 50,
+          "extract features": 1,
+          "model inference (incl. cache, audit)": 50,
+          "observers (alerts, monitoring)": 50,
+          "store predictions in MongoDB": 50
+        }
+      },
+      "BENCH-240 / cold cache": {
+        "students": 240,
+        "total": {
+          "n": 20,
+          "p50_ms": 244.37,
+          "p95_ms": 273.33,
+          "max_ms": 283.39,
+          "mean_ms": 247.87
+        },
+        "stages_median_ms": {
+          "store predictions in MongoDB": 147.65,
+          "model inference (incl. cache, audit)": 67.91,
+          "load group from MongoDB": 16.52,
+          "observers (alerts, monitoring)": 4.61,
+          "other (orchestration, sorting, dict building)": 3.95,
+          "extract features": 1.82,
+          "serialise JSON": 0.82,
+          "validate records (Fail-Fast)": 0.43
+        },
+        "stages_share_pct": {
+          "store predictions in MongoDB": 60.4,
+          "model inference (incl. cache, audit)": 27.8,
+          "load group from MongoDB": 6.8,
+          "observers (alerts, monitoring)": 1.9,
+          "other (orchestration, sorting, dict building)": 1.6,
+          "extract features": 0.7,
+          "serialise JSON": 0.3,
+          "validate records (Fail-Fast)": 0.2
+        },
+        "calls_per_request": {
+          "load group from MongoDB": 3,
+          "validate records (Fail-Fast)": 240,
+          "extract features": 1,
+          "model inference (incl. cache, audit)": 240,
+          "observers (alerts, monitoring)": 240,
+          "store predictions in MongoDB": 240
+        }
+      },
+      "BENCH-240 / warm cache": {
+        "students": 240,
+        "total": {
+          "n": 20,
+          "p50_ms": 197.27,
+          "p95_ms": 209.0,
+          "max_ms": 211.72,
+          "mean_ms": 198.49
+        },
+        "stages_median_ms": {
+          "store predictions in MongoDB": 146.73,
+          "model inference (incl. cache, audit)": 21.85,
+          "load group from MongoDB": 16.46,
+          "observers (alerts, monitoring)": 4.76,
+          "other (orchestration, sorting, dict building)": 4.46,
+          "extract features": 1.83,
+          "serialise JSON": 0.81,
+          "validate records (Fail-Fast)": 0.43
+        },
+        "stages_share_pct": {
+          "store predictions in MongoDB": 74.4,
+          "model inference (incl. cache, audit)": 11.1,
+          "load group from MongoDB": 8.3,
+          "observers (alerts, monitoring)": 2.4,
+          "other (orchestration, sorting, dict building)": 2.3,
+          "extract features": 0.9,
+          "serialise JSON": 0.4,
+          "validate records (Fail-Fast)": 0.2
+        },
+        "calls_per_request": {
+          "load group from MongoDB": 3,
+          "validate records (Fail-Fast)": 240,
+          "extract features": 1,
+          "model inference (incl. cache, audit)": 240,
+          "observers (alerts, monitoring)": 240,
+          "store predictions in MongoDB": 240
+        }
+      }
+    },
+    "group_pdf_50_students": {
+      "n": 6,
+      "p50_ms": 66.06,
+      "p95_ms": 70.27,
+      "max_ms": 70.27,
+      "mean_ms": 66.57
+    },
+    "startup": {
+      "train at start-up (logistic_regression)": {
+        "n": 3,
+        "p50_ms": 75.71,
+        "p95_ms": 211.16,
+        "max_ms": 211.16,
+        "mean_ms": 107.05
+      },
+      "load trained model (logistic_regression)": {
+        "n": 10,
+        "p50_ms": 0.83,
+        "p95_ms": 9.29,
+        "max_ms": 9.29,
+        "mean_ms": 1.66
+      },
+      "train at start-up (random_forest)": {
+        "n": 3,
+        "p50_ms": 164.15,
+        "p95_ms": 194.23,
+        "max_ms": 194.23,
+        "mean_ms": 173.6
+      },
+      "load trained model (random_forest)": {
+        "n": 10,
+        "p50_ms": 17.4,
+        "p95_ms": 30.11,
+        "max_ms": 30.11,
+        "mean_ms": 18.82
+      }
+    },
+    "inference_batching": {
+      "logistic_regression": {
+        "students": 240,
+        "one_call_per_student": {
+          "n": 5,
+          "p50_ms": 25.33,
+          "p95_ms": 26.05,
+          "max_ms": 26.05,
+          "mean_ms": 25.45
+        },
+        "one_batch_call": {
+          "n": 5,
+          "p50_ms": 0.21,
+          "p95_ms": 0.53,
+          "max_ms": 0.53,
+          "mean_ms": 0.28
+        },
+        "speed-up": 118.7
+      },
+      "random_forest": {
+        "students": 240,
+        "one_call_per_student": {
+          "n": 5,
+          "p50_ms": 1427.95,
+          "p95_ms": 1440.83,
+          "max_ms": 1440.83,
+          "mean_ms": 1428.04
+        },
+        "one_batch_call": {
+          "n": 5,
+          "p50_ms": 6.92,
+          "p95_ms": 7.01,
+          "max_ms": 7.01,
+          "mean_ms": 6.93
+        },
+        "speed-up": 206.5
+      }
+    }
+  },
+  "http": {
+    "group_of_50_one_user": {
+      "path": "/api/groups/BENCH-50",
+      "concurrent_users": 1,
+      "requests": 100,
+      "errors": 0,
+      "latency": {
+        "n": 100,
+        "p50_ms": 44.84,
+        "p95_ms": 52.51,
+        "max_ms": 67.05,
+        "mean_ms": 42.56
+      },
+      "throughput_rps": 23.4,
+      "wall_seconds": 4.26
+    },
+    "group_of_50_ten_users": {
+      "path": "/api/groups/BENCH-50",
+      "concurrent_users": 10,
+      "requests": 300,
+      "errors": 0,
+      "latency": {
+        "n": 300,
+        "p50_ms": 199.64,
+        "p95_ms": 330.81,
+        "max_ms": 426.16,
+        "mean_ms": 212.89
+      },
+      "throughput_rps": 46.5,
+      "wall_seconds": 6.45
+    },
+    "container_during_ten_users": {
+      "samples": 4,
+      "cpu_pct_max": 335.59,
+      "cpu_pct_mean": 220.9,
+      "memory_last": "341.5MiB",
+      "note": "docker stats CPU % is relative to one core (100 % = one full core)"
+    },
+    "group_of_240_one_user": {
+      "path": "/api/groups/BENCH-240",
+      "concurrent_users": 1,
+      "requests": 50,
+      "errors": 0,
+      "latency": {
+        "n": 50,
+        "p50_ms": 140.28,
+        "p95_ms": 163.07,
+        "max_ms": 183.48,
+        "mean_ms": 137.66
+      },
+      "throughput_rps": 7.3,
+      "wall_seconds": 6.89
+    },
+    "group_pdf_50_one_user": {
+      "path": "/reports/groups/BENCH-50.pdf",
+      "concurrent_users": 1,
+      "requests": 20,
+      "errors": 0,
+      "latency": {
+        "n": 20,
+        "p50_ms": 112.15,
+        "p95_ms": 142.41,
+        "max_ms": 150.78,
+        "mean_ms": 115.44
+      },
+      "throughput_rps": 8.7,
+      "wall_seconds": 2.31
+    },
+    "student_pdf_one_user": {
+      "path": "/reports/groups/BENCH-50/students/BENCH-50-0004.pdf",
+      "concurrent_users": 1,
+      "requests": 20,
+      "errors": 0,
+      "latency": {
+        "n": 20,
+        "p50_ms": 62.63,
+        "p95_ms": 67.63,
+        "max_ms": 67.66,
+        "mean_ms": 58.91
+      },
+      "throughput_rps": 16.9,
+      "wall_seconds": 1.18
+    },
+    "student_pdf_ten_users": {
+      "path": "/reports/groups/BENCH-50/students/BENCH-50-0004.pdf",
+      "concurrent_users": 10,
+      "requests": 60,
+      "errors": 0,
+      "latency": {
+        "n": 60,
+        "p50_ms": 225.78,
+        "p95_ms": 374.72,
+        "max_ms": 387.92,
+        "mean_ms": 250.0
+      },
+      "throughput_rps": 36.4,
+      "wall_seconds": 1.65
+    }
+  }
+}

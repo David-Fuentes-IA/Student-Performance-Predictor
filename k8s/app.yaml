@@ -1,0 +1,108 @@
+# Student Performance Predictor on Kubernetes: the application.
+#
+#   Deployment  keeps 2 identical Pods running (desired vs actual state: a Pod that dies is replaced)
+#   Service     stable address in front of the changing set of Pods; spreads requests between them
+#   HPA         adds Pods (up to 6) when average CPU passes 70 %, and removes them when load drops
+#
+# Database: in production MongoDB is a managed service (Atlas); its address comes from the Secret
+# `spp-secrets` (see secret.example.yaml). For a local or CI cluster, mongodb-dev.yaml provides one.
+# Apply:  kubectl apply -f k8s/namespace.yaml, create the Secret, then kubectl apply -f k8s/app.yaml
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: spp-config
+  namespace: student-predictor
+data:
+  MONGODB_DB: student_predictor
+  RISK_THRESHOLD: "75"
+  PASSING_GRADE: "60"
+  SEED_DEMO: "false"            # never create demo data in a real deployment
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spp-app
+  namespace: student-predictor
+  labels: {app: spp-app}
+spec:
+  replicas: 2
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels: {app: spp-app}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate: {maxUnavailable: 0, maxSurge: 1}   # an update never lowers the number of ready Pods
+  template:
+    metadata:
+      labels: {app: spp-app}
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999                 # the image's unprivileged `app` user
+        runAsGroup: 999
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: app
+          image: ghcr.io/david-fuentes-ia/student-performance-predictor:latest   # published by the CI from main
+          imagePullPolicy: IfNotPresent
+          ports:
+            - {name: http, containerPort: 8000}
+          envFrom:
+            - configMapRef: {name: spp-config}
+            - secretRef: {name: spp-secrets}          # MONGODB_URI, ADMIN_PASSWORD
+          resources:
+            requests: {cpu: 250m, memory: 384Mi}
+            limits: {cpu: "1", memory: 768Mi}
+          startupProbe:                 # gives a slow start (model load, database connection) up to 60 s
+            httpGet: {path: /health, port: http}
+            periodSeconds: 2
+            failureThreshold: 30
+          livenessProbe:                # "is the process alive?" - restarts the container if not
+            httpGet: {path: /health, port: http}
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:               # "can it serve now?" - takes the Pod out of the Service if not
+            httpGet: {path: /ready, port: http}
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: {drop: [ALL]}
+          volumeMounts:                 # the only writable places: logs, gunicorn's control socket, temp files
+            - {name: logs, mountPath: /app/logs}
+            - {name: gunicorn, mountPath: /app/.gunicorn}
+            - {name: tmp, mountPath: /tmp}
+      volumes:
+        - {name: logs, emptyDir: {}}
+        - {name: gunicorn, emptyDir: {}}
+        - {name: tmp, emptyDir: {}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spp-app
+  namespace: student-predictor
+spec:
+  selector: {app: spp-app}
+  ports:
+    - {name: http, port: 80, targetPort: http}
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: spp-app
+  namespace: student-predictor
+spec:
+  scaleTargetRef: {apiVersion: apps/v1, kind: Deployment, name: spp-app}
+  minReplicas: 2
+  maxReplicas: 6
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target: {type: Utilization, averageUtilization: 70}

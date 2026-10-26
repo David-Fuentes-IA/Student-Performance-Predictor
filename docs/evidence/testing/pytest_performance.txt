@@ -1,0 +1,15 @@
+============================= test session starts =============================
+platform win32 -- Python 3.12.3, pytest-9.1.1, pluggy-1.7.0 -- D:\1_Universidad\5-SEMESTRE\IngenieríaSoft2Jessica\Proyecto\student_predictor_project\venv\Scripts\python.exe
+rootdir: D:\1_Universidad\5-SEMESTRE\IngenieríaSoft2Jessica\Proyecto\student_predictor_project
+configfile: pytest.ini
+plugins: cov-7.1.0
+collecting ... collected 6 items
+
+tests/performance/test_memory_profile.py::FeatureExtractionMemoryTests::test_batch_extraction_matches_the_pure_python_baseline PASSED [ 16%]
+tests/performance/test_memory_profile.py::FeatureExtractionMemoryTests::test_memory_grows_roughly_linearly_with_the_number_of_students PASSED [ 33%]
+tests/performance/test_memory_profile.py::FeatureExtractionMemoryTests::test_ten_thousand_students_fit_comfortably_in_memory PASSED [ 50%]
+tests/performance/test_memory_profile.py::OtherComponentsMemoryTests::test_largest_allowed_excel_file_parses_within_budget PASSED [ 66%]
+tests/performance/test_memory_profile.py::OtherComponentsMemoryTests::test_model_load_is_small_and_nothing_large_is_retained PASSED [ 83%]
+tests/performance/test_memory_profile.py::OtherComponentsMemoryTests::test_prediction_cache_does_not_grow_without_limit PASSED [100%]
+
+============================== 6 passed in 2.14s ==============================

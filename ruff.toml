@@ -1,0 +1,6 @@
+# Deterministic lint config: the same rules locally and in CI.
+exclude = ["venv", ".venv", "node_modules"]
+
+[lint]
+# pycodestyle errors, pyflakes (unused imports/names), import order, bugbear
+select = ["E4", "E7", "E9", "F", "I", "B"]

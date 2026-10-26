@@ -5,9 +5,10 @@ Design note (traceability: FR-6; NFR-6; Report Viewer, Figure 1):
     This is the "Report Viewer" component from the component diagram. Its
     one job is turning a list of RiskResults into something a teacher can
     read in a few seconds, with no ML terminology (NFR-6: "clear,
-    non-technical format"). It is the only module in this project allowed
-    to re-attach a student's name to a result, since a report with only
-    pseudonymous IDs would not be usable by a teacher.
+    non-technical format"). Like the dashboard and the PDF reports, it is
+    Presentation-layer code and may re-attach a student's name to a result,
+    since a report with only pseudonymous IDs would not be usable by a
+    teacher; the AI layer never sees names (DR-1).
 """
 
 from inference_engine.risk_predictor import RiskResult

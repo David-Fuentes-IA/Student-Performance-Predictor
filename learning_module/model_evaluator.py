@@ -13,7 +13,7 @@ DR-3 Algorithmic Fairness and Bias Auditing):
     this is that hook, not a placeholder comment.
 """
 
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
 from core.logger import get_logger
 
@@ -47,7 +47,7 @@ class ModelEvaluator:
         predictions = model.predict(X_test)
         rates_by_group: dict[str, dict[str, int]] = {}
 
-        for true_label, predicted_label, group in zip(y_test, predictions, group_labels):
+        for true_label, predicted_label, group in zip(y_test, predictions, group_labels, strict=True):
             bucket = rates_by_group.setdefault(group, {"false_positives": 0, "negatives": 0})
             if true_label == 0:
                 bucket["negatives"] += 1

@@ -25,7 +25,7 @@ from datetime import datetime, timezone
 from pymongo import InsertOne, UpdateOne
 from pymongo.errors import BulkWriteError, DuplicateKeyError, PyMongoError
 
-from core.exception_handler import DataAccessError, ValidationError
+from core.exception_handler import DataAccessError, GroupNotFoundError, ValidationError
 from core.logger import get_logger
 from data_access import schema
 from data_access.mongo_connection import get_database
@@ -53,6 +53,8 @@ def _db_error(action: str, exc: Exception) -> DataAccessError:
 
 
 class MongoAcademicRepository(IAcademicDataRepository):
+    backend = "mongodb"
+
     def __init__(self, db=None, *, ensure_schema: bool = True) -> None:
         self._db = db if db is not None else get_database()
         if ensure_schema:
@@ -77,7 +79,7 @@ class MongoAcademicRepository(IAcademicDataRepository):
             )
         try:
             if self._db[schema.GROUPS].count_documents({"group_id": group_id}, limit=1) == 0:
-                raise DataAccessError(
+                raise GroupNotFoundError(
                     f"group '{group_id}' not found",
                     user_message=f"El grupo '{group_id}' no existe en la base de datos.",
                 )
@@ -123,6 +125,21 @@ class MongoAcademicRepository(IAcademicDataRepository):
             )
         except PyMongoError as exc:
             logger.warning("Prediction could not be persisted: %s", type(exc).__name__)
+
+    def save_predictions(self, predictions: list[tuple[str, float, str]]) -> None:
+        """All of a request's predictions in ONE round trip (insert_many) instead of one per student.
+        Measured as the main bottleneck of a dashboard request (docs/evidence/performance). Best effort (NFR-5)."""
+        if not predictions:
+            return
+        recorded_at = _now()
+        try:
+            self._db[schema.PREDICTIONS].insert_many(
+                [{"student_ref": ref, "risk_score": float(score), "risk_label": label, "recorded_at": recorded_at}
+                 for ref, score, label in predictions],
+                ordered=False,
+            )
+        except PyMongoError as exc:
+            logger.warning("Predictions could not be persisted: %s", type(exc).__name__)
 
     # ------------------------------------------------------------------
     # Groups

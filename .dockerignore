@@ -1,0 +1,45 @@
+# Keep the image small, reproducible and free of secrets: none of this is copied into the build.
+
+# secrets and local configuration
+.env
+.env.*
+!.env.example
+
+# Python / tooling artefacts
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# git and CI metadata
+.git/
+.gitignore
+.gitattributes
+.github/
+.vscode/
+.idea/
+
+# generated at build time or runtime inside the image
+logs/
+*.log
+models/*.joblib
+
+# not needed to run the application
+tests/
+docs/
+k8s/
+Dockerfile
+docker-compose.yml
+.dockerignore
+*.md
+requirements-dev.txt
+pytest.ini
+ruff.toml
+.coveragerc
+vercel.json
+.vercelignore
+api/

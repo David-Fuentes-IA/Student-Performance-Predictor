@@ -7,17 +7,18 @@ Design note (traceability: Observer, §5; FR-5; §5.1 Observer Instances table):
     The design doc defines exactly TWO canonical Observer instances, and
     this file keeps that distinction instead of collapsing them into one:
 
-    1. RiskAlertObserver        -> "Risk Alert" instance. Fires ONLY when a
-       student's score crosses the configured threshold. Notifies the
-       teacher and academic tutor. This is a decision-support alert, not
+    1. RiskAlertObserver        -> "Risk Alert" instance. Fires ONLY for a
+       high-risk student (failing average or score at/above the threshold).
+       It logs the alert with its reason; sending it to the teacher and
+       academic tutor is future work. This is a decision-support alert, not
        an automatic action (DR-2, Academic Sovereignty / human-in-the-loop):
        the observer never changes a grade or flags the student itself, it
        only surfaces the alert for a human to act on.
 
     2. ModelMonitoringObserver  -> "Model Monitoring" instance. Accumulates
        every prediction (regardless of risk level) into an in-memory
-       history used for the semiannual retraining/drift review described
-       in the Risks section.
+       history, the input a drift review (the design's semiannual
+       retraining check) would need; that review is not automated.
 
     Note this is NOT the same job as AuditDecorator
     (inference_engine/cache_manager.py), even though both involve
@@ -51,6 +52,7 @@ class RiskEvent:
     risk_score: float       # 0-100
     threshold: float        # threshold that was in effect at prediction time
     timestamp: str = None   # set automatically if not provided
+    below_passing_grade: bool = False   # the student's average is already failing (no grades, only the flag)
 
     def __post_init__(self):
         if self.timestamp is None:
@@ -59,6 +61,11 @@ class RiskEvent:
     @property
     def exceeds_threshold(self) -> bool:
         return self.risk_score >= self.threshold
+
+    @property
+    def requires_alert(self) -> bool:
+        """High risk = failing average OR model score at/above the threshold (core/risk_levels.py)."""
+        return self.below_passing_grade or self.exceeds_threshold
 
 
 class RiskObserver(ABC):
@@ -87,35 +94,46 @@ class RiskEventPublisher:
         self._observers.remove(observer)
 
     def notify_all(self, event: RiskEvent) -> None:
-        for observer in self._observers:
-            observer.update(event)
+        # NFR-5: a failing secondary service (an observer) must never stop the
+        # report from being generated, nor the remaining observers from running.
+        for observer in list(self._observers):
+            try:
+                observer.update(event)
+            except Exception as exc:  # noqa: BLE001 - isolation boundary
+                logger.error(
+                    "Observer %s failed and was skipped: %s", type(observer).__name__, exc, exc_info=True
+                )
 
 
 class RiskAlertObserver(RiskObserver):
     """
-    'Risk Alert' instance (FR-5). Only acts when the event crosses the
-    threshold, and only *notifies* - the actual intervention is always a
-    human decision (DR-2).
+    'Risk Alert' instance (FR-5). Only acts for high-risk students (failing
+    average or score at/above the threshold), and only *records* the alert for
+    the teacher to review on the dashboard - nothing is sent to anyone, and the
+    intervention is always a human decision (DR-2).
     """
 
     def update(self, event: RiskEvent) -> None:
-        if not event.exceeds_threshold:
+        if not event.requires_alert:
             return
-        # In production this would call the Notification Service (email/
-        # SMS/push to the teacher and academic tutor). For this milestone
-        # we log the alert so the workflow is visible end to end.
+        reasons = [text for flag, text in ((event.below_passing_grade, "failing average"),
+                                           (event.exceeds_threshold, "risk score at/above threshold")) if flag]
+        # Sending the alert to the teacher and academic tutor (e-mail/SMS/push,
+        # the design's Notification Service) is future work; for now the alert
+        # is only logged, and the dashboard shows it with its reason.
         logger.warning(
-            "RISK ALERT | group=%s student_ref=%s score=%.1f (threshold=%.1f) "
-            "-> teacher and academic tutor notified for review",
-            event.group_id, event.student_ref, event.risk_score, event.threshold,
+            "RISK ALERT | group=%s student_ref=%s score=%.1f (threshold=%.1f) reason=%s "
+            "-> for teacher review (not sent: notifications are not implemented)",
+            event.group_id, event.student_ref, event.risk_score, event.threshold, " + ".join(reasons),
         )
 
 
 class ModelMonitoringObserver(RiskObserver):
     """
     'Model Monitoring' instance. Accumulates every prediction (regardless
-    of risk level) into an in-memory history for the semiannual
-    retraining/drift review described in the Risks section.
+    of risk level) into an in-memory history (lost on restart), the input
+    a drift review would need; the semiannual review of the design document
+    is not automated.
 
     This does NOT write a per-call log line - AuditDecorator already owns
     that (inference_engine/cache_manager.py). Logging the same event twice

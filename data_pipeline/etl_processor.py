@@ -16,11 +16,11 @@ Design note (traceability: Pipeline, §5; §9 Machine-Learning Pipeline):
     level).
 """
 
+from core.exception_handler import ValidationError
+from core.logger import get_logger
 from data_access.student_repository import IAcademicDataRepository, StudentGroup
 from data_pipeline.fail_fast_validator import FailFastValidator
 from feature_store.feature_manager import FeatureManager, FeatureVector
-from core.exception_handler import ValidationError
-from core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -39,9 +39,12 @@ class ETLProcessor:
         Extract a group's raw records, validate each one (Fail-Fast),
         and return feature vectors only for the records that passed.
         """
-        group: StudentGroup = self._repository.get_group(group_id)
+        return self.process(self._repository.get_group(group_id))
 
-        feature_vectors: list[FeatureVector] = []
+    def process(self, group: StudentGroup) -> list[FeatureVector]:
+        """Validate and transform a group that was already read (lets a request read it only once)."""
+
+        valid_records = []
         skipped = 0
 
         for record in group.students:
@@ -52,11 +55,13 @@ class ETLProcessor:
                 logger.warning("Skipping invalid record: %s", exc)
                 skipped += 1
                 continue
+            valid_records.append(record)
 
-            feature_vectors.append(FeatureManager.extract(record))
+        # Validate first, then extract the whole batch at once (vectorized).
+        feature_vectors: list[FeatureVector] = FeatureManager.extract_many(valid_records)
 
         logger.info(
             "ETL complete for group '%s': %d valid, %d skipped",
-            group_id, len(feature_vectors), skipped,
+            group.group_id, len(feature_vectors), skipped,
         )
         return feature_vectors

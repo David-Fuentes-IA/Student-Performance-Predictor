@@ -1,0 +1,33 @@
+{
+  "model_version": "logistic_regression-seed7-n600",
+  "engine_type": "logistic_regression",
+  "algorithm": "LogisticRegression",
+  "trained_at": "2026-10-25T16:23:11+00:00",
+  "sklearn_version": "1.9.1",
+  "hyperparameters": {
+    "C": 1.0,
+    "max_iter": 500,
+    "random_state": 42
+  },
+  "features": [
+    "average_grade",
+    "grade_trend",
+    "attendance_pct",
+    "participation_score"
+  ],
+  "data": {
+    "source": "synthetic",
+    "n_samples": 600,
+    "data_seed": 7,
+    "n_train": 480,
+    "n_test": 120,
+    "test_size": 0.2,
+    "split_seed": 42
+  },
+  "metrics_on_holdout": {
+    "accuracy": 0.925,
+    "precision": 0.929,
+    "recall": 0.788,
+    "f1_score": 0.852
+  }
+}

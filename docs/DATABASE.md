@@ -10,15 +10,15 @@ Etapa 2 · bloque 1 — *Base de datos e importación*.
 | Conexión | `data_access/mongo_connection.py` | Cliente MongoDB cacheado (una conexión por instancia serverless). La URI nunca se escribe en logs. |
 | Esquema | `data_access/schema.py` | Colecciones, validadores `$jsonSchema` e índices únicos. Idempotente. |
 | Repositorio | `data_access/mongo_repository.py` | Implementa `IAcademicDataRepository` sobre MongoDB (+ operaciones de administración). Solo lee/escribe. |
-| Factory | `data_access/repository_factory.py` | Con `MONGODB_URI` → MongoDB; sin ella → repositorio en memoria (demo sin configuración). |
+| Factory | `data_access/repository_factory.py` | Con `MONGODB_URI` → MongoDB; sin ella → repositorio en memoria (modo demo, 3 grupos fijos). Si `MONGODB_URI` está definida pero la BD no responde, la aplicación **no arranca** (salvo `ALLOW_DEMO_FALLBACK=true`, solo para desarrollo). |
 | Importador Excel | `data_pipeline/excel_importer.py` | Lee el `.xlsx`, valida con `FailFastValidator`, genera la plantilla descargable. |
 | Casos de uso | `data_pipeline/group_import_service.py` | Crear grupo, agregar alumno, importar Excel (modo normal / estricto). |
-| Datos de prueba | `data_pipeline/synthetic_seed.py`, `generate_synthetic_data.py` | Alumnos ficticios marcados `source="synthetic"`; se pueden quitar sin tocar datos reales. |
+| Datos de prueba | `data_pipeline/synthetic_seed.py`, `scripts/seed_demo_data.py` | Alumnos ficticios marcados `source="synthetic"`; se pueden quitar sin tocar datos reales. |
 | Migración | `scripts/migrate_local_to_atlas.py` | Copia los 100 alumnos sintéticos de Mongo local a Atlas con el esquema nuevo. |
-| Interfaz mínima | `admin_app.py` + `templates/admin.html` | Muestra la BD y permite agregar/quitar grupos y alumnos, importar Excel y generar datos de prueba. |
+| Panel de administración | `webapp/admin.py` (blueprint en `/admin`) + `templates/admin.html` | Muestra la BD y permite agregar/quitar grupos y alumnos, importar Excel y generar datos de prueba. Es parte de la misma aplicación que el dashboard; `admin_app.py` solo la levanta en el puerto 5001. |
 | Vercel | `api/index.py`, `vercel.json`, `.vercelignore` | Despliegue serverless de la app Flask. |
 
-El pipeline de riesgo (`main_api.py`) solo cambió **dos líneas**: usa `build_repository()` en lugar de instanciar `InMemoryAcademicRepository()`. Es el ejemplo real del principio DIP del documento: se cambió la fuente de datos sin tocar ETL, modelo, observers ni UI.
+Al conectar MongoDB, el pipeline de riesgo (`main_api.py`) solo cambió **dos líneas**: usa `build_repository()` en lugar de instanciar `InMemoryAcademicRepository()`. Es el ejemplo real del principio DIP del documento: se cambió la fuente de datos sin tocar ETL, modelo, observers ni UI.
 
 ## 2. Modelo de datos
 
@@ -35,19 +35,19 @@ import_logs       { group_id, filename, mode, total_rows, created, updated,
 ```
 
 - **DR-1 (privacidad):** el nombre vive solo en `students`. El pipeline de IA recibe `FeatureVector` sin nombre, y `import_logs` no guarda datos personales.
-- **Historial:** `record_history` guarda una foto cada vez que cambian las calificaciones de un alumno; es la base del "mini-historial" del dashboard (`GET /api/groups/<g>/students/<s>/history`).
+- **Historial:** `record_history` guarda una foto cada vez que cambian las calificaciones de un alumno. Se consulta con `GET /admin/api/groups/<g>/students/<s>/history` y en el explorador de la BD; ninguna pantalla lo muestra todavía como gráfica.
 - **Idempotencia:** reimportar el mismo Excel no duplica nada (índice único + upsert; las filas iguales cuentan como "sin cambios").
 
 ## 3. Formato del Excel
 
-Hoja `Calificaciones`, una fila por alumno (descarga la plantilla en `/api/template.xlsx` o con el botón de la interfaz):
+Hoja `Calificaciones`, una fila por alumno (descarga la plantilla en `/admin/api/template.xlsx` o con el botón de la interfaz):
 
 | matricula | nombre | parcial1 | parcial2 | parcial3 | parcial4 | asistencia_pct | participacion |
 |---|---|---|---|---|---|---|---|
 | A0001 | Ana Garcia Lopez | 85 | 90 | 78 | 92 | 95 | 88 |
 
 Reglas (Fail-Fast, capa Data Access/ETL de la matriz del §8.0):
-- **Rechazo del archivo completo:** no es `.xlsx`, hoja vacía, faltan columnas obligatorias, más de 1000 filas.
+- **Rechazo del archivo completo:** no es `.xlsx`, hoja vacía, faltan columnas obligatorias, más de 1000 filas, más de 4 MB.
 - **Rechazo de una fila** (se reporta con número de fila y motivo; las demás siguen): matrícula/nombre vacío, valor no numérico, fuera de 0–100, sin calificaciones, huecos entre parciales, matrícula repetida.
 - `parcial1` es obligatorio; los siguientes pueden ir vacíos mientras el parcial no se evalúe.
 - Acepta `85,5` y `90%`; reconoce encabezados con acentos o variantes (`Matrícula`, `Asistencia`, `Participación`…).
@@ -58,9 +58,12 @@ Reglas (Fail-Fast, capa Data Access/ETL de la matriz del §8.0):
 
 | Variable | Obligatoria | Descripción |
 |---|---|---|
-| `MONGODB_URI` | Sí | Cadena `mongodb+srv://...` de Atlas (o `mongodb://localhost:27017`). |
+| `MONGODB_URI` | No (vacía = modo demo) | Cadena `mongodb+srv://...` de Atlas, o `mongodb://localhost:27018` para el contenedor local del README. |
 | `MONGODB_DB` | No | Nombre de la BD (por defecto `student_predictor`). |
-| `ADMIN_PASSWORD` | No | Si se define, la interfaz y la API piden esta contraseña (cabecera `X-Admin-Password`). |
+| `ADMIN_PASSWORD` | No | Si se define, la interfaz y la API de administración piden esta contraseña (cabecera `X-Admin-Password`). |
+| `ALLOW_DEMO_FALLBACK` | No (`false`) | Solo desarrollo: usar datos demo si la BD configurada no responde al arrancar. |
+
+El resto de variables (`PASSING_GRADE`, `RISK_THRESHOLD`, `RISK_MODEL`, `MODEL_DIR`) están en el README, sección 3.
 
 Local: copia `.env.example` a `.env` y rellénalo (`.env` está en `.gitignore`).
 
@@ -68,10 +71,11 @@ Local: copia `.env.example` a `.env` y rellénalo (`.env` está en `.gitignore`)
 
 ```powershell
 pip install -r requirements.txt
-python admin_app.py                       # interfaz de la BD  -> http://127.0.0.1:5001
-python generate_synthetic_data.py         # 100 alumnos de prueba (--count, --reset, --purge)
+python scripts/train_model.py            # una vez: sin modelo entrenado la app no arranca
+python admin_app.py                       # interfaz de la BD  -> http://127.0.0.1:5001/admin
+python scripts/seed_demo_data.py          # 100 alumnos de prueba (--count, --reset, --purge)
 python scripts/migrate_local_to_atlas.py --dry-run   # luego sin --dry-run
-python web_app.py                         # dashboard de riesgo (usa MongoDB si hay MONGODB_URI)
+python web_app.py                         # dashboard de riesgo -> http://127.0.0.1:5000 (admin en /admin)
 ```
 
 ## 6. MongoDB Atlas
@@ -86,29 +90,33 @@ python web_app.py                         # dashboard de riesgo (usa MongoDB si 
 1. Sube el repositorio a GitHub.
 2. vercel.com/new → importa el repositorio (Framework Preset: *Other*; Root Directory: raíz del repo).
 3. *Settings → Environment Variables*: agrega `MONGODB_URI` (y opcionalmente `MONGODB_DB`, `ADMIN_PASSWORD`) para *Production*, *Preview* y *Development*.
-4. Deploy. Abre la URL: `/` es la interfaz y `/api/health` confirma la conexión (`"database": true`).
+4. Deploy. Abre la URL: `/` es el dashboard, `/admin` la administración y `/health` confirma la conexión (`"database": true`).
 
 Notas:
 - `vercel.json` redirige todas las rutas a `api/index.py`; el límite de cuerpo de Vercel (4.5 MB) coincide con el límite de subida del Excel (4 MB).
 - El sistema de archivos de Vercel es de solo lectura: el logger escribe a consola en ese entorno.
-- La app desplegada es la interfaz de base de datos; el entrenamiento/predicción del modelo corre en local por ahora (se empaquetará con Docker en el bloque 4 de la rúbrica).
+- `api/index.py` exporta la misma aplicación unificada (dashboard + administración). **El despliegue en Vercel no se verificó en este avance**; el despliegue probado es Docker (`docs/evidence/docker/`). Nota: el modelo entrenado (`models/risk_model.joblib`) no está en git, así que Vercel tendría que generarlo en el build.
 
-## 8. API para la interfaz final
+## 8. API de administración (prefijo `/admin/api`)
 
 | Método y ruta | Uso |
 |---|---|
-| `GET /api/health` | Estado de la conexión (público). |
-| `GET /api/stats` | Conteo por colección. |
-| `GET/POST /api/groups` | Listar / crear grupos. |
-| `DELETE /api/groups/<g>` | Eliminar grupo y sus datos. |
-| `GET/POST/DELETE /api/groups/<g>/students` | Listar / agregar / vaciar alumnos. |
-| `DELETE /api/groups/<g>/students/<s>` | Quitar un alumno. |
-| `GET /api/groups/<g>/students/<s>/history` | Historial del alumno (mini-historial). |
-| `POST /api/groups/<g>/import` | Importar Excel (`file`, `mode`, `create_group`). |
-| `GET /api/template.xlsx` | Plantilla de Excel (público). |
-| `POST/DELETE /api/seed` | Generar / quitar datos de prueba. |
-| `GET /api/collections/<nombre>` | Explorador de la BD. |
+| `GET /admin/api/health` | Estado de la conexión (público). |
+| `GET /admin/api/auth-required` | Indica si se pide contraseña (público). |
+| `GET /admin/api/stats` | Conteo por colección. |
+| `GET/POST /admin/api/groups` | Listar / crear grupos. |
+| `DELETE /admin/api/groups/<g>` | Eliminar grupo y sus datos. |
+| `GET/POST/DELETE /admin/api/groups/<g>/students` | Listar / agregar / vaciar alumnos. |
+| `DELETE /admin/api/groups/<g>/students/<s>` | Quitar un alumno. |
+| `GET /admin/api/groups/<g>/students/<s>/history` | Historial de cambios del alumno. |
+| `POST /admin/api/groups/<g>/import` | Importar Excel (`file`, `mode`, `create_group`). |
+| `GET /admin/api/imports` | Últimas importaciones. |
+| `GET /admin/api/template.xlsx` | Plantilla de Excel (público). |
+| `POST/DELETE /admin/api/seed` | Generar / quitar datos de prueba. |
+| `GET /admin/api/collections/<nombre>` | Explorador de la BD. |
+
+Las rutas del dashboard (`/api/groups`, reportes PDF, `/health`, `/ready`) están en el README, sección 2.
 
 ## 9. ¿Dónde usamos PostgreSQL?
 
-El documento del Milestone 2 propone PostgreSQL + SQLAlchemy (§6.5) y el bloque 1 de la etapa lo planteaba para Docker. **En esta versión la base de datos es MongoDB (Atlas)**, por decisión del equipo; PostgreSQL **no se usa todavía**. Gracias a `IAcademicDataRepository`, migrar a PostgreSQL consistiría en escribir *una* clase nueva (`PostgresAcademicRepository`) y cambiar `repository_factory.py`, sin tocar ETL, modelo, observers ni UI (FR-8 / NFR-3). El documento debe actualizarse para reflejarlo (ver bloque 5 de la etapa).
+El documento del Milestone 2 propone PostgreSQL + SQLAlchemy (§6.5) y el bloque 1 de la etapa lo planteaba para Docker. **En esta versión la base de datos es MongoDB (Atlas)**, por decisión del equipo; PostgreSQL **no se usa**. Gracias a `IAcademicDataRepository`, migrar a PostgreSQL consistiría en escribir *una* clase nueva (`PostgresAcademicRepository`) y cambiar `repository_factory.py`, sin tocar ETL, modelo, observers ni UI (FR-8 / NFR-3). El documento de diseño debe actualizarse para reflejarlo.

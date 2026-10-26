@@ -7,28 +7,34 @@ Design note (traceability: §1 System Boundary Statement; §9 ML Pipeline
     *design*, not about training a model, and that training only enters
     scope once the system is implemented (which is what this milestone
     is). This module is that "Train or load model" stage: it is
-    deliberately simple (a single RandomForestClassifier over a handful
-    of features) because the point of this milestone is to prove the
-    pipeline end to end, not to produce a production-grade model.
+    deliberately simple (a single RandomForestClassifier over four
+    features) because the point is to prove the pipeline end to end and
+    to validate it honestly, not to produce a production-grade model.
 
     There is no real institutional dataset available yet, so
     `generate_synthetic_training_set` stands in for "Academic data" at
-    the start of the pipeline (Figure 8). Swapping this for a real,
+    the start of the pipeline (Figure 8). It draws students from the
+    noisy simulator in data_access/synthetic_students.py (hidden traits,
+    overlapping classes, unforeseeable events) and turns them into
+    features with the SAME FeatureManager the running application uses,
+    so training and serving cannot drift apart. Swapping it for a real,
     historical dataset later does not require touching ModelTrainer's
     public interface.
 """
-
-import random
 
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 
+from core.config import MODEL_TYPES
 from core.logger import get_logger
+from data_access.student_repository import StudentRecord
+from data_access.synthetic_students import SimulatedStudent, simulate_students
+from feature_store.feature_manager import FeatureManager
 
 logger = get_logger(__name__)
 
-_TEST_SIZE = 0.20   # 80/20 stratified split preserves ~30% at-risk ratio
+_TEST_SIZE = 0.20   # 80/20 stratified split keeps the at-risk ratio in both halves
 _SPLIT_SEED = 42
 
 
@@ -37,7 +43,7 @@ def split_dataset(
 ) -> tuple[list, list, list, list]:
     """
     Split (X, y) 80/20 with stratification so the minority at-risk class
-    (~30%) is proportionally represented in both halves.
+    (~27 %) is proportionally represented in both halves.
     Returns (X_train, X_test, y_train, y_test).
     """
     X_train, X_test, y_train, y_test = train_test_split(
@@ -50,54 +56,50 @@ def split_dataset(
     return X_train, X_test, y_train, y_test
 
 
-def generate_synthetic_training_set(n_samples: int = 300, seed: int = 7):
+def students_to_dataset(students: list[SimulatedStudent]) -> tuple[list[list[float]], list[int]]:
+    """Features (via the production FeatureManager) and ground-truth labels for labelled students."""
+    records = [
+        StudentRecord(s.student_id, s.name, s.grades, s.attendance_pct, s.participation_score)
+        for s in students
+    ]
+    X = [vector.as_model_input() for vector in FeatureManager.extract_many(records)]
+    return X, [s.at_risk for s in students]
+
+
+def generate_synthetic_training_set(n_samples: int = 600, seed: int = 7):
     """
-    Build a small synthetic (X, y) dataset shaped like FeatureVector's
+    Build a synthetic (X, y) dataset shaped like FeatureVector's
     `as_model_input()` output: [average_grade, grade_trend,
     attendance_pct, participation_score] -> label (1 = at risk).
 
-    This is a stand-in for historical academic records and is only meant
-    to make the pipeline runnable end to end for this milestone.
+    The classes overlap (see data_access/synthetic_students.py), so even a
+    good model makes mistakes; that is what makes validation meaningful.
     """
-    rng = random.Random(seed)
-    X, y = [], []
-
-    for _ in range(n_samples):
-        is_at_risk = rng.random() < 0.3
-        if is_at_risk:
-            average_grade = rng.uniform(30, 60)
-            grade_trend = rng.uniform(-15, 0)
-            attendance = rng.uniform(40, 70)
-            participation = rng.uniform(20, 55)
-        else:
-            average_grade = rng.uniform(60, 100)
-            grade_trend = rng.uniform(-5, 15)
-            attendance = rng.uniform(70, 100)
-            participation = rng.uniform(50, 100)
-
-        X.append([average_grade, grade_trend, attendance, participation])
-        y.append(1 if is_at_risk else 0)
-
-    return X, y
+    return students_to_dataset(simulate_students(n_samples, seed=seed))
 
 
 class ModelTrainer:
     """One job: fit models on features and labels (SRP)."""
 
     @staticmethod
-    def train(X: list[list[float]], y: list[int]) -> RandomForestClassifier:
-        model = RandomForestClassifier(
-            n_estimators=100,
-            max_depth=6,
-            random_state=42,
-        )
-        model.fit(X, y)
-        logger.info("Trained RandomForestClassifier on %d samples", len(X))
+    def build(model_type: str):
+        """An unfitted estimator. The single place where hyperparameters are defined."""
+        if model_type == "random_forest":
+            return RandomForestClassifier(n_estimators=100, max_depth=6, random_state=42)
+        if model_type == "logistic_regression":
+            return LogisticRegression(max_iter=500, random_state=42)
+        raise ValueError(f"unknown model type '{model_type}' (expected one of {MODEL_TYPES})")
+
+    @classmethod
+    def fit(cls, model_type: str, X: list[list[float]], y: list[int]):
+        model = cls.build(model_type).fit(X, y)
+        logger.info("Trained %s on %d samples", type(model).__name__, len(X))
         return model
 
-    @staticmethod
-    def train_logistic_regression(X: list[list[float]], y: list[int]) -> LogisticRegression:
-        model = LogisticRegression(max_iter=500, random_state=42)
-        model.fit(X, y)
-        logger.info("Trained LogisticRegression on %d samples", len(X))
-        return model
+    @classmethod
+    def train(cls, X: list[list[float]], y: list[int]) -> RandomForestClassifier:
+        return cls.fit("random_forest", X, y)
+
+    @classmethod
+    def train_logistic_regression(cls, X: list[list[float]], y: list[int]) -> LogisticRegression:
+        return cls.fit("logistic_regression", X, y)

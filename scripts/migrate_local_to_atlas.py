@@ -29,8 +29,8 @@ from core.exception_handler import ValidationError  # noqa: E402
 from data_access.mongo_connection import redact_uri  # noqa: E402
 from data_access.mongo_repository import MongoAcademicRepository  # noqa: E402
 from data_access.student_repository import StudentRecord  # noqa: E402
+from data_access.synthetic_students import fake_name  # noqa: E402
 from data_pipeline.fail_fast_validator import FailFastValidator  # noqa: E402
-from data_pipeline.synthetic_seed import fake_name  # noqa: E402
 
 
 def _index_from_id(student_id: str) -> int:

@@ -12,12 +12,17 @@ Design note (traceability: Fail-Fast, §4; FR-2; validation matrix, §8.0):
     retrieved from the repository.
 """
 
-from data_access.student_repository import StudentRecord
 from core.exception_handler import ValidationError
+from data_access.student_repository import StudentRecord
 
 _GRADE_RANGE = (0, 100)
 _ATTENDANCE_RANGE = (0, 100)
 _PARTICIPATION_RANGE = (0, 100)
+
+
+def _in_range(value, low, high) -> bool:
+    """True only for real numbers (not bool/str/None/NaN) inside [low, high]."""
+    return isinstance(value, (int, float)) and not isinstance(value, bool) and low <= value <= high
 
 
 class FailFastValidator:
@@ -39,21 +44,21 @@ class FailFastValidator:
 
         low, high = _GRADE_RANGE
         for grade in record.grades:
-            if grade is None or not (low <= grade <= high):
+            if not _in_range(grade, low, high):
                 raise ValidationError(
                     f"student '{record.student_id}' has an invalid grade: {grade}",
                     user_message=f"Record for {record.student_id} has an invalid grade and was skipped.",
                 )
 
         a_low, a_high = _ATTENDANCE_RANGE
-        if record.attendance_pct is None or not (a_low <= record.attendance_pct <= a_high):
+        if not _in_range(record.attendance_pct, a_low, a_high):
             raise ValidationError(
                 f"student '{record.student_id}' has invalid attendance: {record.attendance_pct}",
                 user_message=f"Record for {record.student_id} has invalid attendance and was skipped.",
             )
 
         p_low, p_high = _PARTICIPATION_RANGE
-        if record.participation_score is None or not (p_low <= record.participation_score <= p_high):
+        if not _in_range(record.participation_score, p_low, p_high):
             raise ValidationError(
                 f"student '{record.student_id}' has invalid participation score: {record.participation_score}",
                 user_message=f"Record for {record.student_id} has an invalid participation score and was skipped.",

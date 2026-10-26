@@ -34,48 +34,50 @@ class FeatureVector:
 class FeatureManager:
     """Turns validated StudentRecords into FeatureVectors (one job: SRP)."""
 
-    @staticmethod
-    def extract(record: StudentRecord) -> FeatureVector:
-        grades = record.grades
-        average_grade = sum(grades) / len(grades)
-        grade_trend = grades[-1] - grades[0] if len(grades) > 1 else 0.0
-
-        return FeatureVector(
-            student_ref=record.student_id,
-            average_grade=round(average_grade, 2),
-            grade_trend=round(grade_trend, 2),
-            attendance_pct=record.attendance_pct,
-            participation_score=record.participation_score,
-        )
+    @classmethod
+    def extract(cls, record: StudentRecord) -> FeatureVector:
+        """Single-record extraction; shares the batch implementation so both always agree."""
+        return cls.extract_many([record])[0]
 
     @classmethod
     def extract_many(cls, records: list[StudentRecord]) -> list[FeatureVector]:
         """
-        Vectorized batch extraction using pandas/numpy — more efficient
-        than a Python loop for large cohorts (Criterion 4 — efficiency).
-        Falls back to per-record extraction for empty input.
+        Vectorized feature extraction for any number of records (the single
+        source of truth: `extract` delegates here).
+
+        Students may have a different number of grades (Excel imports), so the
+        grades are flattened into one array and reduced per student with
+        `np.add.reduceat` instead of building a rectangular matrix. Records
+        must already be validated (at least one grade each).
         """
         if not records:
             return []
 
-        df = pd.DataFrame({
-            "student_ref":        [r.student_id for r in records],
-            "grades":             [r.grades for r in records],
-            "attendance_pct":     [r.attendance_pct for r in records],
-            "participation_score":[r.participation_score for r in records],
+        lengths = np.fromiter((len(r.grades) for r in records), dtype=np.int64, count=len(records))
+        if (lengths == 0).any():
+            raise ValueError("extract_many requires validated records with at least one grade")
+
+        flat = np.concatenate([np.asarray(r.grades, dtype=float) for r in records])
+        starts = np.concatenate(([0], np.cumsum(lengths)[:-1]))
+        averages = np.add.reduceat(flat, starts) / lengths
+        trends = flat[starts + lengths - 1] - flat[starts]
+
+        frame = pd.DataFrame({
+            "student_ref": [r.student_id for r in records],
+            "average_grade": averages,
+            "grade_trend": trends,
+            "attendance_pct": [r.attendance_pct for r in records],
+            "participation_score": [r.participation_score for r in records],
         })
 
-        grades_matrix = np.array(df["grades"].tolist(), dtype=float)
-        df["average_grade"] = np.round(grades_matrix.mean(axis=1), 2)
-        df["grade_trend"]   = np.round(grades_matrix[:, -1] - grades_matrix[:, 0], 2)
-
+        # Python's round() keeps the results identical to `extract`.
         return [
             FeatureVector(
                 student_ref=row.student_ref,
-                average_grade=row.average_grade,
-                grade_trend=row.grade_trend,
+                average_grade=round(float(row.average_grade), 2),
+                grade_trend=round(float(row.grade_trend), 2),
                 attendance_pct=row.attendance_pct,
                 participation_score=row.participation_score,
             )
-            for row in df.itertuples(index=False)
+            for row in frame.itertuples(index=False)
         ]
