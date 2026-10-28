@@ -195,7 +195,7 @@ messages come from the error classes in `core/exception_handler.py`.
 |---|---|
 | `docs/evidence/{testing,model,docker,cicd,performance}/` | Results of every measurement, each with a README that **interprets** the numbers |
 | `docs/DATABASE.md` | MongoDB and Atlas set-up (Spanish) |
-| `docs/M3_CORRECCION.md`, `docs/MANUAL_*_BRIEF.md`, `docs/CODE_STRUCTURE.md` | Material for the reports and manuals, and this guide |
+| `docs/M3_CORRECCION.md`, `docs/MANUAL_*_BRIEF.md`, `docs/CODE_STRUCTURE.md`, `docs/ESTRUCTURA_DEL_CODIGO.md` | Material for the reports and manuals, and this guide (English and Spanish) |
 
 ## 5. Design patterns, in plain words
 

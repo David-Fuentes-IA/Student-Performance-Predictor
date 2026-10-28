@@ -15,7 +15,7 @@ All the data in this repository are synthetic; no real student appears anywhere.
 > [containers and deployment](docs/evidence/docker/README.md) · [CI/CD](docs/evidence/cicd/README.md) ·
 > [performance](docs/evidence/performance/README.md) · [Kubernetes](k8s/README.md) · [evaluation dataset](data/README.md)
 >
-> New to the code? Read [docs/CODE_STRUCTURE.md](docs/CODE_STRUCTURE.md): what each folder does and where to change what.
+> New to the code? Read [docs/CODE_STRUCTURE.md](docs/CODE_STRUCTURE.md): what each folder does and where to change what (en español: [docs/ESTRUCTURA_DEL_CODIGO.md](docs/ESTRUCTURA_DEL_CODIGO.md)).
 
 ---
 
