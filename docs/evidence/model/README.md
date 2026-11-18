@@ -17,6 +17,7 @@ python scripts/evaluate_models.py --gate   # CI quality gate (exit code 1 when t
 | `comparison.md` | the comparison table |
 | `confusion_matrices.png`, `cv_metrics.png`, `operating_points.png` | figures |
 | `errors.csv` | **every** misclassified student of the independent set (31 rows) |
+| `ai_value.md`, `ai_value.json` | does the model beat the school rule at the same workload, also early in the term? (`python scripts/ai_value_experiment.py`, about 40 s) |
 
 ## 1. Protocol
 
@@ -73,6 +74,12 @@ indistinguishable on the priority metric. Logistic Regression is chosen because 
 averaged metric, (b) steadier across folds (F1 ± 0.010 against ± 0.035), and (c) a simpler model whose scores are smoother and
 whose weights can be inspected (section 5). The independent set points the same way (recall 0.734 against 0.688, 17 against 20
 missed students), but a difference of three students on 64 is not evidence by itself.
+
+The paired test says the same (`metrics.json` → `paired_model_comparison`, both models cut at 50 on the same students): on
+the independent set 4 at-risk students are caught only by Logistic Regression and 1 only by Random Forest (McNemar p = 0.375);
+on the 600 cross-validation students, 7 against 4 (p = 0.55). Neither model is significantly better. A difference this size
+would need several hundred at-risk students to be detectable; repeated cross-validation with the corrected t-test (Nadeau and
+Bengio) would be the next check on more data.
 
 The decision lives in configuration, not in a document: `core/config.py` (`DEFAULT_MODEL_TYPE`, overridable with `RISK_MODEL`)
 decides what `scripts/train_model.py` trains; the model card records `engine_type`; the application builds the matching
@@ -132,9 +139,10 @@ reached 75** (`RISK_THRESHOLD`). Measured on the independent set with the chosen
 | 35 (best model-only point, from CV) | 30 % | 0.708 | **0.797** (0.68–0.88) | **13** | 21 |
 | 15 (maximum F2) | 45 % | 0.528 | 0.891 | 7 | 51 |
 
-With the model score alone at 75 the alert system **missed more than half of the students who end up at risk**. The recall
-intervals for 75 and 35 do not overlap, so, unlike the model comparison, this difference is real, and cross-validation shows
-the same shape (`operating_points.png`: the solid curves, computed without the independent set, agree with the dashed ones).
+With the model score alone at 75 the alert system **missed more than half of the students who end up at risk**. Both
+thresholds judge the same students, so they are compared with a paired test: every student flagged at 75 is also flagged at
+35, and 23 at-risk students are caught at 35 and missed at 75 (none the other way round), exact McNemar p = 2.4 × 10⁻⁷. The
+difference is real (unlike the model comparison), and cross-validation shows the same shape (`operating_points.png`: the solid curves, computed without the independent set, agree with the dashed ones).
 The recommendation is the lowest threshold whose cross-validated precision stays at or above 0.70 (at most about 3 alerts in 10
 being false alarms), which cross-validation places at **35** (for the model score used alone; see the decision below). That 0.70 is a **policy assumption** the institution may change;
 the maximum-F2 point is shown only as a reference because flagging 45 % of a class is not workable.
@@ -152,8 +160,22 @@ and every alert states its reason. Measured (`metrics.json` → `application_rul
 | Failing average alone | 0.709 (0.64–0.77) | 0.812 | 0.719 (0.60–0.81) | 0.793 | 24 % |
 | **Failing average OR score ≥ 75 (applied)** | **0.709** (0.64–0.77) | 0.807 | **0.719** (0.60–0.81) | 0.780 | 25 % |
 
-The applied rule catches **46 of the 64** students who end up at risk instead of 28, with about the same precision. Its recall
-interval does not overlap the old one, so the improvement is real.
+The applied rule catches **46 of the 64** students who end up at risk instead of 28, with about the same precision.
+
+*How we know the improvement is real (corrected in Milestone 4).* The Milestone 3 version of this page argued from the two
+recall intervals not overlapping. That is the wrong test: both rules judge **the same students**, so the samples are paired, and
+only the students on which the rules disagree carry information. The exact McNemar test on those students
+(`metrics.json` → `application_rule.paired_tests`):
+
+| Comparison (a vs b) | At-risk caught by a only / by b only | McNemar p (recall) | False alarms a only / b only | McNemar p (false alarms) |
+|---|---|---|---|---|
+| applied rule vs model ≥ 75 alone, independent set | 18 / 0 | 7.6 × 10⁻⁶ | 6 / 0 | 0.031 |
+| applied rule vs model ≥ 75 alone, cross-validation (600) | 30 / 0 | 1.9 × 10⁻⁹ | 18 / 0 | 7.6 × 10⁻⁶ |
+| applied rule vs failing average alone, independent set | 0 / 0 | 1.0 | 1 / 0 | 1.0 |
+| applied rule vs failing average alone, cross-validation | 0 / 0 | 1.0 | 1 / 0 | 1.0 |
+
+The gain over the old rule is real, and it costs a real increase in false alarms. Against the school criterion alone, the model
+part at 75 changes nothing: the two rules never disagree about an at-risk student.
 
 What these numbers also show, and must be said: **with the model part at 75, almost all of the gain comes from the school
 criterion.** On the independent set the model adds no extra correct alert to "failing average" (and one false alarm), because in
@@ -161,19 +183,60 @@ this simulation the average grade drives most outcomes and a student the model s
 contribution today is the "En observación" band (score ≥ 40) and the ordering of students by risk. Lowering the model part of the rule
 would make it count (`application_rule` → `combined_rule_with_lower_model_threshold`):
 
-| Failing average OR score ≥ … | CV recall | CV precision | Independent recall | Independent precision |
-|---|---|---|---|---|
-| 60 | 0.739 | 0.813 | 0.766 | 0.778 |
-| 50 | 0.770 | 0.804 | 0.781 | 0.746 |
+| Failing average OR score ≥ … | CV recall | CV precision | Independent recall | Independent precision | Extra at-risk caught vs failing average (McNemar p): CV / independent |
+|---|---|---|---|---|---|
+| 60 | 0.739 | 0.813 | 0.766 | 0.778 | +5 (p = 0.0625) / +3 (p = 0.25) |
+| 50 | 0.770 | 0.804 | 0.781 | 0.746 | +10 (p = 0.002) / +4 (p = 0.125) |
 
-That is a further decision for the team; the default stays at 75.
+At 60 the gain is not distinguishable from chance. At 50 it is, on the 600 cross-validation students, at the price of more
+false alarms (+4 in CV, +5 on the independent set). The next section shows where that gain comes from.
+
+### Does the model add value beyond the school rule? (Milestone 3 feedback)
+
+`python scripts/ai_value_experiment.py` → `ai_value.md`, `ai_value.json`. A method can look better just by flagging more
+students, so every method flags **the same number of students** (the number the school rule flags, and 15 / 25 / 35 % of the
+group), and the methods are compared on the same students with McNemar. Ranking by average grade *is* the school rule at its
+own workload, and a model trained on the average alone would rank students identically, so "model vs. ranking by average" is also
+the **ablation** that shows what attendance, participation and trend add. It is repeated when only the **first partial**, or the
+first two, are known: early detection is where a model could matter most.
+
+| Partials known | Data | At the school rule's workload: caught by ranking by average / by Logistic Regression | McNemar p | Average precision, LR − average (95 % paired bootstrap) |
+|---|---|---|---|---|
+| first only | CV (165 at risk) | 108 / 107 | 1.0 | +0.016 [−0.010, +0.041] |
+| first only | independent (64) | 33 / 36 | 0.51 | +0.003 [−0.035, +0.044] |
+| first two | CV | 111 / 113 | 0.79 | +0.007 [−0.009, +0.025] |
+| first two | independent | 39 / 40 | 1.0 | −0.005 [−0.035, +0.024] |
+| all | CV | 117 / 121 | 0.45 | +0.013 [−0.007, +0.033] |
+| all | independent | 46 / 44 | 0.73 | −0.004 [−0.046, +0.033] |
+
+At 15, 25 and 35 % of the group the picture is the same (no p-value below 0.12), and Random Forest against the average is no
+different (no p-value below 0.45). A stronger traditional rule, "average < 60 **or** attendance < 80" (two indicators, no AI),
+flags about half of the group; at that same workload the model catches more at-risk students in all six comparisons,
+significantly in four
+(e.g. first partial, independent set: 61 vs 50, p = 0.003; first two partials, CV: 159 vs 143, p = 0.0004; all partials,
+independent set: 60 vs 55, p = 0.125).
+
+**Conclusion (answers the Milestone 3 observation directly).**
+1. **In this simulation the model does not identify at-risk students better than the school rule.** At the same workload the
+   differences are a few students in either direction, never significant, at any stage of the term. The average grade carries
+   almost all the information, which is how the simulator was built (data/README.md). The ablation confirms it: what attendance,
+   participation and trend add is not distinguishable from zero.
+2. **What the model demonstrably does well is combine indicators.** When the school uses more than one indicator with fixed cut-offs,
+   the model's weighted combination catches significantly more students for the same workload.
+3. The +10 of "failing average OR score ≥ 50" comes from **flagging more students**, not from finding them better: at equal workload
+   ranking by average does as well. Those students are already visible to the teacher in the "En observación" band (score ≥ 40).
+4. **Decision: the model part of the rule stays at 75.** Lowering it would raise the workload without evidence that the model ranks
+   students better than their average; the "En observación" band already shows them.
+5. Whether the model adds value **with real students** cannot be answered with synthetic data. The test is this same experiment on
+   historical institutional data, out of time (train on earlier terms, evaluate on the next), with the same paired statistics and
+   enough at-risk students: with 64 the recall uncertainty is about ±0.11, so differences of a few points need several hundred.
 
 ### Proposed improvements
 
 | Improvement | Problem it addresses | Metric that should improve | Status |
 |---|---|---|---|
 | "Alto riesgo" = failing average OR model score ≥ 75 | 36 of 64 at-risk students missed with the model score alone at 75 | recall 0.44 → 0.72 (measured), precision 0.80 → 0.78 | **applied** |
-| Lower the model part of the rule to about 50–60 | at 75 the model adds nothing beyond the school criterion | recall to about 0.77–0.78 (measured separately), precision about 0.75–0.78 | measured, not applied |
+| Lower the model part of the rule to about 50–60 | at 75 the model adds nothing beyond the school criterion | recall to about 0.77–0.78 (measured separately), precision about 0.75–0.78 | measured, **not applied**: at equal workload the gain disappears (see the previous section) |
 | Features that capture recent change better (last partial grade, lowest grade, missing partials) | the trend is barely used; 26 % of sharply declining students are missed | recall among students with a sharp decline (now 74 % caught) | proposal, **not implemented** |
 | Flag students with fewer than 3 partials as "insufficient data" for teacher review instead of scoring them | 29 % of false negatives have incomplete grades | share of false negatives among incomplete records | proposal, not implemented |
 | Re-run this script on real historical data and review the threshold each term | everything here uses synthetic students | all of them | needs institutional data |

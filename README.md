@@ -220,7 +220,10 @@ partial), attendance and participation. Stratified 5-fold cross-validation on 60
 on recall, the priority metric (a missed at-risk student is the costly error); **Logistic Regression** is used, as a documented
 tie-break. Measured once on 240 students it never saw (`data/grupo_evaluacion.xlsx`): accuracy 0.871, precision 0.770, recall
 0.734, F1 0.752. With the "Alto riesgo" rule above the application catches 72 % of the students who end up at risk (44 % with the
-model score alone at 75). Error analysis, fairness audit and limitations: [docs/evidence/model](docs/evidence/model/README.md).
+model score alone at 75; paired McNemar test, p < 0.001). **Honest result:** at the same number of alerts, the model does not find
+at-risk students better than ranking them by their average, not even after the first partial exam (no significant difference in
+the simulation); it does beat a fixed two-indicator rule, and whether it adds value with real students needs real data
+(`python scripts/ai_value_experiment.py`). Error analysis, fairness audit and limitations: [docs/evidence/model](docs/evidence/model/README.md).
 
 The data come from a simulator with hidden traits and unforeseeable events (`data_access/synthetic_students.py`), calibrated so
 that the model is mostly right but visibly imperfect; **none of these figures describe real students** ([data/README.md](data/README.md)).
