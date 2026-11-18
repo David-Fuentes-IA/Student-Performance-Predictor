@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Student Performance Predictor - Base de datos</title>
   <style>
-    :root { --navy:#1f3a5f; --bg:#f3f5f9; --card:#fff; --line:#dde3ec; --text:#1d2733; --muted:#6b7a8c;
-            --green:#1e8e4e; --red:#c0392b; --yellow:#b7791f; --blue:#2563eb; }
+    :root { --navy:#1f3a5f; --bg:#f3f5f9; --card:#fff; --line:#dde3ec; --text:#1d2733; --muted:#566373;
+            --green:#17703d; --red:#c0392b; --yellow:#8a5a10; --blue:#2563eb; }
     * { box-sizing:border-box; }
     body { margin:0; font-family:"Segoe UI",system-ui,sans-serif; background:var(--bg); color:var(--text); font-size:14px; }
     header { background:var(--navy); color:#fff; padding:14px 24px; display:flex; flex-wrap:wrap; gap:12px 24px; align-items:center; }
@@ -31,7 +31,7 @@
     .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
     ul.groups { list-style:none; margin:0; padding:0; }
     ul.groups li { padding:9px 10px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; justify-content:space-between; gap:8px; }
-    ul.groups li:hover { background:#f0f4fa; } ul.groups li.active { border-color:var(--navy); background:#e8eef8; }
+    ul.groups li:hover, ul.groups li:focus-visible { background:#f0f4fa; outline:2px solid var(--navy); } ul.groups li.active { border-color:var(--navy); background:#e8eef8; }
     ul.groups small { color:var(--muted); display:block; }
     table { width:100%; border-collapse:collapse; font-size:13px; }
     th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
@@ -64,11 +64,11 @@
     <div class="card">
       <h2>Nuevo grupo</h2>
       <form id="newGroupForm">
-        <label>ID del grupo *</label><input name="group_id" placeholder="301-A" required maxlength="32">
-        <label>Nombre / materia</label><input name="name" placeholder="Ingenieria de Software II">
+        <label for="ng-group_id">ID del grupo *</label><input id="ng-group_id" name="group_id" placeholder="301-A" required maxlength="32">
+        <label for="ng-name">Nombre / materia</label><input id="ng-name" name="name" placeholder="Ingenieria de Software II">
         <div class="row">
-          <div><label>Periodo</label><input name="period" placeholder="2026-B"></div>
-          <div><label>Profesor</label><input name="teacher" placeholder="M. en I. ..."></div>
+          <div><label for="ng-period">Periodo</label><input id="ng-period" name="period" placeholder="2026-B"></div>
+          <div><label for="ng-teacher">Profesor</label><input id="ng-teacher" name="teacher" placeholder="M. en I. ..."></div>
         </div>
         <div class="actions"><button type="submit">Crear grupo</button></div>
       </form>
@@ -77,8 +77,8 @@
     <div class="card">
       <h2>Crear grupo desde Excel</h2>
       <form id="newGroupExcelForm">
-        <label>ID del grupo *</label><input name="group_id" placeholder="302-B" required maxlength="32">
-        <label>Archivo .xlsx *</label><input type="file" name="file" accept=".xlsx" required>
+        <label for="nx-group_id">ID del grupo *</label><input id="nx-group_id" name="group_id" placeholder="302-B" required maxlength="32">
+        <label for="nx-file">Archivo .xlsx *</label><input id="nx-file" type="file" name="file" accept=".xlsx" required>
         <div class="actions">
           <button type="submit">Crear e importar</button>
           <button type="button" class="secondary" onclick="downloadTemplate()">Descargar plantilla</button>
@@ -89,7 +89,7 @@
     <div class="card">
       <h2>Datos de prueba</h2>
       <p class="muted" style="margin-top:0">Alumnos ficticios marcados como <span class="tag synthetic">synthetic</span>. Quitarlos no afecta tus grupos reales.</p>
-      <label>Cantidad de alumnos</label><input id="seedCount" type="number" value="100" min="1" max="500">
+      <label for="seedCount">Cantidad de alumnos</label><input id="seedCount" type="number" value="100" min="1" max="500">
       <div class="actions">
         <button onclick="seed(false)">Generar</button>
         <button class="secondary" onclick="seed(true)">Regenerar</button>
@@ -108,7 +108,7 @@
       <div class="card">
         <h2>Explorador de la base de datos</h2>
         <div class="row">
-          <select id="collectionSelect" onchange="browse()">
+          <select id="collectionSelect" aria-label="Colección a explorar" onchange="browse()">
             <option>groups</option><option>students</option><option selected>academic_records</option>
             <option>record_history</option><option>predictions</option><option>import_logs</option>
           </select>
@@ -184,7 +184,7 @@ async function refreshHeader() {
 async function loadGroups() {
   const { groups } = await api("/admin/api/groups");
   $("groupList").innerHTML = groups.length ? groups.map(g => `
-    <li class="${g.group_id === currentGroup ? "active" : ""}" data-id="${esc(g.group_id)}" onclick="selectGroup(this.dataset.id)">
+    <li class="${g.group_id === currentGroup ? "active" : ""}" data-id="${esc(g.group_id)}" tabindex="0" role="button" onclick="selectGroup(this.dataset.id)" onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectGroup(this.dataset.id); }">
       <span><b>${esc(g.group_id)}</b><small>${esc(g.name || "Sin nombre")} ${g.period ? "&middot; " + esc(g.period) : ""}</small></span>
       <span class="tag ${esc(g.source)}">${g.student_count} alumnos</span>
     </li>`).join("") : '<li class="muted">Aun no hay grupos. Crea uno o genera datos de prueba.</li>';
@@ -215,16 +215,16 @@ async function loadStudents() {
     <h2 style="margin-top:16px">Agregar alumno</h2>
     <form id="addStudentForm">
       <div class="row">
-        <div><label>Matricula *</label><input name="student_id" required maxlength="32"></div>
-        <div style="flex:2"><label>Nombre *</label><input name="name" required maxlength="120"></div>
+        <div><label for="as-student_id">Matricula *</label><input id="as-student_id" name="student_id" required maxlength="32"></div>
+        <div style="flex:2"><label for="as-name">Nombre *</label><input id="as-name" name="name" required maxlength="120"></div>
       </div>
       <div class="row">
-        <div><label>Parcial 1 *</label><input name="p1" type="number" step="0.1" min="0" max="100" required></div>
-        <div><label>Parcial 2</label><input name="p2" type="number" step="0.1" min="0" max="100"></div>
-        <div><label>Parcial 3</label><input name="p3" type="number" step="0.1" min="0" max="100"></div>
-        <div><label>Parcial 4</label><input name="p4" type="number" step="0.1" min="0" max="100"></div>
-        <div><label>Asistencia % *</label><input name="attendance" type="number" step="0.1" min="0" max="100" required></div>
-        <div><label>Participacion *</label><input name="participation" type="number" step="0.1" min="0" max="100" required></div>
+        <div><label for="as-p1">Parcial 1 *</label><input id="as-p1" name="p1" type="number" step="0.1" min="0" max="100" required></div>
+        <div><label for="as-p2">Parcial 2</label><input id="as-p2" name="p2" type="number" step="0.1" min="0" max="100"></div>
+        <div><label for="as-p3">Parcial 3</label><input id="as-p3" name="p3" type="number" step="0.1" min="0" max="100"></div>
+        <div><label for="as-p4">Parcial 4</label><input id="as-p4" name="p4" type="number" step="0.1" min="0" max="100"></div>
+        <div><label for="as-attendance">Asistencia % *</label><input id="as-attendance" name="attendance" type="number" step="0.1" min="0" max="100" required></div>
+        <div><label for="as-participation">Participacion *</label><input id="as-participation" name="participation" type="number" step="0.1" min="0" max="100" required></div>
       </div>
       <div class="actions"><button type="submit">Guardar alumno</button></div>
     </form>
@@ -232,8 +232,8 @@ async function loadStudents() {
     <h2 style="margin-top:16px">Importar calificaciones desde Excel</h2>
     <form id="importForm">
       <div class="row">
-        <div style="flex:2"><label>Archivo .xlsx</label><input type="file" name="file" accept=".xlsx" required></div>
-        <div><label>Modo</label><select name="mode">
+        <div style="flex:2"><label for="im-file">Archivo .xlsx</label><input id="im-file" type="file" name="file" accept=".xlsx" required></div>
+        <div><label for="im-mode">Modo</label><select id="im-mode" name="mode">
           <option value="partial">Importar filas validas, reportar el resto</option>
           <option value="strict">Estricto: cancelar si hay errores</option></select></div>
       </div>
