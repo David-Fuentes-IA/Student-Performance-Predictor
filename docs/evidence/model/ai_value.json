@@ -1,0 +1,1413 @@
+{
+  "generated_at": "2026-11-18T14:41:17+00:00",
+  "question": "does the AI model find at-risk students that the school's own rules miss, at the same workload?",
+  "data": {
+    "training": "600 simulated students (seed 7), out-of-fold scores",
+    "independent": "data/grupo_evaluacion.xlsx (240 students, seed 2026)",
+    "caveat": "synthetic data: the results describe the simulation, not real students"
+  },
+  "statistics": "paired: exact McNemar on discordant students; paired bootstrap (2000) for average precision",
+  "stages": {
+    "first_partial_only": {
+      "partials_known": 1,
+      "cross_validation": {
+        "students": 600,
+        "at_risk": 165,
+        "school_rule": {
+          "recall": 0.6545,
+          "precision": 0.7883,
+          "caught": 108,
+          "flagged": 137
+        },
+        "at_equal_workload": {
+          "school_rule_workload": {
+            "budget": 137,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.6545,
+                "precision": 0.7883,
+                "caught": 108,
+                "flagged": 137
+              },
+              "logistic_regression": {
+                "recall": 0.6485,
+                "precision": 0.781,
+                "caught": 107,
+                "flagged": 137
+              },
+              "random_forest": {
+                "recall": 0.6424,
+                "precision": 0.7737,
+                "caught": 106,
+                "flagged": 137
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 5,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": -0.0061,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 9,
+              "false_alarms_b_only": 8,
+              "mcnemar_p_false_alarms": 1.0
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 5,
+              "caught_by_b_only": 7,
+              "recall_difference_a_minus_b": -0.0121,
+              "mcnemar_p_recall": 0.774,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 9,
+              "false_alarms_b_only": 7,
+              "mcnemar_p_false_alarms": 0.804
+            }
+          },
+          "15pct_of_group": {
+            "budget": 90,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.4727,
+                "precision": 0.8667,
+                "caught": 78,
+                "flagged": 90
+              },
+              "logistic_regression": {
+                "recall": 0.4788,
+                "precision": 0.8778,
+                "caught": 79,
+                "flagged": 90
+              },
+              "random_forest": {
+                "recall": 0.4606,
+                "precision": 0.8444,
+                "caught": 76,
+                "flagged": 90
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 8,
+              "caught_by_b_only": 7,
+              "recall_difference_a_minus_b": 0.0061,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 5,
+              "false_alarms_b_only": 6,
+              "mcnemar_p_false_alarms": 1.0
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 8,
+              "caught_by_b_only": 10,
+              "recall_difference_a_minus_b": -0.0121,
+              "mcnemar_p_recall": 0.815,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 7,
+              "false_alarms_b_only": 5,
+              "mcnemar_p_false_alarms": 0.774
+            }
+          },
+          "25pct_of_group": {
+            "budget": 150,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.6788,
+                "precision": 0.7467,
+                "caught": 112,
+                "flagged": 150
+              },
+              "logistic_regression": {
+                "recall": 0.697,
+                "precision": 0.7667,
+                "caught": 115,
+                "flagged": 150
+              },
+              "random_forest": {
+                "recall": 0.6848,
+                "precision": 0.7533,
+                "caught": 113,
+                "flagged": 150
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 8,
+              "caught_by_b_only": 5,
+              "recall_difference_a_minus_b": 0.0182,
+              "mcnemar_p_recall": 0.581,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 12,
+              "false_alarms_b_only": 15,
+              "mcnemar_p_false_alarms": 0.701
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 7,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": 0.0061,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 9,
+              "false_alarms_b_only": 10,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          },
+          "35pct_of_group": {
+            "budget": 210,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.8182,
+                "precision": 0.6429,
+                "caught": 135,
+                "flagged": 210
+              },
+              "logistic_regression": {
+                "recall": 0.8121,
+                "precision": 0.6381,
+                "caught": 134,
+                "flagged": 210
+              },
+              "random_forest": {
+                "recall": 0.8,
+                "precision": 0.6286,
+                "caught": 132,
+                "flagged": 210
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 4,
+              "caught_by_b_only": 5,
+              "recall_difference_a_minus_b": -0.0061,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 19,
+              "false_alarms_b_only": 18,
+              "mcnemar_p_false_alarms": 1.0
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 2,
+              "caught_by_b_only": 5,
+              "recall_difference_a_minus_b": -0.0182,
+              "mcnemar_p_recall": 0.453,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 17,
+              "false_alarms_b_only": 14,
+              "mcnemar_p_false_alarms": 0.72
+            }
+          }
+        },
+        "two_indicator_rule": {
+          "rule": "average < 60 OR attendance < 80",
+          "rule_result": {
+            "recall": 0.8545,
+            "precision": 0.4352,
+            "caught": 141,
+            "flagged": 324
+          },
+          "logistic_at_same_workload": {
+            "recall": 0.9152,
+            "precision": 0.466,
+            "caught": 151,
+            "flagged": 324
+          },
+          "logistic_vs_rule": {
+            "at_risk_students": 165,
+            "caught_by_a_only": 16,
+            "caught_by_b_only": 6,
+            "recall_difference_a_minus_b": 0.0606,
+            "mcnemar_p_recall": 0.0525,
+            "recall_difference_significant": false,
+            "false_alarms_a_only": 68,
+            "false_alarms_b_only": 78,
+            "mcnemar_p_false_alarms": 0.456
+          }
+        },
+        "average_precision": {
+          "average_grade": 0.7988,
+          "logistic_regression": 0.8146,
+          "random_forest": 0.7694,
+          "logistic_minus_average": {
+            "difference": 0.0158,
+            "ci95": [
+              -0.0099,
+              0.0408
+            ],
+            "interval_excludes_zero": false,
+            "resamples": 2000
+          }
+        }
+      },
+      "independent": {
+        "students": 240,
+        "at_risk": 64,
+        "school_rule": {
+          "recall": 0.5156,
+          "precision": 0.7021,
+          "caught": 33,
+          "flagged": 47
+        },
+        "at_equal_workload": {
+          "school_rule_workload": {
+            "budget": 47,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.5156,
+                "precision": 0.7021,
+                "caught": 33,
+                "flagged": 47
+              },
+              "logistic_regression": {
+                "recall": 0.5625,
+                "precision": 0.766,
+                "caught": 36,
+                "flagged": 47
+              },
+              "random_forest": {
+                "recall": 0.5156,
+                "precision": 0.7021,
+                "caught": 33,
+                "flagged": 47
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 6,
+              "caught_by_b_only": 3,
+              "recall_difference_a_minus_b": 0.0469,
+              "mcnemar_p_recall": 0.508,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 2,
+              "false_alarms_b_only": 5,
+              "mcnemar_p_false_alarms": 0.453
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 3,
+              "caught_by_b_only": 3,
+              "recall_difference_a_minus_b": 0.0,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 3,
+              "false_alarms_b_only": 3,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          },
+          "15pct_of_group": {
+            "budget": 36,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.4531,
+                "precision": 0.8056,
+                "caught": 29,
+                "flagged": 36
+              },
+              "logistic_regression": {
+                "recall": 0.4375,
+                "precision": 0.7778,
+                "caught": 28,
+                "flagged": 36
+              },
+              "random_forest": {
+                "recall": 0.4375,
+                "precision": 0.7778,
+                "caught": 28,
+                "flagged": 36
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 2,
+              "caught_by_b_only": 3,
+              "recall_difference_a_minus_b": -0.0156,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 2,
+              "false_alarms_b_only": 1,
+              "mcnemar_p_false_alarms": 1.0
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 4,
+              "caught_by_b_only": 5,
+              "recall_difference_a_minus_b": -0.0156,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 3,
+              "false_alarms_b_only": 2,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          },
+          "25pct_of_group": {
+            "budget": 60,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.625,
+                "precision": 0.6667,
+                "caught": 40,
+                "flagged": 60
+              },
+              "logistic_regression": {
+                "recall": 0.6875,
+                "precision": 0.7333,
+                "caught": 44,
+                "flagged": 60
+              },
+              "random_forest": {
+                "recall": 0.6094,
+                "precision": 0.65,
+                "caught": 39,
+                "flagged": 60
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 10,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": 0.0625,
+              "mcnemar_p_recall": 0.454,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 2,
+              "false_alarms_b_only": 6,
+              "mcnemar_p_false_alarms": 0.289
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 4,
+              "caught_by_b_only": 5,
+              "recall_difference_a_minus_b": -0.0156,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 5,
+              "false_alarms_b_only": 4,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          },
+          "35pct_of_group": {
+            "budget": 84,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.7969,
+                "precision": 0.6071,
+                "caught": 51,
+                "flagged": 84
+              },
+              "logistic_regression": {
+                "recall": 0.8125,
+                "precision": 0.619,
+                "caught": 52,
+                "flagged": 84
+              },
+              "random_forest": {
+                "recall": 0.7812,
+                "precision": 0.5952,
+                "caught": 50,
+                "flagged": 84
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 2,
+              "caught_by_b_only": 1,
+              "recall_difference_a_minus_b": 0.0156,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 5,
+              "false_alarms_b_only": 6,
+              "mcnemar_p_false_alarms": 1.0
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 0,
+              "caught_by_b_only": 1,
+              "recall_difference_a_minus_b": -0.0156,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 9,
+              "false_alarms_b_only": 8,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          }
+        },
+        "two_indicator_rule": {
+          "rule": "average < 60 OR attendance < 80",
+          "rule_result": {
+            "recall": 0.7812,
+            "precision": 0.4,
+            "caught": 50,
+            "flagged": 125
+          },
+          "logistic_at_same_workload": {
+            "recall": 0.9531,
+            "precision": 0.488,
+            "caught": 61,
+            "flagged": 125
+          },
+          "logistic_vs_rule": {
+            "at_risk_students": 64,
+            "caught_by_a_only": 12,
+            "caught_by_b_only": 1,
+            "recall_difference_a_minus_b": 0.1719,
+            "mcnemar_p_recall": 0.00342,
+            "recall_difference_significant": true,
+            "false_alarms_a_only": 16,
+            "false_alarms_b_only": 27,
+            "mcnemar_p_false_alarms": 0.126
+          }
+        },
+        "average_precision": {
+          "average_grade": 0.7271,
+          "logistic_regression": 0.7299,
+          "random_forest": 0.7097,
+          "logistic_minus_average": {
+            "difference": 0.0028,
+            "ci95": [
+              -0.0354,
+              0.044
+            ],
+            "interval_excludes_zero": false,
+            "resamples": 2000
+          }
+        }
+      }
+    },
+    "first_two_partials": {
+      "partials_known": 2,
+      "cross_validation": {
+        "students": 600,
+        "at_risk": 165,
+        "school_rule": {
+          "recall": 0.6727,
+          "precision": 0.8102,
+          "caught": 111,
+          "flagged": 137
+        },
+        "at_equal_workload": {
+          "school_rule_workload": {
+            "budget": 137,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.6727,
+                "precision": 0.8102,
+                "caught": 111,
+                "flagged": 137
+              },
+              "logistic_regression": {
+                "recall": 0.6848,
+                "precision": 0.8248,
+                "caught": 113,
+                "flagged": 137
+              },
+              "random_forest": {
+                "recall": 0.6545,
+                "precision": 0.7883,
+                "caught": 108,
+                "flagged": 137
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 8,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": 0.0121,
+              "mcnemar_p_recall": 0.791,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 6,
+              "false_alarms_b_only": 8,
+              "mcnemar_p_false_alarms": 0.791
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 6,
+              "caught_by_b_only": 9,
+              "recall_difference_a_minus_b": -0.0182,
+              "mcnemar_p_recall": 0.607,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 9,
+              "false_alarms_b_only": 6,
+              "mcnemar_p_false_alarms": 0.607
+            }
+          },
+          "15pct_of_group": {
+            "budget": 90,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.4909,
+                "precision": 0.9,
+                "caught": 81,
+                "flagged": 90
+              },
+              "logistic_regression": {
+                "recall": 0.503,
+                "precision": 0.9222,
+                "caught": 83,
+                "flagged": 90
+              },
+              "random_forest": {
+                "recall": 0.4727,
+                "precision": 0.8667,
+                "caught": 78,
+                "flagged": 90
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 9,
+              "caught_by_b_only": 7,
+              "recall_difference_a_minus_b": 0.0121,
+              "mcnemar_p_recall": 0.804,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 1,
+              "false_alarms_b_only": 3,
+              "mcnemar_p_false_alarms": 0.625
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 13,
+              "caught_by_b_only": 16,
+              "recall_difference_a_minus_b": -0.0182,
+              "mcnemar_p_recall": 0.711,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 5,
+              "false_alarms_b_only": 2,
+              "mcnemar_p_false_alarms": 0.453
+            }
+          },
+          "25pct_of_group": {
+            "budget": 150,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.7091,
+                "precision": 0.78,
+                "caught": 117,
+                "flagged": 150
+              },
+              "logistic_regression": {
+                "recall": 0.7394,
+                "precision": 0.8133,
+                "caught": 122,
+                "flagged": 150
+              },
+              "random_forest": {
+                "recall": 0.7152,
+                "precision": 0.7867,
+                "caught": 118,
+                "flagged": 150
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 9,
+              "caught_by_b_only": 4,
+              "recall_difference_a_minus_b": 0.0303,
+              "mcnemar_p_recall": 0.267,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 3,
+              "false_alarms_b_only": 8,
+              "mcnemar_p_false_alarms": 0.227
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 8,
+              "caught_by_b_only": 7,
+              "recall_difference_a_minus_b": 0.0061,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 6,
+              "false_alarms_b_only": 7,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          },
+          "35pct_of_group": {
+            "budget": 210,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.8485,
+                "precision": 0.6667,
+                "caught": 140,
+                "flagged": 210
+              },
+              "logistic_regression": {
+                "recall": 0.8364,
+                "precision": 0.6571,
+                "caught": 138,
+                "flagged": 210
+              },
+              "random_forest": {
+                "recall": 0.8364,
+                "precision": 0.6571,
+                "caught": 138,
+                "flagged": 210
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 2,
+              "caught_by_b_only": 4,
+              "recall_difference_a_minus_b": -0.0121,
+              "mcnemar_p_recall": 0.688,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 16,
+              "false_alarms_b_only": 14,
+              "mcnemar_p_false_alarms": 0.856
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 4,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": -0.0121,
+              "mcnemar_p_recall": 0.754,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 16,
+              "false_alarms_b_only": 14,
+              "mcnemar_p_false_alarms": 0.856
+            }
+          }
+        },
+        "two_indicator_rule": {
+          "rule": "average < 60 OR attendance < 80",
+          "rule_result": {
+            "recall": 0.8667,
+            "precision": 0.4373,
+            "caught": 143,
+            "flagged": 327
+          },
+          "logistic_at_same_workload": {
+            "recall": 0.9636,
+            "precision": 0.4862,
+            "caught": 159,
+            "flagged": 327
+          },
+          "logistic_vs_rule": {
+            "at_risk_students": 165,
+            "caught_by_a_only": 18,
+            "caught_by_b_only": 2,
+            "recall_difference_a_minus_b": 0.097,
+            "mcnemar_p_recall": 0.000402,
+            "recall_difference_significant": true,
+            "false_alarms_a_only": 71,
+            "false_alarms_b_only": 87,
+            "mcnemar_p_false_alarms": 0.233
+          }
+        },
+        "average_precision": {
+          "average_grade": 0.8403,
+          "logistic_regression": 0.8478,
+          "random_forest": 0.784,
+          "logistic_minus_average": {
+            "difference": 0.0075,
+            "ci95": [
+              -0.0094,
+              0.0254
+            ],
+            "interval_excludes_zero": false,
+            "resamples": 2000
+          }
+        }
+      },
+      "independent": {
+        "students": 240,
+        "at_risk": 64,
+        "school_rule": {
+          "recall": 0.6094,
+          "precision": 0.7647,
+          "caught": 39,
+          "flagged": 51
+        },
+        "at_equal_workload": {
+          "school_rule_workload": {
+            "budget": 51,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.6094,
+                "precision": 0.7647,
+                "caught": 39,
+                "flagged": 51
+              },
+              "logistic_regression": {
+                "recall": 0.625,
+                "precision": 0.7843,
+                "caught": 40,
+                "flagged": 51
+              },
+              "random_forest": {
+                "recall": 0.6094,
+                "precision": 0.7647,
+                "caught": 39,
+                "flagged": 51
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 5,
+              "caught_by_b_only": 4,
+              "recall_difference_a_minus_b": 0.0156,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 2,
+              "false_alarms_b_only": 3,
+              "mcnemar_p_false_alarms": 1.0
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 6,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": 0.0,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 3,
+              "false_alarms_b_only": 3,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          },
+          "15pct_of_group": {
+            "budget": 36,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.4688,
+                "precision": 0.8333,
+                "caught": 30,
+                "flagged": 36
+              },
+              "logistic_regression": {
+                "recall": 0.4375,
+                "precision": 0.7778,
+                "caught": 28,
+                "flagged": 36
+              },
+              "random_forest": {
+                "recall": 0.4219,
+                "precision": 0.75,
+                "caught": 27,
+                "flagged": 36
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 2,
+              "caught_by_b_only": 4,
+              "recall_difference_a_minus_b": -0.0312,
+              "mcnemar_p_recall": 0.688,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 4,
+              "false_alarms_b_only": 2,
+              "mcnemar_p_false_alarms": 0.688
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 3,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": -0.0469,
+              "mcnemar_p_recall": 0.508,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 5,
+              "false_alarms_b_only": 2,
+              "mcnemar_p_false_alarms": 0.453
+            }
+          },
+          "25pct_of_group": {
+            "budget": 60,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.6875,
+                "precision": 0.7333,
+                "caught": 44,
+                "flagged": 60
+              },
+              "logistic_regression": {
+                "recall": 0.7031,
+                "precision": 0.75,
+                "caught": 45,
+                "flagged": 60
+              },
+              "random_forest": {
+                "recall": 0.6875,
+                "precision": 0.7333,
+                "caught": 44,
+                "flagged": 60
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 5,
+              "caught_by_b_only": 4,
+              "recall_difference_a_minus_b": 0.0156,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 2,
+              "false_alarms_b_only": 3,
+              "mcnemar_p_false_alarms": 1.0
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 6,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": 0.0,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 5,
+              "false_alarms_b_only": 5,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          },
+          "35pct_of_group": {
+            "budget": 84,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.7969,
+                "precision": 0.6071,
+                "caught": 51,
+                "flagged": 84
+              },
+              "logistic_regression": {
+                "recall": 0.8281,
+                "precision": 0.631,
+                "caught": 53,
+                "flagged": 84
+              },
+              "random_forest": {
+                "recall": 0.8281,
+                "precision": 0.631,
+                "caught": 53,
+                "flagged": 84
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 3,
+              "caught_by_b_only": 1,
+              "recall_difference_a_minus_b": 0.0312,
+              "mcnemar_p_recall": 0.625,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 4,
+              "false_alarms_b_only": 6,
+              "mcnemar_p_false_alarms": 0.754
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 3,
+              "caught_by_b_only": 1,
+              "recall_difference_a_minus_b": 0.0312,
+              "mcnemar_p_recall": 0.625,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 5,
+              "false_alarms_b_only": 7,
+              "mcnemar_p_false_alarms": 0.774
+            }
+          }
+        },
+        "two_indicator_rule": {
+          "rule": "average < 60 OR attendance < 80",
+          "rule_result": {
+            "recall": 0.8125,
+            "precision": 0.4127,
+            "caught": 52,
+            "flagged": 126
+          },
+          "logistic_at_same_workload": {
+            "recall": 0.9375,
+            "precision": 0.4762,
+            "caught": 60,
+            "flagged": 126
+          },
+          "logistic_vs_rule": {
+            "at_risk_students": 64,
+            "caught_by_a_only": 9,
+            "caught_by_b_only": 1,
+            "recall_difference_a_minus_b": 0.125,
+            "mcnemar_p_recall": 0.0215,
+            "recall_difference_significant": true,
+            "false_alarms_a_only": 22,
+            "false_alarms_b_only": 30,
+            "mcnemar_p_false_alarms": 0.332
+          }
+        },
+        "average_precision": {
+          "average_grade": 0.8025,
+          "logistic_regression": 0.7975,
+          "random_forest": 0.7757,
+          "logistic_minus_average": {
+            "difference": -0.005,
+            "ci95": [
+              -0.0355,
+              0.0244
+            ],
+            "interval_excludes_zero": false,
+            "resamples": 2000
+          }
+        }
+      }
+    },
+    "all_partials": {
+      "partials_known": "all",
+      "cross_validation": {
+        "students": 600,
+        "at_risk": 165,
+        "school_rule": {
+          "recall": 0.7091,
+          "precision": 0.8125,
+          "caught": 117,
+          "flagged": 144
+        },
+        "at_equal_workload": {
+          "school_rule_workload": {
+            "budget": 144,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.7091,
+                "precision": 0.8125,
+                "caught": 117,
+                "flagged": 144
+              },
+              "logistic_regression": {
+                "recall": 0.7333,
+                "precision": 0.8403,
+                "caught": 121,
+                "flagged": 144
+              },
+              "random_forest": {
+                "recall": 0.7091,
+                "precision": 0.8125,
+                "caught": 117,
+                "flagged": 144
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 10,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": 0.0242,
+              "mcnemar_p_recall": 0.454,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 4,
+              "false_alarms_b_only": 8,
+              "mcnemar_p_false_alarms": 0.388
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 6,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": 0.0,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 7,
+              "false_alarms_b_only": 7,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          },
+          "15pct_of_group": {
+            "budget": 90,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.503,
+                "precision": 0.9222,
+                "caught": 83,
+                "flagged": 90
+              },
+              "logistic_regression": {
+                "recall": 0.4909,
+                "precision": 0.9,
+                "caught": 81,
+                "flagged": 90
+              },
+              "random_forest": {
+                "recall": 0.4909,
+                "precision": 0.9,
+                "caught": 81,
+                "flagged": 90
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 10,
+              "caught_by_b_only": 12,
+              "recall_difference_a_minus_b": -0.0121,
+              "mcnemar_p_recall": 0.832,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 3,
+              "false_alarms_b_only": 1,
+              "mcnemar_p_false_alarms": 0.625
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 9,
+              "caught_by_b_only": 11,
+              "recall_difference_a_minus_b": -0.0121,
+              "mcnemar_p_recall": 0.824,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 4,
+              "false_alarms_b_only": 2,
+              "mcnemar_p_false_alarms": 0.688
+            }
+          },
+          "25pct_of_group": {
+            "budget": 150,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.7152,
+                "precision": 0.7867,
+                "caught": 118,
+                "flagged": 150
+              },
+              "logistic_regression": {
+                "recall": 0.7394,
+                "precision": 0.8133,
+                "caught": 122,
+                "flagged": 150
+              },
+              "random_forest": {
+                "recall": 0.7273,
+                "precision": 0.8,
+                "caught": 120,
+                "flagged": 150
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 10,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": 0.0242,
+              "mcnemar_p_recall": 0.454,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 6,
+              "false_alarms_b_only": 10,
+              "mcnemar_p_false_alarms": 0.454
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 7,
+              "caught_by_b_only": 5,
+              "recall_difference_a_minus_b": 0.0121,
+              "mcnemar_p_recall": 0.774,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 7,
+              "false_alarms_b_only": 9,
+              "mcnemar_p_false_alarms": 0.804
+            }
+          },
+          "35pct_of_group": {
+            "budget": 210,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.8606,
+                "precision": 0.6762,
+                "caught": 142,
+                "flagged": 210
+              },
+              "logistic_regression": {
+                "recall": 0.8606,
+                "precision": 0.6762,
+                "caught": 142,
+                "flagged": 210
+              },
+              "random_forest": {
+                "recall": 0.8485,
+                "precision": 0.6667,
+                "caught": 140,
+                "flagged": 210
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 6,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": 0.0,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 20,
+              "false_alarms_b_only": 20,
+              "mcnemar_p_false_alarms": 1.0
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 165,
+              "caught_by_a_only": 2,
+              "caught_by_b_only": 4,
+              "recall_difference_a_minus_b": -0.0121,
+              "mcnemar_p_recall": 0.688,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 15,
+              "false_alarms_b_only": 13,
+              "mcnemar_p_false_alarms": 0.851
+            }
+          }
+        },
+        "two_indicator_rule": {
+          "rule": "average < 60 OR attendance < 80",
+          "rule_result": {
+            "recall": 0.897,
+            "precision": 0.4485,
+            "caught": 148,
+            "flagged": 330
+          },
+          "logistic_at_same_workload": {
+            "recall": 0.9576,
+            "precision": 0.4788,
+            "caught": 158,
+            "flagged": 330
+          },
+          "logistic_vs_rule": {
+            "at_risk_students": 165,
+            "caught_by_a_only": 14,
+            "caught_by_b_only": 4,
+            "recall_difference_a_minus_b": 0.0606,
+            "mcnemar_p_recall": 0.0309,
+            "recall_difference_significant": true,
+            "false_alarms_a_only": 72,
+            "false_alarms_b_only": 82,
+            "mcnemar_p_false_alarms": 0.468
+          }
+        },
+        "average_precision": {
+          "average_grade": 0.8477,
+          "logistic_regression": 0.8605,
+          "random_forest": 0.8027,
+          "logistic_minus_average": {
+            "difference": 0.0129,
+            "ci95": [
+              -0.0073,
+              0.033
+            ],
+            "interval_excludes_zero": false,
+            "resamples": 2000
+          }
+        }
+      },
+      "independent": {
+        "students": 240,
+        "at_risk": 64,
+        "school_rule": {
+          "recall": 0.7188,
+          "precision": 0.7931,
+          "caught": 46,
+          "flagged": 58
+        },
+        "at_equal_workload": {
+          "school_rule_workload": {
+            "budget": 58,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.7188,
+                "precision": 0.7931,
+                "caught": 46,
+                "flagged": 58
+              },
+              "logistic_regression": {
+                "recall": 0.6875,
+                "precision": 0.7586,
+                "caught": 44,
+                "flagged": 58
+              },
+              "random_forest": {
+                "recall": 0.7031,
+                "precision": 0.7759,
+                "caught": 45,
+                "flagged": 58
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 3,
+              "caught_by_b_only": 5,
+              "recall_difference_a_minus_b": -0.0312,
+              "mcnemar_p_recall": 0.727,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 5,
+              "false_alarms_b_only": 3,
+              "mcnemar_p_false_alarms": 0.727
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 3,
+              "caught_by_b_only": 4,
+              "recall_difference_a_minus_b": -0.0156,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 4,
+              "false_alarms_b_only": 3,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          },
+          "15pct_of_group": {
+            "budget": 36,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.5156,
+                "precision": 0.9167,
+                "caught": 33,
+                "flagged": 36
+              },
+              "logistic_regression": {
+                "recall": 0.4375,
+                "precision": 0.7778,
+                "caught": 28,
+                "flagged": 36
+              },
+              "random_forest": {
+                "recall": 0.4844,
+                "precision": 0.8611,
+                "caught": 31,
+                "flagged": 36
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 1,
+              "caught_by_b_only": 6,
+              "recall_difference_a_minus_b": -0.0781,
+              "mcnemar_p_recall": 0.125,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 6,
+              "false_alarms_b_only": 1,
+              "mcnemar_p_false_alarms": 0.125
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 2,
+              "caught_by_b_only": 4,
+              "recall_difference_a_minus_b": -0.0312,
+              "mcnemar_p_recall": 0.688,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 2,
+              "false_alarms_b_only": 0,
+              "mcnemar_p_false_alarms": 0.5
+            }
+          },
+          "25pct_of_group": {
+            "budget": 60,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.7188,
+                "precision": 0.7667,
+                "caught": 46,
+                "flagged": 60
+              },
+              "logistic_regression": {
+                "recall": 0.7188,
+                "precision": 0.7667,
+                "caught": 46,
+                "flagged": 60
+              },
+              "random_forest": {
+                "recall": 0.7188,
+                "precision": 0.7667,
+                "caught": 46,
+                "flagged": 60
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 3,
+              "caught_by_b_only": 3,
+              "recall_difference_a_minus_b": 0.0,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 4,
+              "false_alarms_b_only": 4,
+              "mcnemar_p_false_alarms": 1.0
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 3,
+              "caught_by_b_only": 3,
+              "recall_difference_a_minus_b": 0.0,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 4,
+              "false_alarms_b_only": 4,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          },
+          "35pct_of_group": {
+            "budget": 84,
+            "by_method": {
+              "average_grade": {
+                "recall": 0.8281,
+                "precision": 0.631,
+                "caught": 53,
+                "flagged": 84
+              },
+              "logistic_regression": {
+                "recall": 0.8594,
+                "precision": 0.6548,
+                "caught": 55,
+                "flagged": 84
+              },
+              "random_forest": {
+                "recall": 0.8281,
+                "precision": 0.631,
+                "caught": 53,
+                "flagged": 84
+              }
+            },
+            "logistic_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 2,
+              "caught_by_b_only": 0,
+              "recall_difference_a_minus_b": 0.0312,
+              "mcnemar_p_recall": 0.5,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 7,
+              "false_alarms_b_only": 9,
+              "mcnemar_p_false_alarms": 0.804
+            },
+            "random_forest_vs_average": {
+              "at_risk_students": 64,
+              "caught_by_a_only": 1,
+              "caught_by_b_only": 1,
+              "recall_difference_a_minus_b": 0.0,
+              "mcnemar_p_recall": 1.0,
+              "recall_difference_significant": false,
+              "false_alarms_a_only": 9,
+              "false_alarms_b_only": 9,
+              "mcnemar_p_false_alarms": 1.0
+            }
+          }
+        },
+        "two_indicator_rule": {
+          "rule": "average < 60 OR attendance < 80",
+          "rule_result": {
+            "recall": 0.8594,
+            "precision": 0.4264,
+            "caught": 55,
+            "flagged": 129
+          },
+          "logistic_at_same_workload": {
+            "recall": 0.9375,
+            "precision": 0.4651,
+            "caught": 60,
+            "flagged": 129
+          },
+          "logistic_vs_rule": {
+            "at_risk_students": 64,
+            "caught_by_a_only": 6,
+            "caught_by_b_only": 1,
+            "recall_difference_a_minus_b": 0.0781,
+            "mcnemar_p_recall": 0.125,
+            "recall_difference_significant": false,
+            "false_alarms_a_only": 23,
+            "false_alarms_b_only": 28,
+            "mcnemar_p_false_alarms": 0.576
+          }
+        },
+        "average_precision": {
+          "average_grade": 0.8216,
+          "logistic_regression": 0.8176,
+          "random_forest": 0.8078,
+          "logistic_minus_average": {
+            "difference": -0.004,
+            "ci95": [
+              -0.0462,
+              0.0333
+            ],
+            "interval_excludes_zero": false,
+            "resamples": 2000
+          }
+        }
+      }
+    }
+  }
+}

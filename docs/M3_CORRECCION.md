@@ -349,6 +349,8 @@ synthetic data.
 | **Failing average OR score ≥ 75 (applied)** | **0.709** (0.64–0.77) | 0.807 | **0.719** (0.60–0.81) | 0.780 | 25 % |
 
 46 of 64 at-risk students caught instead of 28, same precision; the intervals do not overlap, so the gain is real.
+*(Milestone 4 correction: that argument was wrong because both rules judge the same students; the paired McNemar test confirms
+the gain, 18 vs 0 discordant at-risk students, p = 7.6 × 10⁻⁶. See `docs/evidence/model/README.md`.)*
 **Honest note that must appear:** with the model part at 75, almost all the gain comes from the school criterion; on the
 independent set the model adds no extra correct alert to "failing average". The model's contribution today is the "En
 observación" band and the ordering by risk. Lowering the model part would make it count (measured, **not applied**, team
@@ -419,7 +421,7 @@ Not configured: branch protection on `main` (owner-only setting, recommended).
 | Run | Commit | Result | Stage durations |
 |---|---|---|---|
 | [#40238753531](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/runs/40238753531) (first) | `cdfb5dd` | all green, deliver skipped (not main), total 6:04 | build 0:42, tests 3:24, gate 0:46, container 1:02 |
-| [#40241401044](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/runs/40241401044) (with Kubernetes) | `c1f41f8` | all green, deliver skipped, total 7:49 | build 0:40, tests 2:39, gate 0:47, container 0:50, **kubernetes 2:44** |
+| [#40241401044](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/runs/40241401044) (with Kubernetes) | `c1f41f8` | all green, deliver skipped, total 7:51 | build 0:40, tests 2:39, gate 0:47, container 0:50, **kubernetes 2:44** |
 | [#40261774028](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/runs/40261774028) (final consistency review) | `96fd0d0` | all green, deliver skipped | all six stages as above |
 
 Artefacts per run: `trained-model`, `test-evidence`, `model-evidence`.

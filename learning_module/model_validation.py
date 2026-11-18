@@ -150,6 +150,74 @@ def wilson_interval(successes: int, total: int, z: float = 1.96) -> tuple[float,
     return round(max(0.0, center - half), 4), round(min(1.0, center + half), 4)
 
 
+def mcnemar_exact(only_a: int, only_b: int) -> float:
+    """Two-sided exact McNemar p-value from the discordant counts of a paired comparison.
+
+    Two rules evaluated on the SAME students are not independent samples, so comparing their two
+    confidence intervals is the wrong test (milestone 3 feedback). Only the students on which the rules
+    disagree carry information: under "no difference" each disagreement is a fair coin.
+    """
+    n = only_a + only_b
+    if n == 0:
+        return 1.0
+    tail = sum(math.comb(n, k) for k in range(min(only_a, only_b) + 1)) / 2 ** n
+    return float(f"{min(1.0, 2 * tail):.3g}")   # 3 significant digits: a tiny p must not print as 0.0
+
+
+def paired_comparison(y_true, pred_a, pred_b, alpha: float = 0.05) -> dict:
+    """Compare two binary rules on the same students.
+
+    Among students who DID end at risk: who is caught by one rule and missed by the other (recall).
+    Among students who did NOT: who is flagged by one rule and not by the other (false alarms).
+    """
+    y_true, pred_a, pred_b = np.asarray(y_true), np.asarray(pred_a), np.asarray(pred_b)
+    positives, negatives = y_true == 1, y_true == 0
+    caught_a_only = int(np.sum(positives & (pred_a == 1) & (pred_b == 0)))
+    caught_b_only = int(np.sum(positives & (pred_a == 0) & (pred_b == 1)))
+    alarms_a_only = int(np.sum(negatives & (pred_a == 1) & (pred_b == 0)))
+    alarms_b_only = int(np.sum(negatives & (pred_a == 0) & (pred_b == 1)))
+    p_recall = mcnemar_exact(caught_a_only, caught_b_only)
+    return {
+        "at_risk_students": int(positives.sum()),
+        "caught_by_a_only": caught_a_only,
+        "caught_by_b_only": caught_b_only,
+        "recall_difference_a_minus_b": round((caught_a_only - caught_b_only) / max(1, int(positives.sum())), 4),
+        "mcnemar_p_recall": p_recall,
+        "recall_difference_significant": p_recall < alpha,
+        "false_alarms_a_only": alarms_a_only,
+        "false_alarms_b_only": alarms_b_only,
+        "mcnemar_p_false_alarms": mcnemar_exact(alarms_a_only, alarms_b_only),
+    }
+
+
+def flag_top(scores, budget: int) -> np.ndarray:
+    """Flag the `budget` students with the highest scores (ties broken by position, deterministically).
+    Comparing methods at the same budget compares them at the same teacher workload."""
+    scores = np.asarray(scores, dtype=float)
+    order = np.argsort(-scores, kind="stable")
+    flags = np.zeros(len(scores), dtype=int)
+    flags[order[:budget]] = 1
+    return flags
+
+
+def paired_bootstrap_difference(y_true, scores_a, scores_b, statistic: Callable,
+                                resamples: int = 2000, seed: int = 0) -> dict:
+    """95 % percentile interval of statistic(y, scores_a) - statistic(y, scores_b), resampling students
+    with replacement (the same students for both, which keeps the comparison paired)."""
+    y_true, scores_a, scores_b = np.asarray(y_true), np.asarray(scores_a), np.asarray(scores_b)
+    rng = np.random.default_rng(seed)
+    differences = []
+    for _ in range(resamples):
+        idx = rng.integers(0, len(y_true), len(y_true))
+        if y_true[idx].min() == y_true[idx].max():   # a resample without both classes has no statistic
+            continue
+        differences.append(statistic(y_true[idx], scores_a[idx]) - statistic(y_true[idx], scores_b[idx]))
+    low, high = np.percentile(differences, [2.5, 97.5])
+    observed = statistic(y_true, scores_a) - statistic(y_true, scores_b)
+    return {"difference": round(float(observed), 4), "ci95": (round(float(low), 4), round(float(high), 4)),
+            "interval_excludes_zero": bool(low > 0 or high < 0), "resamples": len(differences)}
+
+
 def fairness_report(y_true, y_pred, groups) -> dict:
     """Error rates per subgroup (DR-3), with 95 % intervals, plus the gaps between groups.
 

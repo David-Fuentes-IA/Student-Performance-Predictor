@@ -17,6 +17,7 @@ python scripts/collect_docker_evidence.py --cold       # --cold measures a first
 | `summary.json` | every measurement quoted here |
 | `smoke_test.txt` | the last smoke-test run (15 checks) against the running container |
 | `compose_ps.txt`, `startup_log.txt`, `image_layers.txt` | container state, first lines of the start-up log, size of each image layer |
+| `soak_test.json` | the 2-hour prolonged-operation run (Milestone 4): totals, 10-minute windows and one container sample per minute; produced by `scripts/soak_test.py`, not by the command above |
 
 ## 1. Why containers for this project
 
@@ -72,6 +73,30 @@ which inside a container would be the container itself.
 | Smoke test against the container | **15 / 15** checks pass (health, readiness, model loaded, pages, group list, predictions, score ranges, PDF, clean 404, 400) |
 | Import of `data/grupo_evaluacion.xlsx` through the admin API | 240 rows read, **240 created, 0 rejected**; 240 students analysed (58 high, 11 medium, 171 low with the school rule: average below 6.0 or model score at or above 75) |
 | Persistence | after `docker compose down` and `up` (no `-v`): healthy again in 6.8 s, groups `301-A` 34, `301-B` 33, `301-C` 33, `EVAL-240` 240 |
+
+### Prolonged operation (soak test, Milestone 4)
+
+Answer to the Milestone 3 feedback "no evidence of prolonged operation". `scripts/soak_test.py` sends one request every
+3 s to the running compose stack (rotating over the three group APIs, the group list and a PDF report: about a teacher's
+pace, not a stress test) and samples `docker inspect` / `docker stats` every minute. Run of 2026-11-18, results in
+`soak_test.json`:
+
+```bash
+python scripts/soak_test.py --minutes 120      # exits 1 if any request fails or the container restarts
+```
+
+| Measurement | Result |
+|---|---|
+| Duration | **120.1 min** |
+| Requests | **2,321**, **0 errors**, availability **100 %** |
+| Latency | median **20.5 ms**, 95th percentile **75.2 ms**; every 10-minute window between 17 and 22 ms median and 68 and 81 ms p95 (no upward trend); slowest single request 512 ms (one, at minute 20–30) |
+| Container | `running` and `healthy` in **all 120 samples**; **0 restarts**; same process start time before and after (never replaced) |
+| Memory (both gunicorn workers) | 281.7 MiB at the start → **301.1 MiB** at the end (+19.4 MiB, +6.9 %); +11.4 MiB in the first hour, +8.0 MiB in the second |
+| CPU | about 0.1–0.2 % between requests; two short bursts of 24–33 % (minutes 51–55 and 110–114), not investigated |
+
+*Interpretation:* two hours of steady use without a single failed request, restart or unhealthy check, and with stable
+latency. Memory grew slowly and the growth slowed down in the second hour, but two hours are not enough to tell a plateau
+from a small leak (see limitations).
 
 ## 4. Failure drills, and the defects they exposed
 
@@ -140,3 +165,6 @@ image vulnerability scan.
 - Compose is single-host: no load balancing and no high availability. `restart: unless-stopped` only retries a failed container.
 - The image is `linux/amd64`, built and run on Windows through Docker Desktop. Other architectures were not tried.
 - The model is trained at build time, so a new model means a new image (consistent with "the application never trains at start-up").
+- The soak test lasted 2 hours at a light, steady load on one machine. Memory rose by 19 MiB and was still rising slowly at
+  the end; a run of a full school day (or longer) would be needed to show whether it levels off. It says nothing about
+  peak load, which is measured separately in `docs/evidence/performance/`.

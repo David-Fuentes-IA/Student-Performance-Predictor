@@ -13,6 +13,7 @@ from datetime import date, datetime
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import HTTPException
 
+from core import config
 from core.exception_handler import (
     AppError,
     DataAccessError,
@@ -26,6 +27,18 @@ logger = get_logger(__name__)
 _JSON_PREFIXES = ("/api/", "/admin/api/", "/reports/", "/health", "/ready")
 
 _GENERIC_MESSAGE = "No se pudo generar la información del grupo. Inténtalo de nuevo."
+
+# Sent with every response. Only this server may provide content; no framing (clickjacking); no MIME sniffing; no
+# referrer leaving the site. 'unsafe-inline' is still needed because the administration page keeps its script, styles
+# and event handlers inside admin.html; moving them to static files would let it go (documented limitation).
+SECURITY_HEADERS = {
+    "Content-Security-Policy": ("default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; "
+                                "img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; "
+                                "form-action 'self'; frame-ancestors 'none'"),
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "no-referrer",
+}
 
 
 def _json_default(value):
@@ -50,6 +63,16 @@ def create_app() -> Flask:
 
     app.register_blueprint(dashboard_bp)
     app.register_blueprint(admin_bp, url_prefix="/admin")
+
+    if config.mongodb_uri() and not config.admin_password():
+        logger.warning("ADMIN_PASSWORD is empty: anyone who can reach /admin can change or delete the groups. "
+                       "Set it whenever another machine can reach this application.")
+
+    @app.after_request
+    def _security_headers(response):
+        for name, value in SECURITY_HEADERS.items():
+            response.headers.setdefault(name, value)
+        return response
 
     @app.errorhandler(AppError)
     def _app_error(exc: AppError):

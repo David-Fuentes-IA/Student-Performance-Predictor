@@ -13,8 +13,12 @@ from learning_module.model_validation import (
     confusion_counts,
     cross_validate,
     fairness_report,
+    flag_top,
     lowest_threshold_with_precision,
+    mcnemar_exact,
     out_of_fold_scores,
+    paired_bootstrap_difference,
+    paired_comparison,
     score_predictions,
     select_model,
     threshold_sweep,
@@ -176,6 +180,48 @@ class QualityGateTests(unittest.TestCase):
     def test_a_perfect_score_is_rejected_as_suspicious(self):
         problems = check_quality_gate({"accuracy": 1.0, "precision": 1.0, "recall": 1.0, "f1": 1.0, "f2": 1.0})
         self.assertTrue(any("leakage" in p for p in problems))
+
+
+class PairedComparisonTests(unittest.TestCase):
+    """Milestone 3 feedback: two rules measured on the same students need a paired test, not two intervals."""
+
+    def test_mcnemar_known_values(self):
+        self.assertAlmostEqual(mcnemar_exact(10, 2), 0.0386)   # 2 * (1 + 12 + 66) / 2**12
+        self.assertAlmostEqual(mcnemar_exact(5, 0), 0.0625)    # 2 / 2**5
+        self.assertEqual(mcnemar_exact(0, 0), 1.0)              # no disagreement, no evidence of a difference
+
+    def test_mcnemar_is_symmetric_and_a_tiny_p_is_not_printed_as_zero(self):
+        self.assertEqual(mcnemar_exact(3, 9), mcnemar_exact(9, 3))
+        self.assertGreater(mcnemar_exact(30, 0), 0.0)
+        self.assertLess(mcnemar_exact(30, 0), 1e-6)
+
+    def test_only_the_students_where_the_rules_disagree_count(self):
+        y = [1, 1, 1, 1, 0, 0, 0]
+        a = [1, 1, 0, 1, 1, 0, 0]
+        b = [1, 0, 0, 0, 0, 1, 0]
+        c = paired_comparison(y, a, b)
+        self.assertEqual((c["at_risk_students"], c["caught_by_a_only"], c["caught_by_b_only"]), (4, 2, 0))
+        self.assertEqual((c["false_alarms_a_only"], c["false_alarms_b_only"]), (1, 1))
+        self.assertAlmostEqual(c["recall_difference_a_minus_b"], 0.5)
+        self.assertEqual(c["mcnemar_p_recall"], mcnemar_exact(2, 0))
+        self.assertFalse(c["recall_difference_significant"])   # 2 students are not enough evidence
+
+    def test_flag_top_flags_exactly_the_budget_with_stable_ties(self):
+        flags = flag_top([5, 9, 9, 1, 7], 2)
+        self.assertEqual(flags.tolist(), [0, 1, 1, 0, 0])
+        self.assertEqual(flag_top([3, 3, 3], 2).tolist(), [1, 1, 0])
+        self.assertEqual(flag_top([1, 2], 0).sum(), 0)
+
+    def test_bootstrap_of_identical_scores_is_exactly_zero_and_reproducible(self):
+        rng = np.random.default_rng(1)
+        y = rng.integers(0, 2, 80)
+        scores = rng.random(80)
+        from sklearn.metrics import average_precision_score
+        same = paired_bootstrap_difference(y, scores, scores, average_precision_score, resamples=200)
+        self.assertEqual((same["difference"], same["ci95"], same["interval_excludes_zero"]), (0.0, (0.0, 0.0), False))
+        again = paired_bootstrap_difference(y, scores, 1 - scores, average_precision_score, resamples=200)
+        self.assertEqual(again, paired_bootstrap_difference(y, scores, 1 - scores, average_precision_score,
+                                                            resamples=200))
 
 
 if __name__ == "__main__":

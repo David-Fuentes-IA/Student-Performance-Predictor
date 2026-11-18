@@ -10,10 +10,13 @@ estimates the risk (0–100) of ending the term with low performance, marks the 
 reports. **It never acts on a student by itself**: every alert is for a teacher to review (DR-2).
 All the data in this repository are synthetic; no real student appears anywhere.
 
-> Current work lives on the branch `milestone-3`. Evidence for the Milestone 3 report:
+> Current work lives on the branch `milestone-4` (Milestone 3 work: `milestone-3`). Milestone 4 material:
+> [M4_CORRECCION.md](docs/M4_CORRECCION.md) · [accessibility audit](docs/evidence/accessibility/README.md). Evidence:
 > [testing](docs/evidence/testing/README.md) · [model validation](docs/evidence/model/README.md) ·
 > [containers and deployment](docs/evidence/docker/README.md) · [CI/CD](docs/evidence/cicd/README.md) ·
 > [performance](docs/evidence/performance/README.md) · [Kubernetes](k8s/README.md) · [evaluation dataset](data/README.md)
+>
+> New to the code? Read [docs/CODE_STRUCTURE.md](docs/CODE_STRUCTURE.md): what each folder does and where to change what (en español: [docs/ESTRUCTURA_DEL_CODIGO.md](docs/ESTRUCTURA_DEL_CODIGO.md)).
 
 ---
 
@@ -150,7 +153,7 @@ template; create, regenerate or remove demo data; browse the database; see the l
 | `GET /api/groups`, `GET /api/groups/<id>` | groups; one group's predictions (JSON) |
 | `GET /reports/groups/<id>.pdf`, `GET /reports/groups/<id>/students/<student>.pdf` | PDF reports |
 | `GET /api/v1/groups/<id>/risk-report` | the report as plain text, inside a JSON response |
-| `GET /health` | liveness: is the process alive? (always 200, never blocked by the database) |
+| `GET /health` | liveness: is the process alive? (always 200, never blocked by the database). Also reports `observer_failures`: alerts or monitoring records that failed and were skipped since start-up |
 | `GET /ready` | readiness: can it serve requests? (503 without the model or the database) |
 
 ---
@@ -165,7 +168,7 @@ stops the application with a message naming the variable.
 | `MONGODB_URI` | empty (demo mode) | MongoDB connection string |
 | `MONGODB_DB` | `student_predictor` | database name |
 | `ALLOW_DEMO_FALLBACK` | `false` | development only: run on demo data when MongoDB is configured but down |
-| `ADMIN_PASSWORD` | empty (open) | password for `/admin` |
+| `ADMIN_PASSWORD` | empty (open) | password for `/admin`. Empty with a database configured: the start-up log and the panel show a warning; every rejected password is logged (`ADMIN AUTH FAILED`) |
 | `PASSING_GRADE` | `60` | average below which a student is failing, hence high risk (0–100) |
 | `RISK_THRESHOLD` | `75` | model score from which a student is high risk (0–100) |
 | `RISK_MODEL` | `logistic_regression` | model trained by `scripts/train_model.py` (`random_forest` is the alternative) |
@@ -197,6 +200,8 @@ $env:MONGODB_TEST_URI="mongodb://localhost:27018"; venv\Scripts\python.exe -m py
 | `python scripts/evaluate_models.py --gate` | quality gate: fails if recall, precision or F1 fall below their minimum |
 | `python scripts/collect_docker_evidence.py` | `docs/evidence/docker/`: image, start-up, persistence and failure drills |
 | `python scripts/benchmark.py` | `docs/evidence/performance/`: latency, throughput, container resources, time per stage |
+| `python scripts/ai_value_experiment.py` | `docs/evidence/model/ai_value.*`: does the model beat the school rule at the same workload, also early in the term? |
+| `python scripts/soak_test.py --minutes 120` | `docs/evidence/docker/soak_test.json`: hours of steady load against the running container |
 | `python scripts/smoke_test.py http://localhost:8000` | end-to-end check of a running instance |
 | `python scripts/build_evaluation_dataset.py --check` | verifies `data/grupo_evaluacion.xlsx` against the simulator |
 
@@ -218,7 +223,10 @@ partial), attendance and participation. Stratified 5-fold cross-validation on 60
 on recall, the priority metric (a missed at-risk student is the costly error); **Logistic Regression** is used, as a documented
 tie-break. Measured once on 240 students it never saw (`data/grupo_evaluacion.xlsx`): accuracy 0.871, precision 0.770, recall
 0.734, F1 0.752. With the "Alto riesgo" rule above the application catches 72 % of the students who end up at risk (44 % with the
-model score alone at 75). Error analysis, fairness audit and limitations: [docs/evidence/model](docs/evidence/model/README.md).
+model score alone at 75; paired McNemar test, p < 0.001). **Honest result:** at the same number of alerts, the model does not find
+at-risk students better than ranking them by their average, not even after the first partial exam (no significant difference in
+the simulation); it does beat a fixed two-indicator rule, and whether it adds value with real students needs real data
+(`python scripts/ai_value_experiment.py`). Error analysis, fairness audit and limitations: [docs/evidence/model](docs/evidence/model/README.md).
 
 The data come from a simulator with hidden traits and unforeseeable events (`data_access/synthetic_students.py`), calibrated so
 that the model is mostly right but visibly imperfect; **none of these figures describe real students** ([data/README.md](data/README.md)).
@@ -311,19 +319,24 @@ core/            configuration, logging (PII-safe), exceptions, Observer, risk l
 |---|---|
 | dashboard, administration, Excel import, PDF and text reports | teacher authentication and HTTPS |
 | MongoDB and demo repositories, schema validation | sending alerts to teachers (only logged now) |
-| two models, validation, error analysis, fairness audit, quality gate | real institutional data |
+| two models, validation with paired statistics (McNemar), error analysis, fairness audit, quality gate | real institutional data |
 | 4-level test suite, memory profiling, reproducible evidence | publishing the image (configured for `main`, not exercised yet) |
 | Docker image and compose, health and readiness probes | autoscaling verified under load (the HPA is only checked statically) |
 | Kubernetes manifests, deployed and self-healing checked in CI | a shared prediction cache between replicas |
 | performance benchmark, bottleneck analysis, batch inference and batch storage | |
 | CI/CD on GitHub Actions: lint, tests with MongoDB, quality gate, container smoke test, Kubernetes deployment | |
+| security headers, logged rejected admin passwords, open-panel warning, observer failures in `/health` | teacher roles, access log, retention policy |
+| WCAG 2.1 AA fixes (contrast, labels, keyboard) on both screens | tagged (accessible) PDFs, screen-reader user testing |
 | | Vercel deployment (configuration present, not verified) |
 
 ## 10. Known limitations
 
-- Synthetic data only; the model's difficulty was calibrated on purpose.
+- Synthetic data only; the model's difficulty was calibrated on purpose. In the simulation the model does not find at-risk
+  students better than the school rule at the same workload ([docs/evidence/model](docs/evidence/model/README.md)).
 - With MongoDB down while the application runs, data requests take 8 s before answering with an error.
-- No login: anyone who can reach the dashboard sees the data, and `/admin` is open unless `ADMIN_PASSWORD` is set.
+- No login: anyone who can reach the dashboard sees the data, and `/admin` is open unless `ADMIN_PASSWORD` is set (the panel warns
+  when it is open). Responses carry security headers (Content-Security-Policy, no framing, no MIME sniffing, no referrer); the
+  policy still allows inline scripts because the administration page keeps its script inside `admin.html`. There is no HTTPS.
 - Each web-server process keeps its own prediction cache.
 
 Further documentation: [docs/DATABASE.md](docs/DATABASE.md) (MongoDB and Atlas setup, in Spanish) · [docs/evidence](docs/evidence/).

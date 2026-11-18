@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-25T21:48:28+00:00",
+  "generated_at": "2026-11-18T14:40:52+00:00",
   "environment": {
     "python": "3.12.3",
     "scikit_learn": "1.9.1"
@@ -181,6 +181,33 @@
         "fn": 17,
         "tp": 47
       }
+    }
+  },
+  "paired_model_comparison": {
+    "a": "logistic_regression",
+    "b": "random_forest",
+    "cut": 50,
+    "cross_validation": {
+      "at_risk_students": 165,
+      "caught_by_a_only": 7,
+      "caught_by_b_only": 4,
+      "recall_difference_a_minus_b": 0.0182,
+      "mcnemar_p_recall": 0.549,
+      "recall_difference_significant": false,
+      "false_alarms_a_only": 4,
+      "false_alarms_b_only": 8,
+      "mcnemar_p_false_alarms": 0.388
+    },
+    "independent": {
+      "at_risk_students": 64,
+      "caught_by_a_only": 4,
+      "caught_by_b_only": 1,
+      "recall_difference_a_minus_b": 0.0469,
+      "mcnemar_p_recall": 0.375,
+      "recall_difference_significant": false,
+      "false_alarms_a_only": 1,
+      "false_alarms_b_only": 0,
+      "mcnemar_p_false_alarms": 1.0
     }
   },
   "operating_points": {
@@ -913,6 +940,105 @@
             0.6657,
             0.865
           ]
+        }
+      }
+    },
+    "paired_tests": {
+      "method": "exact McNemar test on the students where the two rules disagree (a = first rule, b = second)",
+      "combined_vs_model_alone": {
+        "cross_validation": {
+          "at_risk_students": 165,
+          "caught_by_a_only": 30,
+          "caught_by_b_only": 0,
+          "recall_difference_a_minus_b": 0.1818,
+          "mcnemar_p_recall": 1.86e-09,
+          "recall_difference_significant": true,
+          "false_alarms_a_only": 18,
+          "false_alarms_b_only": 0,
+          "mcnemar_p_false_alarms": 7.63e-06
+        },
+        "independent": {
+          "at_risk_students": 64,
+          "caught_by_a_only": 18,
+          "caught_by_b_only": 0,
+          "recall_difference_a_minus_b": 0.2812,
+          "mcnemar_p_recall": 7.63e-06,
+          "recall_difference_significant": true,
+          "false_alarms_a_only": 6,
+          "false_alarms_b_only": 0,
+          "mcnemar_p_false_alarms": 0.0312
+        }
+      },
+      "combined_vs_failing_average": {
+        "cross_validation": {
+          "at_risk_students": 165,
+          "caught_by_a_only": 0,
+          "caught_by_b_only": 0,
+          "recall_difference_a_minus_b": 0.0,
+          "mcnemar_p_recall": 1.0,
+          "recall_difference_significant": false,
+          "false_alarms_a_only": 1,
+          "false_alarms_b_only": 0,
+          "mcnemar_p_false_alarms": 1.0
+        },
+        "independent": {
+          "at_risk_students": 64,
+          "caught_by_a_only": 0,
+          "caught_by_b_only": 0,
+          "recall_difference_a_minus_b": 0.0,
+          "mcnemar_p_recall": 1.0,
+          "recall_difference_significant": false,
+          "false_alarms_a_only": 1,
+          "false_alarms_b_only": 0,
+          "mcnemar_p_false_alarms": 1.0
+        }
+      },
+      "combined_60_vs_failing_average": {
+        "cross_validation": {
+          "at_risk_students": 165,
+          "caught_by_a_only": 5,
+          "caught_by_b_only": 0,
+          "recall_difference_a_minus_b": 0.0303,
+          "mcnemar_p_recall": 0.0625,
+          "recall_difference_significant": false,
+          "false_alarms_a_only": 1,
+          "false_alarms_b_only": 0,
+          "mcnemar_p_false_alarms": 1.0
+        },
+        "independent": {
+          "at_risk_students": 64,
+          "caught_by_a_only": 3,
+          "caught_by_b_only": 0,
+          "recall_difference_a_minus_b": 0.0469,
+          "mcnemar_p_recall": 0.25,
+          "recall_difference_significant": false,
+          "false_alarms_a_only": 2,
+          "false_alarms_b_only": 0,
+          "mcnemar_p_false_alarms": 0.5
+        }
+      },
+      "combined_50_vs_failing_average": {
+        "cross_validation": {
+          "at_risk_students": 165,
+          "caught_by_a_only": 10,
+          "caught_by_b_only": 0,
+          "recall_difference_a_minus_b": 0.0606,
+          "mcnemar_p_recall": 0.00195,
+          "recall_difference_significant": true,
+          "false_alarms_a_only": 4,
+          "false_alarms_b_only": 0,
+          "mcnemar_p_false_alarms": 0.125
+        },
+        "independent": {
+          "at_risk_students": 64,
+          "caught_by_a_only": 4,
+          "caught_by_b_only": 0,
+          "recall_difference_a_minus_b": 0.0625,
+          "mcnemar_p_recall": 0.125,
+          "recall_difference_significant": false,
+          "false_alarms_a_only": 5,
+          "false_alarms_b_only": 0,
+          "mcnemar_p_false_alarms": 0.0625
         }
       }
     }

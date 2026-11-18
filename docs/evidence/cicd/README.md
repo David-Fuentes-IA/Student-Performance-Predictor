@@ -88,7 +88,7 @@ the `test-evidence` artefact; GitHub only serves logs and artefacts to signed-in
 ### First run with the Kubernetes stage
 
 Run [#40241401044](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/runs/40241401044), commit `c1f41f8`
-(Phase 8) on 2026-10-25; total 7 min 49 s:
+(Phase 8) on 2026-10-25; total 7 min 51 s:
 
 | Stage | Result | Duration |
 |---|---|---|

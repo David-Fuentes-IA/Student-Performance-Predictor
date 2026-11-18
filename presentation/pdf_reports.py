@@ -29,7 +29,7 @@ from presentation.report_data import (
 
 INK = colors.HexColor('#202b46')
 PURPLE = colors.HexColor('#6454cc')
-TIERS = {'high': '#c43c50', 'medium': '#ac7014', 'low': '#147b65'}
+TIERS = {'high': '#b02a42', 'medium': '#8c5a0b', 'low': '#147b65'}
 FONT_DIR = Path(reportlab.__file__).parent / 'fonts'
 pdfmetrics.registerFont(TTFont('Vera', str(FONT_DIR / 'Vera.ttf')))
 pdfmetrics.registerFont(TTFont('VeraBold', str(FONT_DIR / 'VeraBd.ttf')))

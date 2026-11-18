@@ -2,7 +2,7 @@
 const config = JSON.parse(document.getElementById('app-config').textContent);
 const $ = id => document.getElementById(id);
 const labels = {high:'Alto riesgo', medium:'En observación', low:'Buen camino'};
-const colors = {high:'#c43c50', medium:'#ac7014', low:'#147b65'};
+const colors = {high:'#b02a42', medium:'#8c5a0b', low:'#147b65'};
 let data = null, selectedStudent = null, loading = false;
 const fmtT = n => Number(n).toLocaleString('es-MX', {maximumFractionDigits:1});
 const reasonText = {failing_average:'Promedio reprobatorio', high_predicted_risk:'Riesgo estimado alto'};

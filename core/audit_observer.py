@@ -86,6 +86,12 @@ class RiskEventPublisher:
 
     def __init__(self) -> None:
         self._observers: list[RiskObserver] = []
+        self._failures: dict[str, int] = {}
+
+    def failure_counts(self) -> dict[str, int]:
+        """Failed notifications per observer since start-up. Isolating failures (NFR-5) must not hide them:
+        an alert observer that silently stopped working would be an audit gap, so /health reports these counts."""
+        return dict(self._failures)
 
     def attach(self, observer: RiskObserver) -> None:
         self._observers.append(observer)
@@ -100,8 +106,10 @@ class RiskEventPublisher:
             try:
                 observer.update(event)
             except Exception as exc:  # noqa: BLE001 - isolation boundary
+                name = type(observer).__name__
+                self._failures[name] = self._failures.get(name, 0) + 1
                 logger.error(
-                    "Observer %s failed and was skipped: %s", type(observer).__name__, exc, exc_info=True
+                    "Observer %s failed and was skipped: %s", name, exc, exc_info=True
                 )
 
 

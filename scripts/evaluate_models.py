@@ -56,6 +56,7 @@ from learning_module.model_validation import (  # noqa: E402
     fairness_report,
     lowest_threshold_with_precision,
     out_of_fold_scores,
+    paired_comparison,
     score_predictions,
     select_model,
     threshold_sweep,
@@ -162,17 +163,33 @@ def evaluate_application_rule(avg_cv, scores_cv, y_cv, avg_test, scores_test, y_
 
     failing_cv, failing_test = np.asarray(avg_cv) < passing, np.asarray(avg_test) < passing
     high_cv, high_test = np.asarray(scores_cv) >= threshold, np.asarray(scores_test) >= threshold
+    rules = {
+        "combined": ((failing_cv | high_cv).astype(int), (failing_test | high_test).astype(int)),
+        "failing_average": (failing_cv.astype(int), failing_test.astype(int)),
+        "model_alone": (high_cv.astype(int), high_test.astype(int)),
+        **{f"combined_{t}": ((failing_cv | (np.asarray(scores_cv) >= t)).astype(int),
+                             (failing_test | (np.asarray(scores_test) >= t)).astype(int)) for t in (60, 50)},
+    }
+
+    def paired(a, b):
+        """The same students are judged by both rules, so the test must be paired (McNemar), not two intervals."""
+        return {"cross_validation": paired_comparison(y_cv, rules[a][0], rules[b][0]),
+                "independent": paired_comparison(y_test, rules[a][1], rules[b][1])}
+
     return {
         "rule": f"high risk = average grade < {passing:g} (failing) OR model risk score >= {threshold:g}",
         "passing_grade": passing,
         "risk_threshold": threshold,
-        "combined_rule": measure((failing_cv | high_cv).astype(int), (failing_test | high_test).astype(int)),
-        "failing_average_alone": measure(failing_cv.astype(int), failing_test.astype(int)),
-        "model_score_alone": measure(high_cv.astype(int), high_test.astype(int)),
-        "combined_rule_with_lower_model_threshold": {
-            str(t): measure((failing_cv | (np.asarray(scores_cv) >= t)).astype(int),
-                            (failing_test | (np.asarray(scores_test) >= t)).astype(int))
-            for t in (60, 50)
+        "combined_rule": measure(*rules["combined"]),
+        "failing_average_alone": measure(*rules["failing_average"]),
+        "model_score_alone": measure(*rules["model_alone"]),
+        "combined_rule_with_lower_model_threshold": {str(t): measure(*rules[f"combined_{t}"]) for t in (60, 50)},
+        "paired_tests": {
+            "method": "exact McNemar test on the students where the two rules disagree (a = first rule, b = second)",
+            "combined_vs_model_alone": paired("combined", "model_alone"),
+            "combined_vs_failing_average": paired("combined", "failing_average"),
+            "combined_60_vs_failing_average": paired("combined_60", "failing_average"),
+            "combined_50_vs_failing_average": paired("combined_50", "failing_average"),
         },
     }
 
@@ -270,12 +287,23 @@ def evaluate(selected_override: str | None = None) -> dict:
     decision = select_model(cross_validation)
     selected = selected_override or decision["selected"]
 
-    independent, fitted = {}, {}
+    independent, fitted, test_predictions = {}, {}, {}
     for model_type in MODEL_TYPES:
         fitted[model_type] = ModelTrainer.fit(model_type, X, y)
-        predictions = fitted[model_type].predict(X_test)
+        test_predictions[model_type] = predictions = fitted[model_type].predict(X_test)
         independent[model_type] = {"metrics": score_predictions(y_test, predictions),
                                    "confusion": confusion_counts(y_test, predictions)}
+
+    # Paired comparison of the two models on the same students (cut at 50): McNemar, not two intervals.
+    oof_predictions = {m: (out_of_fold_scores(lambda m=m: ModelTrainer.build(m), X, y) >= 50).astype(int)
+                       for m in MODEL_TYPES}
+    model_comparison = {
+        "a": "logistic_regression", "b": "random_forest", "cut": 50,
+        "cross_validation": paired_comparison(y, oof_predictions["logistic_regression"],
+                                              oof_predictions["random_forest"]),
+        "independent": paired_comparison(y_test, test_predictions["logistic_regression"],
+                                         test_predictions["random_forest"]),
+    }
 
     chosen = fitted[selected]
     predictions = chosen.predict(X_test)
@@ -303,6 +331,7 @@ def evaluate(selected_override: str | None = None) -> dict:
         "cross_validation": cross_validation,
         "decision": {**decision, "selected": selected, "configured_default": config.DEFAULT_MODEL_TYPE},
         "independent_test": independent,
+        "paired_model_comparison": model_comparison,
         "operating_points": {
             "selected_model": selected,
             "cross_validation": sweep_cv,

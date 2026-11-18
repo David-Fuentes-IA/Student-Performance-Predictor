@@ -19,6 +19,7 @@ from flask import Blueprint, Response, jsonify, render_template, request
 import main_api
 from core import config
 from core.exception_handler import DataAccessError, NotFoundError, ValidationError
+from core.logger import get_logger
 from data_access.mongo_connection import get_database
 from data_access.mongo_repository import MongoAcademicRepository
 from data_pipeline.excel_importer import build_template
@@ -26,6 +27,7 @@ from data_pipeline.group_import_service import GroupImportService
 from data_pipeline.synthetic_seed import seed_database
 
 admin_bp = Blueprint("admin", __name__)
+logger = get_logger(__name__)
 
 _PUBLIC_API = {"/admin/api/health", "/admin/api/auth-required", "/admin/api/template.xlsx"}
 
@@ -51,6 +53,9 @@ def _require_password():
         return None
     supplied = request.headers.get("X-Admin-Password", "")
     if not hmac.compare_digest(supplied.encode(), password.encode()):
+        # Audit trail of rejected attempts (never the supplied value): repeated lines reveal guessing.
+        logger.warning("ADMIN AUTH FAILED | %s %s from %s (%s)", request.method, request.path,
+                       request.remote_addr, "wrong password" if supplied else "no password")
         return jsonify(error="Contrasena de administrador requerida o incorrecta."), 401
     return None
 
