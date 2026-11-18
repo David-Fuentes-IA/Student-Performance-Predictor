@@ -152,7 +152,7 @@ template; create, regenerate or remove demo data; browse the database; see the l
 | `GET /api/groups`, `GET /api/groups/<id>` | groups; one group's predictions (JSON) |
 | `GET /reports/groups/<id>.pdf`, `GET /reports/groups/<id>/students/<student>.pdf` | PDF reports |
 | `GET /api/v1/groups/<id>/risk-report` | the report as plain text, inside a JSON response |
-| `GET /health` | liveness: is the process alive? (always 200, never blocked by the database) |
+| `GET /health` | liveness: is the process alive? (always 200, never blocked by the database). Also reports `observer_failures`: alerts or monitoring records that failed and were skipped since start-up |
 | `GET /ready` | readiness: can it serve requests? (503 without the model or the database) |
 
 ---

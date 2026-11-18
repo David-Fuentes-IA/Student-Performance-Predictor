@@ -81,6 +81,18 @@ class PublisherTests(unittest.TestCase):
         self.assertEqual(len(healthy.events), 1)
         self.assertIn("ExplodingObserver", "\n".join(logs.output))
 
+    def test_isolated_failures_are_counted_so_they_cannot_go_unnoticed(self):
+        publisher = RiskEventPublisher()
+        publisher.attach(ExplodingObserver())
+        publisher.attach(RecordingObserver())
+        self.assertEqual(publisher.failure_counts(), {})
+        with self.assertLogs(ALERTS, level="ERROR"):
+            for score in (80, 90, 95):
+                publisher.notify_all(event(score))
+        self.assertEqual(publisher.failure_counts(), {"ExplodingObserver": 3})
+        publisher.failure_counts()["ExplodingObserver"] = 0       # a copy: callers cannot reset the audit count
+        self.assertEqual(publisher.failure_counts(), {"ExplodingObserver": 3})
+
 
 class ObserverBehaviourTests(unittest.TestCase):
     def test_risk_alert_logs_only_when_the_threshold_is_reached(self):

@@ -98,6 +98,7 @@ def health():
         mode=_mode(),
         model_loaded=status["model_loaded"],
         database=database,
+        observer_failures=status["observer_failures"],   # e.g. {"RiskAlertObserver": 3}: alerts were not recorded
     ))
 
 

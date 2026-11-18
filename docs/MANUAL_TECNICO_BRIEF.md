@@ -176,7 +176,7 @@ Dashboard and reports (public; **no authentication**):
 | `GET /api/groups/<id>` | predictions of a group (JSON: `students`, `summary`, `passing_grade`, `risk_threshold`, `risk_levels`) |
 | `GET /reports/groups/<id>.pdf`, `GET /reports/groups/<id>/students/<student>.pdf` | PDF reports |
 | `GET /api/v1/groups/<id>/risk-report` | plain-text report inside JSON |
-| `GET /health` | **liveness**: process alive; always 200; reports `{"status":"ok"\|"degraded","mode","model_loaded","database"}`; the database check is bounded to 2 s and cached 5 s |
+| `GET /health` | **liveness**: process alive; always 200; reports `{"status":"ok"\|"degraded","mode","model_loaded","database","observer_failures"}`; the database check is bounded to 2 s and cached 5 s; `observer_failures` counts, per observer, the notifications that failed and were skipped (NFR-5 isolation), so a broken alert observer is visible without reading the log |
 | `GET /ready` | **readiness**: 200 `{"ready":true,...}` or **503** if the model or the database is unavailable (demo mode counts as ready) |
 
 Administration (`/admin`, API under `/admin/api`; protected by `ADMIN_PASSWORD` when set, except the three public routes):

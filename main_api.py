@@ -211,7 +211,8 @@ def get_repository():
 
 def get_runtime_status() -> dict:
     """Non-sensitive runtime facts for /health and the demo-mode banner."""
-    return {"backend": _repository.backend, "model_loaded": _trained_model is not None}
+    return {"backend": _repository.backend, "model_loaded": _trained_model is not None,
+            "observer_failures": _publisher.failure_counts()}
 
 
 # Runnable demo: exercises the whole pipeline without needing a Flask

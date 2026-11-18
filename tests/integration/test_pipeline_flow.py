@@ -68,6 +68,17 @@ class ComponentFailureTests(unittest.TestCase):
             rows = main_api.get_group_dashboard_data("301-A")
         self.assertEqual(len(rows), 12)
 
+    def test_the_failing_observer_is_visible_in_health_without_reading_the_log(self):
+        publisher = RiskEventPublisher()
+        publisher.attach(ExplodingObserver())
+        client = create_app().test_client()
+        with patch.object(main_api, "_publisher", publisher), self.assertLogs(ALERTS, level="ERROR"):
+            self.assertEqual(client.get("/health").get_json()["observer_failures"], {})
+            client.get("/api/groups/301-A")
+            health = client.get("/health")
+        self.assertEqual(health.status_code, 200)                   # liveness is not affected
+        self.assertEqual(health.get_json()["observer_failures"], {"ExplodingObserver": 12})
+
     def test_a_failing_prediction_store_does_not_stop_the_report(self):
         with patch.object(main_api._repository, "save_prediction", side_effect=RuntimeError("disk full")):
             rows = main_api.get_group_dashboard_data("301-A")
