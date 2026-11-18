@@ -240,9 +240,9 @@ venv\Scripts\python.exe -m pytest
 `MONGODB_URI`, `RISK_THRESHOLD`, `PASSING_GRADE`, `RISK_MODEL`, `ALLOW_DEMO_FALLBACK` and `ADMIN_PASSWORD` so a developer's
 `.env` cannot leak into tests.
 
-**Final run (strict, 2026-10-25):** unit 150 (+52 sub-cases), integration 61 (+17), system 71 (+16), memory profiling 6;
-**288 tests, 85 sub-cases, 0 failed, 0 skipped; coverage 94.3 %** (feature_store 100, learning_module 98.4, inference_engine
-98.2, presentation 98.1, data_pipeline 97.8, main_api 96.8, webapp 96.6, core 96.3, data_access 84.4). Local integration/
+**Final run (strict, 2026-11-18):** unit 156 (+52 sub-cases), integration 70 (+59), system 78 (+55), memory profiling 6;
+**310 tests, 166 sub-cases, 0 failed, 0 skipped; coverage 94.5 %** (feature_store 100, learning_module 98.3, inference_engine
+98.2, presentation 98.1, data_pipeline 97.8, webapp 97.1, main_api 96.8, core 96.4, data_access 84.4). Local integration/
 system times are long because each database test creates a schema (≈ 3.7 s on a mechanical disk); CI runs the whole suite
 in 2 min 39 s.
 
