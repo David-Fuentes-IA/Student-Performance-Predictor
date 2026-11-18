@@ -167,7 +167,7 @@ stops the application with a message naming the variable.
 | `MONGODB_URI` | empty (demo mode) | MongoDB connection string |
 | `MONGODB_DB` | `student_predictor` | database name |
 | `ALLOW_DEMO_FALLBACK` | `false` | development only: run on demo data when MongoDB is configured but down |
-| `ADMIN_PASSWORD` | empty (open) | password for `/admin` |
+| `ADMIN_PASSWORD` | empty (open) | password for `/admin`. Empty with a database configured: the start-up log and the panel show a warning; every rejected password is logged (`ADMIN AUTH FAILED`) |
 | `PASSING_GRADE` | `60` | average below which a student is failing, hence high risk (0–100) |
 | `RISK_THRESHOLD` | `75` | model score from which a student is high risk (0–100) |
 | `RISK_MODEL` | `logistic_regression` | model trained by `scripts/train_model.py` (`random_forest` is the alternative) |
@@ -328,7 +328,9 @@ core/            configuration, logging (PII-safe), exceptions, Observer, risk l
 
 - Synthetic data only; the model's difficulty was calibrated on purpose.
 - With MongoDB down while the application runs, data requests take 8 s before answering with an error.
-- No login: anyone who can reach the dashboard sees the data, and `/admin` is open unless `ADMIN_PASSWORD` is set.
+- No login: anyone who can reach the dashboard sees the data, and `/admin` is open unless `ADMIN_PASSWORD` is set (the panel warns
+  when it is open). Responses carry security headers (Content-Security-Policy, no framing, no MIME sniffing, no referrer); the
+  policy still allows inline scripts because the administration page keeps its script inside `admin.html`. There is no HTTPS.
 - Each web-server process keeps its own prediction cache.
 
 Further documentation: [docs/DATABASE.md](docs/DATABASE.md) (MongoDB and Atlas setup, in Spanish) · [docs/evidence](docs/evidence/).

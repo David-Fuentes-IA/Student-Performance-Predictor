@@ -81,7 +81,9 @@ python web_app.py                         # dashboard de riesgo -> http://127.0.
 ## 6. MongoDB Atlas
 
 1. Cluster gratuito (M0) → *Database Access*: usuario y contraseña.
-2. *Network Access* → agrega `0.0.0.0/0` (Vercel no tiene IP fija).
+2. *Network Access* → agrega **solo las IP que deben conectarse** (tu equipo, el servidor de la escuela). **No uses `0.0.0.0/0`**:
+   deja la base accesible desde cualquier lugar del mundo y, si se filtra la cadena de conexión, cualquiera entra. Vercel no tiene
+   IP fija, así que esa opción exigiría abrirla; es otra razón por la que el despliegue en Vercel no se usa con datos reales.
 3. *Connect → Drivers* → copia la cadena y pégala en `.env` (y en Vercel).
 4. Si la contraseña tiene caracteres especiales (`@ : / ?`), hay que codificarlos en la URL (o usar una contraseña solo alfanumérica).
 

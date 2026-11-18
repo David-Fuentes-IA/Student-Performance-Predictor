@@ -346,7 +346,13 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
 - **Secrets:** only in `.env`/environment/Kubernetes Secret; connection strings are redacted in logs; the repository history has no
   real URI; `.env` and `*.joblib` are git-ignored.
 - **Access control:** dashboard has **no authentication**; `/admin` is open unless `ADMIN_PASSWORD` is set (the password travels in a
-  header: use HTTPS in any shared deployment, which the project does not provide). Admin routes return 401 without it.
+  header: use HTTPS in any shared deployment, which the project does not provide). Admin routes return 401 without it, and every
+  rejected attempt is logged as `ADMIN AUTH FAILED | method path from address (wrong password | no password)`, never the value tried.
+  With a database configured and no password, the start-up log warns and the panel shows a red "Sin contraseña" chip.
+- **Security headers (Milestone 4):** every response carries `Content-Security-Policy` (only this server; no framing, plugins or
+  foreign forms; `'unsafe-inline'` still allowed for the admin page's inline script), `X-Frame-Options: DENY`,
+  `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer` (`webapp/__init__.py`, `SECURITY_HEADERS`). The admin password is
+  compared in constant time (`hmac.compare_digest`).
 - **Input safety:** Excel files are validated (extension, size 4 MB, 1,000 rows, per-row rules); group IDs are pattern-checked; the
   database browser only allows the 6 known collections; responses never expose internals.
 - **Containers:** non-root user, read-only filesystem and dropped capabilities in Kubernetes.
