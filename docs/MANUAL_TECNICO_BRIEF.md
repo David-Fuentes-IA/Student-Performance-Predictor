@@ -378,7 +378,7 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
 
 ## 17. Script reference (`scripts/`)
 `train_model.py` (train and persist) · `evaluate_models.py` (validation, `--gate`) · `build_evaluation_dataset.py` (`--check`) ·
-`seed_demo_data.py` (`--count --reset --purge`) · `smoke_test.py <url>` (15 end-to-end checks) · `benchmark.py` (performance) ·
+`seed_demo_data.py` (`--count --reset --purge`) · `smoke_test.py <url>` (15 end-to-end checks) · `benchmark.py` (performance) · `ai_value_experiment.py` (model vs school rule, paired statistics) · `soak_test.py` (hours of load on the container) ·
 `collect_test_evidence.py` (`--strict`) · `collect_docker_evidence.py` (`--cold`, runs `docker compose down -v` first) ·
 `memory_profile.py` · `migrate_local_to_atlas.py` (copies the demo students from a local MongoDB to Atlas; `--dry-run`).
 

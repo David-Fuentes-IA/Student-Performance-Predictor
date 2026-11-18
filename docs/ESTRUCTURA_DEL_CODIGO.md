@@ -91,7 +91,7 @@ técnico del error). Los mensajes salen de las clases de error de `core/exceptio
 
 | Archivo | Función |
 |---|---|
-| `__init__.py` | `create_app()`: construye la aplicación Flask, registra los dos blueprints, fija el límite de 4 MB para archivos subidos y los manejadores de error seguros |
+| `__init__.py` | `create_app()`: construye la aplicación Flask, registra los dos blueprints, fija el límite de 4 MB para archivos subidos, los manejadores de error seguros y las cabeceras de seguridad que se agregan a cada respuesta |
 | `dashboard.py` | El lado del profesor: `/`, `/api/groups`, `/api/groups/<id>`, las rutas de PDF, `/health` y `/ready` |
 | `admin.py` | El lado de administración bajo `/admin`: grupos, alumnos, importación de Excel, datos de prueba, explorador de la base de datos. Se protege con `ADMIN_PASSWORD` cuando está definida |
 
@@ -179,6 +179,8 @@ técnico del error). Los mensajes salen de las clases de error de `core/exceptio
 | `seed_demo_data.py` | Crea alumnos de demostración en MongoDB |
 | `smoke_test.py` | 15 comprobaciones de punta a punta contra una instancia en ejecución |
 | `benchmark.py` | Mide velocidad y recursos |
+| `ai_value_experiment.py` | Compara el modelo con la regla escolar con el mismo número de alertas, también al inicio del periodo (estadística pareada) |
+| `soak_test.py` | Mantiene una carga constante sobre el contenedor durante horas y registra errores, latencia, salud y memoria |
 | `collect_test_evidence.py`, `collect_docker_evidence.py` | Ejecutan todo y reescriben `docs/evidence/testing/` y `docs/evidence/docker/` |
 | `build_evaluation_dataset.py`, `memory_profile.py`, `migrate_local_to_atlas.py` | Reconstruyen el libro de evaluación, miden memoria, copian datos demo a Atlas |
 
@@ -196,9 +198,9 @@ técnico del error). Los mensajes salen de las clases de error de `core/exceptio
 
 | Ruta | Qué es |
 |---|---|
-| `docs/evidence/{testing,model,docker,cicd,performance}/` | Resultados de cada medición, cada una con un README que **interpreta** los números |
+| `docs/evidence/{testing,model,docker,cicd,performance,accessibility}/` | Resultados de cada medición, cada una con un README que **interpreta** los números |
 | `docs/DATABASE.md` | Configuración de MongoDB y Atlas (en español) |
-| `docs/M3_CORRECCION.md`, `docs/MANUAL_*_BRIEF.md`, `docs/CODE_STRUCTURE.md`, `docs/ESTRUCTURA_DEL_CODIGO.md` | Material para los reportes y manuales, y esta guía (en inglés y en español) |
+| `docs/M3_CORRECCION.md`, `docs/M4_CORRECCION.md`, `docs/MANUAL_*_BRIEF.md`, `docs/CODE_STRUCTURE.md`, `docs/ESTRUCTURA_DEL_CODIGO.md` | Material para los reportes y manuales, y esta guía (en inglés y en español) |
 
 ## 5. Patrones de diseño, en palabras simples
 

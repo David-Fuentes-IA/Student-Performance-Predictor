@@ -138,7 +138,8 @@ Both are downloaded through the browser ("Preparando PDF…", then "PDF listo. R
 - Header: link **← Volver al dashboard**, title **Student Performance Predictor · Base de datos**, a badge (green
   **MongoDB conectado: <name>** or red **Sin conexion a la base de datos**) and counters (**Grupos, Alumnos, Registros,
   Historial, Predicciones**).
-- Left column: **Grupos** (list; click one to open it), **Nuevo grupo**, **Crear grupo desde Excel**, **Datos de prueba**.
+- Left column: **Grupos** (list; click one, or reach it with Tab and press Enter, to open it), **Nuevo grupo**, **Crear grupo
+  desde Excel**, **Datos de prueba**.
 - Right column: the selected group (**Grupo X - N alumnos**), **Explorador de la base de datos** and **Ultimas importaciones**.
 - Messages appear as green (ok) or red (error) notices at the bottom for a few seconds.
 - If the system has a password (see 4.8), the browser asks "Contrasena de administrador:".
@@ -213,7 +214,9 @@ This part is for the technical team; teachers do not need it.
 
 ### 4.8 Password
 If the administrator set one, the first time the browser asks **"Contrasena de administrador:"**. Without a password
-configured the panel is open to anyone who can reach the address (warn about this).
+configured the panel is open to anyone who can reach the address: the header then shows a red chip **"Sin contraseña:
+cualquiera con acceso puede modificar los datos"** (warn about this in the manual and tell the reader to ask the technical team
+to set `ADMIN_PASSWORD`).
 
 ## 5. Messages the user may see on the dashboard, and what to do
 

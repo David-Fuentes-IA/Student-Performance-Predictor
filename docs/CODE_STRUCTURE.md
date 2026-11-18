@@ -88,7 +88,7 @@ messages come from the error classes in `core/exception_handler.py`.
 
 | File | Role |
 |---|---|
-| `__init__.py` | `create_app()`: builds the Flask application, registers the two blueprints, sets the 4 MB upload limit and the safe error handlers |
+| `__init__.py` | `create_app()`: builds the Flask application, registers the two blueprints, sets the 4 MB upload limit, the safe error handlers and the security headers added to every response |
 | `dashboard.py` | The teacher side: `/`, `/api/groups`, `/api/groups/<id>`, the PDF routes, `/health` and `/ready` |
 | `admin.py` | The administration side under `/admin`: groups, students, Excel import, demo data, database browser. Protected by `ADMIN_PASSWORD` when set |
 
@@ -176,6 +176,8 @@ messages come from the error classes in `core/exception_handler.py`.
 | `seed_demo_data.py` | Creates demo students in MongoDB |
 | `smoke_test.py` | 15 end-to-end checks against a running instance |
 | `benchmark.py` | Measures speed and resources |
+| `ai_value_experiment.py` | Compares the model with the school rule at the same workload, also early in the term (paired statistics) |
+| `soak_test.py` | Keeps a steady load on the running container for hours and records errors, latency, health and memory |
 | `collect_test_evidence.py`, `collect_docker_evidence.py` | Run everything and rewrite `docs/evidence/testing/` and `docs/evidence/docker/` |
 | `build_evaluation_dataset.py`, `memory_profile.py`, `migrate_local_to_atlas.py` | Rebuild the evaluation workbook, measure memory, copy demo data to Atlas |
 
@@ -193,9 +195,9 @@ messages come from the error classes in `core/exception_handler.py`.
 
 | Path | What it is |
 |---|---|
-| `docs/evidence/{testing,model,docker,cicd,performance}/` | Results of every measurement, each with a README that **interprets** the numbers |
+| `docs/evidence/{testing,model,docker,cicd,performance,accessibility}/` | Results of every measurement, each with a README that **interprets** the numbers |
 | `docs/DATABASE.md` | MongoDB and Atlas set-up (Spanish) |
-| `docs/M3_CORRECCION.md`, `docs/MANUAL_*_BRIEF.md`, `docs/CODE_STRUCTURE.md`, `docs/ESTRUCTURA_DEL_CODIGO.md` | Material for the reports and manuals, and this guide (English and Spanish) |
+| `docs/M3_CORRECCION.md`, `docs/M4_CORRECCION.md`, `docs/MANUAL_*_BRIEF.md`, `docs/CODE_STRUCTURE.md`, `docs/ESTRUCTURA_DEL_CODIGO.md` | Material for the reports and manuals, and this guide (English and Spanish) |
 
 ## 5. Design patterns, in plain words
 
