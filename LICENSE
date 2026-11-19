@@ -1,0 +1,22 @@
+Student Performance Predictor
+Copyright (c) 2026 Gabriel de Anda Romero, David Nava Fuentes, Marco Uriel Romero Hurtado,
+Axel Rubén López Soto and Fernando Saúl Domínguez Hernández (Team 5).
+
+ALL RIGHTS RESERVED. ACADEMIC PROJECT NOTICE.
+
+This software and its documentation were developed by the authors above as the course project of
+Software Engineering II at the Universidad Autónoma del Estado de México (UAEMéx), under the
+supervision of M. en I. Jéssica Cortés.
+
+The repository is public so that it can be reviewed and evaluated. Being public does not grant a
+licence: no permission is given to copy, modify, distribute, sublicense or use this software, in
+whole or in part, for any purpose other than its academic review and evaluation, without the
+written permission of the authors. Any rights that the university may hold over student work
+under its own regulations are not affected by this notice.
+
+This is a prototype. It has been trained and evaluated only on synthetic data, it has no teacher
+authentication, and it is not approved for use with real student records (see
+docs/M4_CORRECCION.md, sections 5.3 and 7). It is provided "as is", without warranty of any kind;
+the authors are not liable for any claim or damage arising from its use.
+
+Third-party libraries listed in requirements.txt keep their own licences.

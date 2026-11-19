@@ -3,7 +3,9 @@
 [![CI/CD](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/workflows/ci.yml/badge.svg?branch=milestone-3)](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/workflows/ci.yml)
 
 **Team 5, Software Engineering II (UAEMéx)**: Gabriel de Anda Romero · David Nava Fuentes · Marco Uriel Romero Hurtado ·
-Axel Rubén López Soto
+Axel Rubén López Soto · Fernando Saúl Domínguez Hernández
+
+Academic project, all rights reserved: see [LICENSE](LICENSE) (public for review and evaluation, not licensed for reuse).
 
 A decision-support prototype for teachers. From each student's partial-exam grades, attendance and participation it
 estimates the risk (0–100) of ending the term with low performance, marks the students who need attention and produces

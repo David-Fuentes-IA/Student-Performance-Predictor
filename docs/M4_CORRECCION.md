@@ -20,7 +20,7 @@
 
 Repository: <https://github.com/David-Fuentes-IA/Student-Performance-Predictor>. Branch with this work: **`milestone-4`**
 (built on `milestone-3`). Team: Gabriel de Anda Romero, David Nava Fuentes, Marco Uriel Romero Hurtado, Axel Rubén López
-Soto. Course: Software Engineering II, UAEMéx, professor M. en I. Jéssica Cortés.
+Soto, Fernando Saúl Domínguez Hernández. Licence: academic project, all rights reserved (`LICENSE`). Course: Software Engineering II, UAEMéx, professor M. en I. Jéssica Cortés.
 
 ---
 
