@@ -68,8 +68,9 @@ and that the team acknowledges its limitations.
 
 Tests after the corrections (strict run against MongoDB, 2026-11-18): unit 156 (+52 sub-cases), integration 82 (+85),
 system 78 (+55), memory profiling 6: **322 tests and 192 sub-cases (514 checks), 0 failed, 0 skipped; statement coverage
-94.6 %** (it was 288 tests and 373 checks at the end of Milestone 3). The suite before the adversarial review (310 tests) passed in the CI on `babba75`
-(run 44331833747: build, tests, model quality gate, container and Kubernetes all green).
+94.6 %** (it was 288 tests and 373 checks at the end of Milestone 3). The full suite (322 tests) passed in the CI on `a5e6432` (run 44426511738: build, tests, model
+quality gate, container and Kubernetes all green, 8 min 31 s); the earlier 310-test suite had passed on `babba75` (run
+44331833747).
 
 ---
 
