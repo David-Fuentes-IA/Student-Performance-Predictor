@@ -5,7 +5,7 @@ Import it in `/admin` → *Crear grupo desde Excel* (partial mode). Expected res
 
 | Excel row | Student ID | Reason |
 |---|---|---|
-| 5 | D0004 | invalid grade: 150 |
+| 5 | D0004 | `D0004: calificacion invalida: 150.0 (debe ser un numero entre 0 y 100)` |
 | 6 | D0005 | `parcial1: 'abc' no es un numero` |
 | 8 | D0007 | `nombre vacio` |
 | 10 | D0003 | repeated ID in the file |

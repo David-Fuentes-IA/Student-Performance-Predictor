@@ -153,7 +153,8 @@ The ID: letters and digits, may contain `.`, `_`, `-`, must start with a letter 
 Form **Agregar alumno**: **Matricula \*** (max 32), **Nombre \*** (max 120), **Parcial 1 \*** (required), **Parcial 2, 3,
 4** (optional), **Asistencia % \***, **Participacion \***; button **Guardar alumno**. All values 0–100. Partials cannot
 have gaps (do not fill Parcial 3 without Parcial 2). **To edit a student, save again with the same Matricula**: the data
-are updated. Each change keeps a snapshot in the history.
+are updated. Each change keeps a snapshot in the history. A value outside 0–100 is refused with a red notice that names
+it, for example "S7: calificacion invalida: 150.0 (debe ser un numero entre 0 y 100)"; nothing is saved.
 **Quitar** (in the table) removes a student from the group. Table columns: **Matricula, Nombre, Parciales, Asist. %,
 Partic., Origen, Actualizado**. **Origen** shows where the data came from (for example `excel`, `manual` or `synthetic`).
 
@@ -188,7 +189,8 @@ attendance and participation 0–100; **at most 1,000 students and 4 MB per file
 headers with or without accents. The file must be a real `.xlsx` (not `.xls`, not a renamed PDF).
 
 **Reasons a row is rejected** (shown in the **Motivo** column; examples of real messages): empty name ("nombre vacio"),
-a text where a number is expected ("parcial1: 'abc' no es un numero"), a grade out of range ("invalid grade: 150"),
+a text where a number is expected ("parcial1: 'abc' no es un numero"), a grade out of range ("D0004: calificacion invalida: 150.0 (debe ser un numero entre 0 y 100)"; attendance and
+participation give the same kind of message),
 no grades, a gap between partials, a repeated ID in the file ("matricula 'D0003' repetida en el archivo").
 **Reasons the whole file is refused:** empty file ("El archivo esta vacio."), not a valid Excel ("No se pudo leer el
 archivo. Sube un Excel valido (.xlsx)."), no file chosen ("Selecciona un archivo Excel (.xlsx)."), wrong extension
@@ -228,6 +230,7 @@ to set `ADMIN_PASSWORD`).
 | "No se pudo generar la información del grupo. Inténtalo de nuevo." | an unexpected problem; the system never shows technical details | try again; report it with the time |
 | "No se pudo generar el PDF." / "El servidor no devolvió un PDF válido." | the PDF could not be produced | try again |
 | the group list is empty | no groups yet | create one in `/admin` |
+| a page "La pagina o ruta solicitada no existe." with **Volver al panel** | a mistyped address | click **Volver al panel** |
 | a group has no students | the report is empty (this is valid) | add students or import an Excel |
 
 Records with invalid data (for example a grade over 100) are **skipped** and the rest of the group is still analysed.
