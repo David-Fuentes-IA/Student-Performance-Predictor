@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-18T16:54:52+00:00",
+  "generated_at": "2026-11-18T23:55:22+00:00",
   "python": "3.12.3",
   "sklearn": "1.9.1",
   "platform": "Windows-10-10.0.19045-SP0",
@@ -11,16 +11,16 @@
       "failed": 0,
       "skipped": 0,
       "subtests_passed": 52,
-      "seconds": 5.21,
+      "seconds": 3.65,
       "exit_code": 0
     },
     "integration": {
-      "tests": 70,
-      "passed": 70,
+      "tests": 82,
+      "passed": 82,
       "failed": 0,
       "skipped": 0,
-      "subtests_passed": 59,
-      "seconds": 116.83,
+      "subtests_passed": 85,
+      "seconds": 174.38,
       "exit_code": 0
     },
     "system": {
@@ -29,7 +29,7 @@
       "failed": 0,
       "skipped": 0,
       "subtests_passed": 55,
-      "seconds": 129.28,
+      "seconds": 124.38,
       "exit_code": 0
     },
     "performance": {
@@ -38,22 +38,22 @@
       "failed": 0,
       "skipped": 0,
       "subtests_passed": 0,
-      "seconds": 2.29,
+      "seconds": 2.76,
       "exit_code": 0
     }
   },
   "coverage": {
-    "total_percent": 94.5,
+    "total_percent": 94.6,
     "by_package": {
       "core": 96.4,
       "data_access": 84.4,
-      "data_pipeline": 97.8,
+      "data_pipeline": 98.2,
       "feature_store": 100.0,
       "inference_engine": 98.2,
       "learning_module": 98.3,
       "main_api": 96.8,
       "presentation": 98.1,
-      "webapp": 97.1
+      "webapp": 96.9
     }
   }
 }

@@ -415,7 +415,7 @@ class MongoAcademicRepository(IAcademicDataRepository):
                 user_message="Coleccion no permitida.",
             )
         limit = max(1, min(int(limit), 200))
-        skip = max(0, int(skip))
+        skip = max(0, min(int(skip), 1_000_000_000))  # MongoDB needs a 64-bit skip; a huge one was a 500
         try:
             total = self._db[collection].estimated_document_count()
             docs = list(self._db[collection].find({}, {"_id": 0}).skip(skip).limit(limit))

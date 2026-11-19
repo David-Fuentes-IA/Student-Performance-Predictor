@@ -181,10 +181,11 @@ técnico del error). Los mensajes salen de las clases de error de `core/exceptio
 | `benchmark.py` | Mide velocidad y recursos |
 | `ai_value_experiment.py` | Compara el modelo con la regla escolar con el mismo número de alertas, también al inicio del periodo (estadística pareada) |
 | `soak_test.py` | Mantiene una carga constante sobre el contenedor durante horas y registra errores, latencia, salud y memoria |
+| `adversarial_check.py` | Actúa como un cliente hostil: tipos inválidos, inyecciones, trucos en la URL y archivos falsos contra todas las rutas, sobre una base desechable |
 | `collect_test_evidence.py`, `collect_docker_evidence.py` | Ejecutan todo y reescriben `docs/evidence/testing/` y `docs/evidence/docker/` |
 | `build_evaluation_dataset.py`, `memory_profile.py`, `migrate_local_to_atlas.py` | Reconstruyen el libro de evaluación, miden memoria, copian datos demo a Atlas |
 
-### `tests/`: la red de seguridad (310 pruebas)
+### `tests/`: la red de seguridad (322 pruebas)
 
 | Carpeta | Pregunta que responde |
 |---|---|
@@ -198,7 +199,7 @@ técnico del error). Los mensajes salen de las clases de error de `core/exceptio
 
 | Ruta | Qué es |
 |---|---|
-| `docs/evidence/{testing,model,docker,cicd,performance,accessibility}/` | Resultados de cada medición, cada una con un README que **interpreta** los números |
+| `docs/evidence/{testing,model,docker,cicd,performance,accessibility,security}/` | Resultados de cada medición, cada una con un README que **interpreta** los números |
 | `docs/DATABASE.md` | Configuración de MongoDB y Atlas (en español) |
 | `docs/M3_CORRECCION.md`, `docs/M4_CORRECCION.md`, `docs/MANUAL_*_BRIEF.md`, `docs/CODE_STRUCTURE.md`, `docs/ESTRUCTURA_DEL_CODIGO.md` | Material para los reportes y manuales, y esta guía (en inglés y en español) |
 

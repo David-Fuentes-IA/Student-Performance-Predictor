@@ -39,7 +39,7 @@ class FailFastValidator:
         if not record.grades:
             raise ValidationError(
                 f"student '{record.student_id}' has no grades recorded",
-                user_message=f"Record for {record.student_id} is incomplete (no grades) and was skipped.",
+                user_message=f"{record.student_id}: sin calificaciones registradas",
             )
 
         low, high = _GRADE_RANGE
@@ -47,19 +47,19 @@ class FailFastValidator:
             if not _in_range(grade, low, high):
                 raise ValidationError(
                     f"student '{record.student_id}' has an invalid grade: {grade}",
-                    user_message=f"Record for {record.student_id} has an invalid grade and was skipped.",
+                    user_message=f"{record.student_id}: calificacion invalida: {grade} (debe ser un numero entre 0 y 100)",
                 )
 
         a_low, a_high = _ATTENDANCE_RANGE
         if not _in_range(record.attendance_pct, a_low, a_high):
             raise ValidationError(
                 f"student '{record.student_id}' has invalid attendance: {record.attendance_pct}",
-                user_message=f"Record for {record.student_id} has invalid attendance and was skipped.",
+                user_message=f"{record.student_id}: asistencia invalida: {record.attendance_pct} (debe ser un numero entre 0 y 100)",
             )
 
         p_low, p_high = _PARTICIPATION_RANGE
         if not _in_range(record.participation_score, p_low, p_high):
             raise ValidationError(
                 f"student '{record.student_id}' has invalid participation score: {record.participation_score}",
-                user_message=f"Record for {record.student_id} has an invalid participation score and was skipped.",
+                user_message=f"{record.student_id}: participacion invalida: {record.participation_score} (debe ser un numero entre 0 y 100)",
             )

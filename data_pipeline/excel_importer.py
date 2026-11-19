@@ -197,7 +197,7 @@ def parse_workbook(file_bytes: bytes) -> ParsedSheet:
                     raise ValueError(f"matricula '{record.student_id}' repetida en el archivo")
                 FailFastValidator.validate(record)
             except ValidationError as exc:
-                result.rejected.append(RejectedRow(excel_row, raw_id, str(exc)))
+                result.rejected.append(RejectedRow(excel_row, raw_id, exc.user_message))  # Spanish, shown in the panel
                 continue
             except ValueError as exc:
                 result.rejected.append(RejectedRow(excel_row, raw_id, str(exc)))

@@ -20,10 +20,22 @@ from core.exception_handler import ValidationError
 from core.logger import get_logger
 from data_access.mongo_repository import MongoAcademicRepository
 from data_access.student_repository import StudentRecord
-from data_pipeline.excel_importer import MAX_ID_LENGTH, MAX_NAME_LENGTH, parse_workbook
+from data_pipeline.excel_importer import (
+    MAX_ID_LENGTH,
+    MAX_NAME_LENGTH,
+    PARTIAL_COLUMNS,
+    parse_workbook,
+)
 from data_pipeline.fail_fast_validator import FailFastValidator
 
 logger = get_logger(__name__)
+
+
+def _number(value) -> float:
+    """float() that also refuses booleans and None: JSON `true` must not become a grade of 1."""
+    if value is None or isinstance(value, bool):
+        raise TypeError("not a number")
+    return float(value)
 
 _GROUP_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,31}$")
 
@@ -70,15 +82,20 @@ class GroupImportService:
         if not name or len(name) > MAX_NAME_LENGTH:
             raise ValidationError("bad name", user_message="Nombre invalido o vacio.")
 
+        if len(grades) > len(PARTIAL_COLUMNS):
+            raise ValidationError(
+                "too many grades",
+                user_message=f"Maximo {len(PARTIAL_COLUMNS)} calificaciones parciales por alumno.",
+            )
         try:
             record = StudentRecord(
                 student_id=student_id,
                 name=name,
-                grades=[float(g) for g in grades],
-                attendance_pct=float(attendance_pct),
-                participation_score=float(participation_score),
+                grades=[_number(g) for g in grades],
+                attendance_pct=_number(attendance_pct),
+                participation_score=_number(participation_score),
             )
-        except (TypeError, ValueError) as exc:
+        except (TypeError, ValueError, OverflowError) as exc:
             raise ValidationError(
                 "non numeric value",
                 user_message="Calificaciones, asistencia y participacion deben ser numeros.",

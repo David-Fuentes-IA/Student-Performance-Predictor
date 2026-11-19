@@ -91,4 +91,4 @@ tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_create_group_i
 tests/system/test_teacher_workflow.py::TeacherWorkflowTests::test_health_reports_a_working_database PASSED [ 98%]
 tests/system/test_threshold_end_to_end.py::EndToEndThresholdTests::test_lowering_the_threshold_turns_more_students_high_risk PASSED [100%]
 
-============= 78 passed, 55 subtests passed in 129.28s (0:02:09) ==============
+============= 78 passed, 55 subtests passed in 124.38s (0:02:04) ==============

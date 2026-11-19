@@ -199,6 +199,10 @@ Administration (`/admin`, API under `/admin/api`; protected by `ADMIN_PASSWORD` 
 Error contract: failures return JSON `{"error": "<safe message>"}` with 400 (invalid input), 401 (admin password), 404
 (unknown group or student: `GroupNotFoundError`/`NotFoundError`) or 503 (database/model/unexpected). **Never** a
 traceback, host name or file path; internal detail goes only to the log. The JSON and PDF responses of the dashboard carry `Cache-Control: no-store`.
+Errors raised by Flask itself (unknown URL 404, wrong method 405, upload over 4 MB 413, URL too long 414) answer in Spanish:
+JSON under `/api/`, `/admin/api/`, `/reports/`, and a short Spanish page with a **Volver al panel** link elsewhere
+(`_HTTP_MESSAGES` in `webapp/__init__.py`). Validation messages are Spanish and name the value, e.g.
+`S7: calificacion invalida: 150.0 (debe ser un numero entre 0 y 100)`; the Excel rejection list uses the same text.
 
 ## 8. Model lifecycle
 
@@ -240,9 +244,9 @@ venv\Scripts\python.exe -m pytest
 `MONGODB_URI`, `RISK_THRESHOLD`, `PASSING_GRADE`, `RISK_MODEL`, `ALLOW_DEMO_FALLBACK` and `ADMIN_PASSWORD` so a developer's
 `.env` cannot leak into tests.
 
-**Final run (strict, 2026-11-18):** unit 156 (+52 sub-cases), integration 70 (+59), system 78 (+55), memory profiling 6;
-**310 tests, 166 sub-cases, 0 failed, 0 skipped; coverage 94.5 %** (feature_store 100, learning_module 98.3, inference_engine
-98.2, presentation 98.1, data_pipeline 97.8, webapp 97.1, main_api 96.8, core 96.4, data_access 84.4). Local integration/
+**Final run (strict, 2026-11-18):** unit 156 (+52 sub-cases), integration 82 (+85), system 78 (+55), memory profiling 6;
+**322 tests, 192 sub-cases, 0 failed, 0 skipped; coverage 94.6 %** (feature_store 100, learning_module 98.3, data_pipeline
+98.2, inference_engine 98.2, presentation 98.1, webapp 96.9, main_api 96.8, core 96.4, data_access 84.4). Local integration/
 system times are long because each database test creates a schema (≈ 3.7 s on a mechanical disk); CI runs the whole suite
 in 2 min 39 s.
 
@@ -354,8 +358,15 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
   `X-Content-Type-Options: nosniff`, `Referrer-Policy: no-referrer` (`webapp/__init__.py`, `SECURITY_HEADERS`). The admin password is
   compared in constant time (`hmac.compare_digest`).
 - **Input safety:** Excel files are validated (extension, size 4 MB, 1,000 rows, per-row rules); group IDs are pattern-checked; the
-  database browser only allows the 6 known collections; responses never expose internals.
+  database browser only allows the 6 known collections; responses never expose internals. The admin JSON API accepts text
+  only as text (`null`, objects and lists → 400), numbers only as numbers (`true` and `null` are refused), at most 4 partial
+  grades, and a demo-data `reset` only when it is a real JSON `true`.
+- **Adversarial review (Milestone 4):** `scripts/adversarial_check.py` sends 407 hostile requests (type confusion, MongoDB
+  operator injection, path traversal, hidden files, fake/zip-bomb Excel, password-bypass tricks) to every route on a
+  throw-away database; 5 findings before the fixes, **0 after**; regression tests in `tests/integration/test_hostile_input.py`;
+  details in `docs/evidence/security/README.md`. No rate limiting (stated limitation).
 - **Containers:** non-root user, read-only filesystem and dropped capabilities in Kubernetes.
+- **Licence:** `LICENSE` is an academic-project notice, all rights reserved (public for review and evaluation only).
 - DR-2 (human in the loop): the system only recommends. Not done and needed before real use: HTTPS, teacher authentication and roles,
   recording the teacher's decision, notifications, backups, central logs, image vulnerability scan.
 
@@ -378,7 +389,7 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
 
 ## 17. Script reference (`scripts/`)
 `train_model.py` (train and persist) · `evaluate_models.py` (validation, `--gate`) · `build_evaluation_dataset.py` (`--check`) ·
-`seed_demo_data.py` (`--count --reset --purge`) · `smoke_test.py <url>` (15 end-to-end checks) · `benchmark.py` (performance) · `ai_value_experiment.py` (model vs school rule, paired statistics) · `soak_test.py` (hours of load on the container) ·
+`seed_demo_data.py` (`--count --reset --purge`) · `smoke_test.py <url>` (15 end-to-end checks) · `benchmark.py` (performance) · `ai_value_experiment.py` (model vs school rule, paired statistics) · `soak_test.py` (hours of load on the container) · `adversarial_check.py` (hostile client against every route) ·
 `collect_test_evidence.py` (`--strict`) · `collect_docker_evidence.py` (`--cold`, runs `docker compose down -v` first) ·
 `memory_profile.py` · `migrate_local_to_atlas.py` (copies the demo students from a local MongoDB to Atlas; `--dry-run`).
 

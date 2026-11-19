@@ -178,10 +178,11 @@ messages come from the error classes in `core/exception_handler.py`.
 | `benchmark.py` | Measures speed and resources |
 | `ai_value_experiment.py` | Compares the model with the school rule at the same workload, also early in the term (paired statistics) |
 | `soak_test.py` | Keeps a steady load on the running container for hours and records errors, latency, health and memory |
+| `adversarial_check.py` | Acts as a hostile client: invalid types, injections, URL tricks and fake files against every route, on a throw-away database |
 | `collect_test_evidence.py`, `collect_docker_evidence.py` | Run everything and rewrite `docs/evidence/testing/` and `docs/evidence/docker/` |
 | `build_evaluation_dataset.py`, `memory_profile.py`, `migrate_local_to_atlas.py` | Rebuild the evaluation workbook, measure memory, copy demo data to Atlas |
 
-### `tests/`: the safety net (310 tests)
+### `tests/`: the safety net (322 tests)
 
 | Folder | Question it answers |
 |---|---|
@@ -195,7 +196,7 @@ messages come from the error classes in `core/exception_handler.py`.
 
 | Path | What it is |
 |---|---|
-| `docs/evidence/{testing,model,docker,cicd,performance,accessibility}/` | Results of every measurement, each with a README that **interprets** the numbers |
+| `docs/evidence/{testing,model,docker,cicd,performance,accessibility,security}/` | Results of every measurement, each with a README that **interprets** the numbers |
 | `docs/DATABASE.md` | MongoDB and Atlas set-up (Spanish) |
 | `docs/M3_CORRECCION.md`, `docs/M4_CORRECCION.md`, `docs/MANUAL_*_BRIEF.md`, `docs/CODE_STRUCTURE.md`, `docs/ESTRUCTURA_DEL_CODIGO.md` | Material for the reports and manuals, and this guide (English and Spanish) |
 
