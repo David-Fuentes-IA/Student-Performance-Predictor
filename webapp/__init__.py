@@ -11,6 +11,7 @@ dashboard analyses - same process, same data source, no restart.
 from datetime import date, datetime
 
 from flask import Flask, jsonify, request
+from markupsafe import escape
 from werkzeug.exceptions import HTTPException
 
 from core import config
@@ -38,6 +39,16 @@ SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Referrer-Policy": "no-referrer",
+}
+
+# What a user sees for an HTTP error raised by Flask itself (wrong URL, wrong method, oversized upload...).
+_HTTP_MESSAGES = {
+    400: "La solicitud no es valida.",
+    404: "La pagina o ruta solicitada no existe.",
+    405: "Esta ruta no admite ese tipo de solicitud.",
+    413: "El archivo es demasiado grande (maximo 4 MB).",
+    414: "La direccion es demasiado larga.",
+    415: "Tipo de contenido no admitido.",
 }
 
 
@@ -89,11 +100,15 @@ def create_app() -> Flask:
 
     @app.errorhandler(HTTPException)
     def _http_error(exc: HTTPException):
-        if not _wants_json():
+        if exc.code is None or exc.code < 400:
             return exc
-        if exc.code == 413:
-            return jsonify(error="El archivo es demasiado grande (maximo 4 MB)."), 413
-        return jsonify(error=exc.description), exc.code
+        message = _HTTP_MESSAGES.get(exc.code, "La solicitud no se pudo procesar.")
+        if not _wants_json():
+            # A browser typing a wrong URL gets a short Spanish page with a way back, not Werkzeug's English one.
+            page = (f'<!doctype html><html lang="es"><meta charset="utf-8"><title>{exc.code}</title>'
+                    f'<p>{escape(message)}</p><p><a href="/">Volver al panel</a></p></html>')
+            return page, exc.code, {"Content-Type": "text/html; charset=utf-8"}
+        return jsonify(error=message), exc.code
 
     @app.errorhandler(Exception)
     def _unexpected(exc: Exception):

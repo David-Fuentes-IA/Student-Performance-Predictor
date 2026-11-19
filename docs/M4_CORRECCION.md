@@ -64,11 +64,12 @@ and that the team acknowledges its limitations.
 | 7 | Oral question 6: "what risks does isolating observer failures introduce for auditing?" | Risk: a broken alert observer would only leave a log line. Correction: the publisher **counts** failures per observer and `/health` reports them (`observer_failures`), so a silent failure is visible without reading logs; liveness is unaffected | `core/audit_observer.py` (`failure_counts`), `webapp/dashboard.py`, tests in `tests/unit/test_observer_and_errors.py`, `tests/integration/test_pipeline_flow.py` | `23392a0` |
 | 8 | "Tomorrow you must run tests and show the results, not only screenshots" / "reproduce at least one measurement" | The software review will run tests and a measurement live (section 9) | — | — |
 | 9 | Own audit (criterion 5 of M4): accessibility | WCAG 2.1 AA audit of both screens in a browser: 8 findings fixed (contrast of 3 dashboard colours and 4 admin colours; 18 form labels not tied to their fields; group list not usable with the keyboard). After: 0 contrast failures, 0 unlabeled fields | `docs/evidence/accessibility/README.md`, `tests/system/test_accessibility_markup.py` | `733e98e` |
+| 10 | Own audit (criteria 4 and 7): the application under a hostile client | `scripts/adversarial_check.py` sends 407 hostile requests (invalid types, MongoDB operator injection, path traversal, hidden files, fake and zip-bomb Excel files, password-bypass tricks) to every route on a throw-away database. Before: 5 findings (four 500s, one misleading 503). Reading the answers found 5 more inputs wrongly **accepted** (`null` stored as a group called "None", JSON `true` as a grade of 1, more than 4 partials, `"reset": "false"` treated as true, English rejection messages). All fixed as input validation; after: 0 findings. No leak of internals and no password bypass before or after | `docs/evidence/security/README.md`, `tests/integration/test_hostile_input.py` | this commit |
 
-Tests after the corrections (strict run against MongoDB, 2026-11-18): unit 156 (+52 sub-cases), integration 70 (+59),
-system 78 (+55), memory profiling 6: **310 tests and 166 sub-cases (476 checks), 0 failed, 0 skipped; statement coverage
-94.5 %** (it was 288 tests and 373 checks at the end of Milestone 3). The same suite passed in the CI on `babba75` (run
-44331833747: build, tests, model quality gate, container and Kubernetes all green).
+Tests after the corrections (strict run against MongoDB, 2026-11-18): unit 156 (+52 sub-cases), integration 82 (+85),
+system 78 (+55), memory profiling 6: **322 tests and 192 sub-cases (514 checks), 0 failed, 0 skipped; statement coverage
+94.6 %** (it was 288 tests and 373 checks at the end of Milestone 3). The suite before the adversarial review (310 tests) passed in the CI on `babba75`
+(run 44331833747: build, tests, model quality gate, container and Kubernetes all green).
 
 ---
 
@@ -178,7 +179,8 @@ period** for predictions, history or logs. The PDFs, once downloaded, live on th
   Kubernetes Secret (`k8s/secret.example.yaml` has placeholders only); connection strings are redacted in logs; the git history
   contains no real connection string.
 - **Integrity:** JSON-Schema validators and unique indexes in MongoDB; Fail-Fast validation of every record and file.
-- **Safe errors:** users never see tracebacks, hosts or paths.
+- **Safe errors:** users never see tracebacks, hosts or paths; checked by an adversarial run of 407 hostile requests against
+  every route (0 findings; `docs/evidence/security/README.md`). A wrong URL gets a Spanish page with a way back.
 - **Access:** optional `ADMIN_PASSWORD` for `/admin` (constant-time comparison); rejected attempts logged; visible warning when
   open; security headers on every response (CSP, `X-Frame-Options: DENY`, `nosniff`, `no-referrer`).
 - **Containers:** non-root user; in Kubernetes a read-only filesystem and dropped capabilities.
@@ -312,9 +314,10 @@ are closed. The ethical stance is to say this openly.
 | Observer failures visible | `curl.exe -s http://localhost:8000/health` → `observer_failures` |
 | Accessibility | Tab through the admin group list, Enter opens a group; labels read by a screen reader |
 | Soak evidence | `docs/evidence/docker/soak_test.json` |
+| Hostile input (if the reviewer attacks the app) | `MONGODB_TEST_URI=mongodb://localhost:27018 python scripts/adversarial_check.py` → "407 hostile requests, 0 findings"; by hand: `/.env`, `/api/groups/<script>`, a grade of 150 or `true` in the panel, a renamed `.exe` as Excel |
 
 ## 10. Evidence index
 
 `docs/evidence/model/` (metrics, paired tests, `ai_value.*`) · `docs/evidence/testing/` · `docs/evidence/docker/`
-(+ `soak_test.json`) · `docs/evidence/cicd/` · `docs/evidence/performance/` · `docs/evidence/accessibility/` · `k8s/README.md` ·
+(+ `soak_test.json`) · `docs/evidence/cicd/` · `docs/evidence/performance/` · `docs/evidence/accessibility/` · `docs/evidence/security/` · `k8s/README.md` ·
 `data/README.md` · `docs/DATABASE.md` · `docs/M3_CORRECCION.md` (Milestone 3 material).

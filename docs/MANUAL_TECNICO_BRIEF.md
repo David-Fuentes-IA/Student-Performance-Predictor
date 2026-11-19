@@ -240,9 +240,9 @@ venv\Scripts\python.exe -m pytest
 `MONGODB_URI`, `RISK_THRESHOLD`, `PASSING_GRADE`, `RISK_MODEL`, `ALLOW_DEMO_FALLBACK` and `ADMIN_PASSWORD` so a developer's
 `.env` cannot leak into tests.
 
-**Final run (strict, 2026-11-18):** unit 156 (+52 sub-cases), integration 70 (+59), system 78 (+55), memory profiling 6;
-**310 tests, 166 sub-cases, 0 failed, 0 skipped; coverage 94.5 %** (feature_store 100, learning_module 98.3, inference_engine
-98.2, presentation 98.1, data_pipeline 97.8, webapp 97.1, main_api 96.8, core 96.4, data_access 84.4). Local integration/
+**Final run (strict, 2026-11-18):** unit 156 (+52 sub-cases), integration 82 (+85), system 78 (+55), memory profiling 6;
+**322 tests, 192 sub-cases, 0 failed, 0 skipped; coverage 94.6 %** (feature_store 100, learning_module 98.3, data_pipeline
+98.2, inference_engine 98.2, presentation 98.1, webapp 96.9, main_api 96.8, core 96.4, data_access 84.4). Local integration/
 system times are long because each database test creates a schema (≈ 3.7 s on a mechanical disk); CI runs the whole suite
 in 2 min 39 s.
 
@@ -378,7 +378,7 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
 
 ## 17. Script reference (`scripts/`)
 `train_model.py` (train and persist) · `evaluate_models.py` (validation, `--gate`) · `build_evaluation_dataset.py` (`--check`) ·
-`seed_demo_data.py` (`--count --reset --purge`) · `smoke_test.py <url>` (15 end-to-end checks) · `benchmark.py` (performance) · `ai_value_experiment.py` (model vs school rule, paired statistics) · `soak_test.py` (hours of load on the container) ·
+`seed_demo_data.py` (`--count --reset --purge`) · `smoke_test.py <url>` (15 end-to-end checks) · `benchmark.py` (performance) · `ai_value_experiment.py` (model vs school rule, paired statistics) · `soak_test.py` (hours of load on the container) · `adversarial_check.py` (hostile client against every route) ·
 `collect_test_evidence.py` (`--strict`) · `collect_docker_evidence.py` (`--cold`, runs `docker compose down -v` first) ·
 `memory_profile.py` · `migrate_local_to_atlas.py` (copies the demo students from a local MongoDB to Atlas; `--dry-run`).
 

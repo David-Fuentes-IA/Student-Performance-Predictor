@@ -175,4 +175,4 @@ tests/unit/test_synthetic_students.py::SimulatorTests::test_share_of_at_risk_stu
 tests/unit/test_synthetic_students.py::TrainingSetTests::test_features_come_from_the_production_feature_manager PASSED [ 99%]
 tests/unit/test_synthetic_students.py::TrainingSetTests::test_training_set_has_four_features_and_binary_labels PASSED [100%]
 
-=================== 156 passed, 52 subtests passed in 5.21s ===================
+=================== 156 passed, 52 subtests passed in 3.65s ===================

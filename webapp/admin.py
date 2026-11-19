@@ -67,6 +67,19 @@ def _json_body() -> dict:
     return data
 
 
+def _text(body: dict, key: str) -> str:
+    """A text field of the JSON body: missing or null -> "", number -> its digits, anything else -> 400.
+    Without this, str(None) stored a group literally called "None" and lists/objects were stored as text."""
+    value = body.get(key)
+    if value is None:
+        return ""
+    if isinstance(value, str):
+        return value
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return str(value)
+    raise ValidationError(f"field '{key}' is not text", user_message=f"El campo '{key}' debe ser texto.")
+
+
 def _require_group(group_id: str) -> None:
     if not repo().group_exists(group_id):
         raise NotFoundError(f"group '{group_id}' not found",
@@ -115,10 +128,10 @@ def list_groups():
 def create_group():
     body = _json_body()
     group = service().create_group(
-        str(body.get("group_id", "")),
-        name=str(body.get("name", "")),
-        period=str(body.get("period", "")),
-        teacher=str(body.get("teacher", "")),
+        _text(body, "group_id"),
+        name=_text(body, "name"),
+        period=_text(body, "period"),
+        teacher=_text(body, "teacher"),
     )
     return jsonify(group), 201
 
@@ -147,8 +160,8 @@ def add_student(group_id: str):
         raise ValidationError("grades missing", user_message="Indica al menos una calificacion.")
     outcome = service().add_student(
         group_id,
-        student_id=str(body.get("student_id", "")),
-        name=str(body.get("name", "")),
+        student_id=_text(body, "student_id"),
+        name=_text(body, "name"),
         grades=grades,
         attendance_pct=body.get("attendance_pct"),
         participation_score=body.get("participation_score"),
@@ -223,14 +236,21 @@ def recent_imports():
 
 @admin_bp.route("/api/seed", methods=["POST"])
 def seed():
-    body = request.get_json(silent=True) or {}
+    body = request.get_json(silent=True)
+    if body is None:
+        body = {}
+    if not isinstance(body, dict):
+        raise ValidationError("body is not a JSON object", user_message="Se esperaba un JSON valido.")
     try:
-        count = int(body.get("count", 100))
-    except (TypeError, ValueError):
+        count = body.get("count", 100)
+        if isinstance(count, bool):
+            raise TypeError("bool is not a count")
+        count = int(count)
+    except (TypeError, ValueError, OverflowError):
         raise ValidationError("bad count", user_message="La cantidad debe ser un numero.") from None
     if not 1 <= count <= 500:
         raise ValidationError("count out of range", user_message="La cantidad debe estar entre 1 y 500.")
-    return jsonify(seed_database(repo(), count, reset=bool(body.get("reset", False))))
+    return jsonify(seed_database(repo(), count, reset=body.get("reset") is True))
 
 
 @admin_bp.route("/api/seed", methods=["DELETE"])

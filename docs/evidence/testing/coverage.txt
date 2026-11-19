@@ -1,8 +1,6 @@
-................................................................................................................ [ 36%]
-............................................................ [ 55%]
-.......................................... [ 69%]
-.................................................... [ 85%]
-............................................                             [100%]
+.............................................................................................................................................................................................................. [ 63%]
+.......................................................................................................... [ 96%]
+..........                                                               [100%]
 =============================== tests coverage ================================
 _______________ coverage: platform win32, python 3.12.3-final-0 _______________
 
@@ -20,9 +18,9 @@ data_access\schema.py                      32      3    91%   96, 105-107
 data_access\student_repository.py          71      4    94%   63, 67, 72, 83
 data_access\synthetic_students.py          55      0   100%
 data_pipeline\etl_processor.py             26      0   100%
-data_pipeline\excel_importer.py           143      4    97%   85, 155, 192, 239
+data_pipeline\excel_importer.py           143      3    98%   155, 192, 239
 data_pipeline\fail_fast_validator.py       22      0   100%
-data_pipeline\group_import_service.py      62      2    97%   100, 166
+data_pipeline\group_import_service.py      68      2    97%   117, 183
 data_pipeline\synthetic_seed.py            21      0   100%
 feature_store\feature_manager.py           30      0   100%
 inference_engine\cache_manager.py          60      1    98%   54
@@ -37,12 +35,12 @@ main_api.py                                62      2    97%   97, 102
 presentation\pdf_reports.py                62      0   100%
 presentation\report_data.py                26      0   100%
 presentation\teacher_report_ui.py          18      2    89%   43-44
-webapp\__init__.py                         56      4    93%   48, 96, 100-101
-webapp\admin.py                           124      1    99%   90
+webapp\__init__.py                         60      4    93%   59, 104, 115-116
+webapp\admin.py                           140      2    99%   103, 241
 webapp\dashboard.py                        94      3    97%   136, 144, 151
 ---------------------------------------------------------------------
-TOTAL                                    1758     97    94%
+TOTAL                                    1784     97    95%
 
 7 empty files skipped.
-Coverage JSON written to file C:\Users\Gabo\AppData\Local\Temp\tmppl530hix\coverage.json
-310 passed, 166 subtests passed in 266.63s (0:04:26)
+Coverage JSON written to file C:\Users\Gabo\AppData\Local\Temp\tmp4sfeyost\coverage.json
+322 passed, 192 subtests passed in 351.90s (0:05:51)

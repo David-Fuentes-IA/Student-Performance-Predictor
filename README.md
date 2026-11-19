@@ -11,7 +11,7 @@ reports. **It never acts on a student by itself**: every alert is for a teacher 
 All the data in this repository are synthetic; no real student appears anywhere.
 
 > Current work lives on the branch `milestone-4` (Milestone 3 work: `milestone-3`). Milestone 4 material:
-> [M4_CORRECCION.md](docs/M4_CORRECCION.md) · [accessibility audit](docs/evidence/accessibility/README.md). Evidence:
+> [M4_CORRECCION.md](docs/M4_CORRECCION.md) · [accessibility audit](docs/evidence/accessibility/README.md) · [adversarial review](docs/evidence/security/README.md). Evidence:
 > [testing](docs/evidence/testing/README.md) · [model validation](docs/evidence/model/README.md) ·
 > [containers and deployment](docs/evidence/docker/README.md) · [CI/CD](docs/evidence/cicd/README.md) ·
 > [performance](docs/evidence/performance/README.md) · [Kubernetes](k8s/README.md) · [evaluation dataset](data/README.md)
@@ -202,6 +202,7 @@ $env:MONGODB_TEST_URI="mongodb://localhost:27018"; venv\Scripts\python.exe -m py
 | `python scripts/benchmark.py` | `docs/evidence/performance/`: latency, throughput, container resources, time per stage |
 | `python scripts/ai_value_experiment.py` | `docs/evidence/model/ai_value.*`: does the model beat the school rule at the same workload, also early in the term? |
 | `python scripts/soak_test.py --minutes 120` | `docs/evidence/docker/soak_test.json`: hours of steady load against the running container |
+| `python scripts/adversarial_check.py` (needs `MONGODB_TEST_URI`) | 407 hostile requests against every route on a throw-away database; exit 1 on any 500, leak or password bypass (`docs/evidence/security/`) |
 | `python scripts/smoke_test.py http://localhost:8000` | end-to-end check of a running instance |
 | `python scripts/build_evaluation_dataset.py --check` | verifies `data/grupo_evaluacion.xlsx` against the simulator |
 
