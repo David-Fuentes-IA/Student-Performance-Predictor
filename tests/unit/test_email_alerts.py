@@ -92,6 +92,15 @@ class SafetyTests(unittest.TestCase):
         self.assertIn("ConnectionRefusedError", a.status()["last_error"])
         self.assertIn("EMAIL ALERT FAILED", logs.output[0])
 
+    def test_the_test_email_carries_the_last_minutes_of_the_log(self):
+        a = alerts()
+        a.send_test([event("WARNING", status=400, message="REQUEST REJECTED | 400 POST /admin/api/groups")], now=0)
+        body = FakeSMTP.sent[0].get_content()
+        self.assertIn("ultimos 10 minutos (1", body)
+        self.assertIn("REQUEST REJECTED", body)
+        a.send_test([], now=100)
+        self.assertIn("No hubo eventos", FakeSMTP.sent[1].get_content())
+
     def test_the_test_button_cannot_be_spammed(self):
         a = alerts()
         self.assertEqual(a.send_test(now=0), "sent")

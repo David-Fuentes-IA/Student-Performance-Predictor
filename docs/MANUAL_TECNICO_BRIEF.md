@@ -197,7 +197,7 @@ Administration (`/admin`, API under `/admin/api`; protected by `ADMIN_PASSWORD` 
 | `GET /admin/api/collections/<name>` | read-only browser (only the 6 known collections; others → 400) |
 | `GET /admin/api/error-log` | error log, newest first: `level` (WARNING/ERROR/CRITICAL), `kind`, `q` (text, path or reference code), `from`/`to` (AAAA-MM-DD), `limit` ≤ 200, `skip`; also totals by level and kind |
 | `GET /admin/api/error-log/export.pdf` | the same filters; PDF with totals by level and kind and the 2,000 most recent events |
-| `POST /admin/api/error-log/test-email` | sends a test e-mail to `ALERT_EMAIL_TO` (400 if alerts are off, 400 if repeated within 30 s, 503 if sending failed) |
+| `POST /admin/api/error-log/test-email` | sends a test e-mail to `ALERT_EMAIL_TO` with the error log's events of the last 10 minutes (up to 20, any level) (400 if alerts are off, 400 if repeated within 30 s, 503 if sending failed) |
 
 Error contract: failures return JSON `{"error": "<safe message>", "ref": "<8-character code>"}` with 400 (invalid input), 401 (admin password), 404
 (unknown group or student: `GroupNotFoundError`/`NotFoundError`) or 503 (database/model/unexpected). **Never** a

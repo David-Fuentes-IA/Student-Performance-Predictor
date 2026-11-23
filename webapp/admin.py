@@ -16,12 +16,12 @@ import hmac
 import threading
 import time
 from collections import deque
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from flask import Blueprint, Response, jsonify, render_template, request
 
 import main_api
-from core import config, event_log
+from core import config, email_alerts, event_log
 from core.exception_handler import DataAccessError, NotFoundError, ValidationError
 from core.logger import get_logger
 from data_access.mongo_connection import get_database
@@ -394,7 +394,14 @@ def send_test_email():
     if notifier is None or not notifier.enabled:
         raise ValidationError("e-mail alerts off", user_message="Las alertas por correo no estan configuradas "
                               "(faltan ALERT_EMAIL_TO y SMTP_HOST en .env).")
-    result = notifier.send_test()
+    log = event_log.get_event_log()
+    log.flush()
+    try:
+        since = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(minutes=email_alerts.RECENT_MINUTES)
+        _, recent = log.store.query(since=since, limit=20)
+    except Exception:  # noqa: BLE001 - the test e-mail still goes out without the summary
+        recent = []
+    result = notifier.send_test(recent)
     if result == "too_soon":
         raise ValidationError("test e-mail too soon", user_message="Espera 30 segundos antes de enviar otro correo de prueba.")
     if result == "failed":

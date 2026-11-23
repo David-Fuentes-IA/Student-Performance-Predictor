@@ -34,6 +34,7 @@ from email.message import EmailMessage
 
 DIGEST_SECONDS = 5 * 60
 TEST_INTERVAL = 30
+RECENT_MINUTES = 10
 _MAX_PENDING = 200
 _ADDRESS = re.compile(r"^[^@\s,;<>]+@[^@\s,;<>]+\.[^@\s,;<>]+$")
 SUBJECT = "[Student Performance Predictor] Errores en el sistema"
@@ -106,15 +107,23 @@ class EmailAlerts:
         return len(self._pending)
 
     # -- the panel's test button ----------------------------------------------------------------------------------
-    def send_test(self, now: float | None = None) -> str:
-        """'sent', 'too_soon' or 'failed'."""
+    def send_test(self, recent: list[dict] | None = None, now: float | None = None) -> str:
+        """'sent', 'too_soon' or 'failed'. `recent`: the error log's events of the last minutes, all levels, so the
+        test also shows what just happened (the automatic alerts only carry real failures)."""
         now = time.monotonic() if now is None else now
         if self._last_test is not None and now - self._last_test < TEST_INTERVAL:
             return "too_soon"
         self._last_test = now
-        body = ("Correo de prueba de las alertas de Student Performance Predictor.\n\n"
-                "Si lo recibiste, las alertas por correo funcionan: cada error real del sistema llegara a esta "
-                "direccion, como maximo un resumen cada 5 minutos.\n")
+        lines = ["Correo de prueba de las alertas de Student Performance Predictor.", "",
+                 "Si lo recibiste, las alertas por correo funcionan: cada error real del sistema llegara a esta "
+                 "direccion, como maximo un resumen cada 5 minutos.", ""]
+        recent = recent or []
+        if recent:
+            lines += [f"Eventos de la bitacora en los ultimos {RECENT_MINUTES} minutos ({len(recent)}, de cualquier tipo):", ""]
+            lines += self._event_lines(recent)
+        else:
+            lines.append(f"No hubo eventos en la bitacora en los ultimos {RECENT_MINUTES} minutos.")
+        body = "\n".join(lines) + "\n"
         return "sent" if self._send(body, subject=SUBJECT.replace("Errores en el sistema", "Correo de prueba")) else "failed"
 
     def status(self) -> dict:
@@ -125,6 +134,14 @@ class EmailAlerts:
     # -- internals -----------------------------------------------------------------------------------------------
     def _digest_body(self, events: list[dict]) -> str:
         lines = [f"Se registraron {len(events)} error(es) en Student Performance Predictor.", ""]
+        lines += self._event_lines(events)
+        lines += ["Detalle tecnico: /admin -> Bitacora de errores (busca el codigo).",
+                  "Este correo no contiene nombres de alumnos ni contrasenas."]
+        return "\n".join(lines)
+
+    @staticmethod
+    def _event_lines(events: list[dict]) -> list[str]:
+        lines = []
         for e in events[:50]:
             when = e.get("created_at")
             when = when.strftime("%d/%m/%Y %H:%M:%S UTC") if isinstance(when, datetime) else _one_line(when)
@@ -134,9 +151,7 @@ class EmailAlerts:
                       f"  {_one_line(e.get('message'))}", ""]
         if len(events) > 50:
             lines.append(f"... y {len(events) - 50} mas.")
-        lines += ["Detalle tecnico: /admin -> Bitacora de errores (busca el codigo).",
-                  "Este correo no contiene nombres de alumnos ni contrasenas."]
-        return "\n".join(lines)
+        return lines
 
     def _send(self, body: str, subject: str = SUBJECT) -> bool:
         message = EmailMessage()

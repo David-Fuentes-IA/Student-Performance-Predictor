@@ -222,7 +222,7 @@ Advertencia, Error, Critico), **Tipo**, **Buscar** (reference code, address or t
 to open). **Cargar mas** shows older events. **Exportar PDF** downloads a report (totals plus the most recent events) with the
 filters applied.
 Below the totals: **"Alertas por correo: activadas para e***@…"** (or "desactivadas") and the button **Enviar correo de
-prueba**. When alerts are on, every real failure (not a data-entry mistake) is e-mailed to the technical team, at most one
+prueba** (the test e-mail also lists what the error log recorded in the last 10 minutes). When alerts are on, every real failure (not a data-entry mistake) is e-mailed to the technical team, at most one
 summary every 5 minutes. The address is set by the technical team in the configuration, not on this screen.
 **How a teacher reports a problem:** every error message ends with a code, for example "(codigo 974DDCAE)". The teacher
 gives that code to the technical team, who types it in **Buscar** and sees exactly what happened.
