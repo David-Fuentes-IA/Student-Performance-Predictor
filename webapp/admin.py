@@ -382,9 +382,25 @@ def error_log():
     limit = max(1, min(request.args.get("limit", 50, type=int) or 50, 200))
     skip = max(0, min(request.args.get("skip", 0, type=int) or 0, 1_000_000_000))
     (total, events), counts, store = _query_log(filters, limit, skip)
+    notifier = event_log.get_event_log().notifier
     return jsonify(total=total, skip=skip, limit=limit, events=events, counts=counts,
                    persistent=getattr(store, "persistent", False), kinds=list(event_log.KINDS),
-                   levels=list(event_log.LEVELS))
+                   levels=list(event_log.LEVELS), email=notifier.status() if notifier else {"enabled": False})
+
+
+@admin_bp.route("/api/error-log/test-email", methods=["POST"])
+def send_test_email():
+    notifier = event_log.get_event_log().notifier
+    if notifier is None or not notifier.enabled:
+        raise ValidationError("e-mail alerts off", user_message="Las alertas por correo no estan configuradas "
+                              "(faltan ALERT_EMAIL_TO y SMTP_HOST en .env).")
+    result = notifier.send_test()
+    if result == "too_soon":
+        raise ValidationError("test e-mail too soon", user_message="Espera 30 segundos antes de enviar otro correo de prueba.")
+    if result == "failed":
+        raise DataAccessError("test e-mail failed", user_message="No se pudo enviar el correo de prueba. Revisa la configuracion "
+                              "del servidor de correo; el motivo quedo en la bitacora.")
+    return jsonify(sent=True, recipients=notifier.status()["recipients"])
 
 
 @admin_bp.route("/api/error-log/export.pdf")

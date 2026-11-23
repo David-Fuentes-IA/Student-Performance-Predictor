@@ -197,6 +197,7 @@ Administration (`/admin`, API under `/admin/api`; protected by `ADMIN_PASSWORD` 
 | `GET /admin/api/collections/<name>` | read-only browser (only the 6 known collections; others → 400) |
 | `GET /admin/api/error-log` | error log, newest first: `level` (WARNING/ERROR/CRITICAL), `kind`, `q` (text, path or reference code), `from`/`to` (AAAA-MM-DD), `limit` ≤ 200, `skip`; also totals by level and kind |
 | `GET /admin/api/error-log/export.pdf` | the same filters; PDF with totals by level and kind and the 2,000 most recent events |
+| `POST /admin/api/error-log/test-email` | sends a test e-mail to `ALERT_EMAIL_TO` (400 if alerts are off, 400 if repeated within 30 s, 503 if sending failed) |
 
 Error contract: failures return JSON `{"error": "<safe message>", "ref": "<8-character code>"}` with 400 (invalid input), 401 (admin password), 404
 (unknown group or student: `GroupNotFoundError`/`NotFoundError`) or 503 (database/model/unexpected). **Never** a
@@ -374,6 +375,15 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
   `RISK ALERT` lines are not failures and are not copied. Every request gets a reference code (`X-Request-ID` header and
   `ref` in every error answer); the user is shown only the short message and the code, the administrator finds the
   request in the log. Viewer and exports in `/admin` → **Bitacora de errores** (protected by `ADMIN_PASSWORD`).
+- **E-mail alerts (`core/email_alerts.py`, optional):** every ERROR/CRITICAL event and every failed request (5xx) is mailed
+  to `ALERT_EMAIL_TO` (up to 3 addresses) through `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD` (`SMTP_STARTTLS`, default
+  true), all in `.env` only. Rejected input (4xx) is not mailed. At most one summary every 5 minutes per process (2 gunicorn
+  workers → at most 2); fixed subject, every value cut and on one line (no header injection), no traceback, no names;
+  sent from the error log's background thread with a 10 s timeout; a failure to send is a WARNING in the log (never
+  mailed, so it cannot loop). The panel shows the state (masked addresses, last send, last error, of the process that
+  answered) and has **Enviar correo de prueba** (`POST /admin/api/error-log/test-email`, once every 30 s). Demo without a real
+  account: `docker compose --profile mail up -d` starts Mailpit (inbox at http://localhost:8025, local only) with
+  `ALERT_EMAIL_TO=errores@demo.local SMTP_HOST=mailpit SMTP_PORT=1025 SMTP_STARTTLS=false`.
 - **Log injection guard:** line breaks inside a logged message are written as `\r` / `\n` (`core/logger.py`), so a URL
   with `%0d%0a` cannot forge a line in the text log.
 - **Adversarial review (Milestone 4):** `scripts/adversarial_check.py` sends 452 hostile requests (type confusion, MongoDB

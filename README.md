@@ -329,7 +329,7 @@ core/            configuration, logging (PII-safe), exceptions, Observer, risk l
 | performance benchmark, bottleneck analysis, batch inference and batch storage | |
 | CI/CD on GitHub Actions: lint, tests with MongoDB, quality gate, container smoke test, Kubernetes deployment | |
 | security headers, logged rejected admin passwords, open-panel warning, observer failures in `/health` | teacher roles, access log, retention policy |
-| error log ("Bitacora de errores"): every warning, error and rejected request kept in MongoDB for all time, viewer with filters in `/admin`, PDF export; a reference code on every error the user sees | central log collection across machines, alerts on errors |
+| error log ("Bitacora de errores"): every warning, error and rejected request kept in MongoDB for all time, viewer with filters in `/admin`, PDF export; a reference code on every error the user sees; e-mail alerts for real failures (summary at most every 5 minutes; Mailpit for demos) | central log collection across machines |
 | WCAG 2.1 AA fixes (contrast, labels, keyboard) on both screens | tagged (accessible) PDFs, screen-reader user testing |
 | | Vercel deployment (configuration present, not verified) |
 

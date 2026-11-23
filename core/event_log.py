@@ -229,6 +229,7 @@ class EventLog:
         self._wake = threading.Event()
         self._thread: threading.Thread | None = None
         self.handler = EventLogHandler(self)
+        self.notifier = None          # core.email_alerts.EmailAlerts, set by the web application
 
     def enqueue(self, event: dict) -> None:
         self._queue.put(event)
@@ -244,19 +245,29 @@ class EventLog:
             self._wake.wait(timeout=1.0)
             self._wake.clear()
             self.flush()
+            notifier = self.notifier
+            if notifier is not None:
+                try:
+                    notifier.tick()
+                except Exception as exc:  # noqa: BLE001 - the writer thread must survive anything
+                    _stderr(f"event_log: e-mail alert failed ({type(exc).__name__})")
 
     def flush(self) -> int:
         """Write everything waiting to the store now. Returns how many events were written."""
         with self._lock:
             batch = list(self._retry)
             self._retry.clear()
+            fresh = []
             while True:
                 try:
-                    batch.append(self._queue.get_nowait())
+                    fresh.append(self._queue.get_nowait())
                 except queue.Empty:
                     break
+            batch += fresh
             if not batch:
                 return 0
+            if fresh and self.notifier is not None:
+                self.notifier.consider(fresh)          # mailed even if the database is the thing that failed
             try:
                 self.store.add_many(batch)
                 return len(batch)

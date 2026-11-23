@@ -120,6 +120,7 @@ técnico del error). Los mensajes salen de las clases de error de `core/exceptio
 | `audit_observer.py` | El mecanismo *Observer*: después de cada predicción se avisa a varios "oyentes". Uno escribe las alertas y otro guarda un historial. Un oyente que falla nunca detiene el reporte |
 | `exception_handler.py` | Los tipos de error del proyecto (`ValidationError`, `DataAccessError`, `NotFoundError`, `ModelLoadError`…), cada uno con un mensaje seguro para el usuario |
 | `logger.py` | El registro de eventos en un solo formato; `sanitize()` oculta nombres y correos en las líneas del log; los saltos de línea de un mensaje se escapan (no se pueden falsificar líneas) |
+| `email_alerts.py` | Envía por correo las fallas reales a la dirección de `.env`, como máximo un resumen cada 5 minutos |
 | `event_log.py` | La bitácora de errores: copia cada advertencia, error y solicitud rechazada (con su código de referencia) a MongoDB, o a memoria en modo demo, para el visor del panel y la exportación en PDF |
 
 ### `data_access/`: almacenamiento (Acceso a datos)

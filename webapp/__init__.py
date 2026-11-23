@@ -16,7 +16,7 @@ from flask import Flask, g, jsonify, request
 from markupsafe import escape
 from werkzeug.exceptions import HTTPException
 
-from core import config, event_log
+from core import config, email_alerts, event_log
 from core.exception_handler import (
     AppError,
     DataAccessError,
@@ -77,9 +77,10 @@ def _install_event_log() -> None:
 
     repository = main_api.get_repository()
     if isinstance(repository, MongoAcademicRepository):
-        event_log.install(event_log.MongoEventLogStore(repository.db))
+        log = event_log.install(event_log.MongoEventLogStore(repository.db))
     else:
-        event_log.install(event_log.InMemoryEventLogStore())
+        log = event_log.install(event_log.InMemoryEventLogStore())
+    log.notifier = email_alerts.from_env()
 
 
 def _with_reference(response):

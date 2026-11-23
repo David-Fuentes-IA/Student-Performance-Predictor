@@ -117,6 +117,7 @@ messages come from the error classes in `core/exception_handler.py`.
 | `audit_observer.py` | The *Observer* mechanism: after each prediction, listeners are told. One writes alerts, one keeps a history. A listener that fails never stops the report |
 | `exception_handler.py` | The project's error types (`ValidationError`, `DataAccessError`, `NotFoundError`, `ModelLoadError`…), each with a safe message for the user |
 | `logger.py` | Logging in one format; `sanitize()` hides names and e-mails from log lines; line breaks in a message are escaped (no forged lines) |
+| `email_alerts.py` | E-mails real failures to the address in `.env`, one summary every 5 minutes at most |
 | `event_log.py` | The error log: copies every warning, error and rejected request (with its reference code) to MongoDB, or to memory in demo mode, for the admin viewer and the PDF export |
 
 ### `data_access/`: storage (Data access)

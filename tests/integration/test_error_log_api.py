@@ -107,3 +107,12 @@ class MongoErrorLogTests(MongoAppTestCase):
             for url in ("/admin/api/error-log", "/admin/api/error-log/export.pdf"):
                 with self.subTest(url=url):
                     self.assertEqual(client.get(url).status_code, 401)
+
+
+class TestEmailButtonTests(unittest.TestCase):
+    def test_the_button_explains_when_alerts_are_off(self):
+        client = create_app().test_client()
+        response = client.post("/admin/api/error-log/test-email")
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("ALERT_EMAIL_TO", response.get_json()["error"])
+        self.assertFalse(client.get("/admin/api/error-log").get_json()["email"]["enabled"])

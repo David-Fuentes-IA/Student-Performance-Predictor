@@ -54,6 +54,11 @@ The script only flags errors and leaks. Reading the answers it got turned up fiv
 text log with real line breaks, so an attacker could add a fake line (for example a made-up `ADMIN` entry). Line breaks
 inside a logged message are now written as `\r` / `\n` (`core/logger.py`); test in `tests/unit/test_event_log.py`.
 
+**E-mail alerts (2026-11-22)** were designed against the attacks they invite: mail flooding (one summary every 5
+minutes at most, rejected input never mailed), header injection (fixed subject, values on one line; test with
+`\r\nBcc:` in the path), secrets (SMTP settings only in `.env`), and loops (a failure to send is a WARNING, never mailed).
+Tests: `tests/unit/test_email_alerts.py`.
+
 One more change for anyone typing a wrong address: Flask's English "Not Found" page and messages were replaced by a short
 Spanish page with a link back to the dashboard (JSON with a Spanish message under `/api/` and `/admin/api/`).
 
