@@ -8,13 +8,15 @@ root), so a group created or imported in /admin is the very group the
 dashboard analyses - same process, same data source, no restart.
 """
 
+import json
+import uuid
 from datetime import date, datetime
 
-from flask import Flask, jsonify, request
+from flask import Flask, g, jsonify, request
 from markupsafe import escape
 from werkzeug.exceptions import HTTPException
 
-from core import config
+from core import config, email_alerts, event_log
 from core.exception_handler import (
     AppError,
     DataAccessError,
@@ -63,6 +65,36 @@ def _wants_json() -> bool:
     return request.path.startswith(_JSON_PREFIXES)
 
 
+# Rejected requests that are not worth an entry in the error log: the browser's automatic icon request, and wrong
+# admin passwords (already logged as "ADMIN AUTH FAILED" with more detail).
+_NOT_LOGGED_PATHS = ("/favicon.ico",)
+
+
+def _install_event_log() -> None:
+    """Errors go to MongoDB when the application uses it (kept for all time), otherwise to memory."""
+    import main_api
+    from data_access.mongo_repository import MongoAcademicRepository
+
+    repository = main_api.get_repository()
+    if isinstance(repository, MongoAcademicRepository):
+        log = event_log.install(event_log.MongoEventLogStore(repository.db))
+    else:
+        log = event_log.install(event_log.InMemoryEventLogStore())
+    log.notifier = email_alerts.from_env()
+
+
+def _with_reference(response):
+    """Every error answer carries the request's reference code, so a user can report it and an administrator can
+    find the exact entry in the error log. The message itself stays short and never technical."""
+    if response.status_code < 400 or not response.is_json:
+        return response
+    body = response.get_json(silent=True)
+    if isinstance(body, dict) and "error" in body and "ref" not in body:
+        body["ref"] = g.get("request_id")
+        response.set_data(json.dumps(body, ensure_ascii=False))
+    return response
+
+
 def create_app() -> Flask:
     app = Flask(__name__, template_folder="../templates", static_folder="../static")
     app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 * 1024  # Vercel rejects bodies > 4.5 MB anyway
@@ -79,11 +111,28 @@ def create_app() -> Flask:
         logger.warning("ADMIN_PASSWORD is empty: anyone who can reach /admin can change or delete the groups. "
                        "Set it whenever another machine can reach this application.")
 
+    _install_event_log()
+
+    @app.before_request
+    def _assign_reference():
+        g.request_id = uuid.uuid4().hex[:8].upper()
+
     @app.after_request
     def _security_headers(response):
         for name, value in SECURITY_HEADERS.items():
             response.headers.setdefault(name, value)
+        response.headers["X-Request-ID"] = g.get("request_id", "")
         return response
+
+    @app.after_request
+    def _log_rejected_requests(response):
+        status = response.status_code
+        if 400 <= status < 500 and status != 401 and request.path not in _NOT_LOGGED_PATHS:
+            body = response.get_json(silent=True) if response.is_json else None
+            shown = body.get("error") if isinstance(body, dict) else None
+            logger.warning("REQUEST REJECTED | %s %s %s | %s", status, request.method, request.path,
+                           shown or "-", extra={"http_status": status})
+        return _with_reference(response)
 
     @app.errorhandler(AppError)
     def _app_error(exc: AppError):
@@ -92,10 +141,10 @@ def create_app() -> Flask:
         if isinstance(exc, ValidationError):
             return jsonify(error=exc.user_message), 400
         if isinstance(exc, DataAccessError):
-            logger.warning("Data access failed: %s", exc)
+            logger.warning("Data access failed: %s", exc, extra={"http_status": 503})
             return jsonify(error=exc.user_message), 503
         # Other AppErrors may carry internal detail: never echo it to the client.
-        logger.warning("Academic workflow failed: %s", exc)
+        logger.warning("Academic workflow failed: %s", exc, extra={"http_status": 503})
         return jsonify(error=_GENERIC_MESSAGE), 503
 
     @app.errorhandler(HTTPException)
@@ -106,13 +155,14 @@ def create_app() -> Flask:
         if not _wants_json():
             # A browser typing a wrong URL gets a short Spanish page with a way back, not Werkzeug's English one.
             page = (f'<!doctype html><html lang="es"><meta charset="utf-8"><title>{exc.code}</title>'
-                    f'<p>{escape(message)}</p><p><a href="/">Volver al panel</a></p></html>')
+                    f'<p>{escape(message)}</p><p>Codigo de referencia: {escape(g.get("request_id", ""))}</p>'
+                    f'<p><a href="/">Volver al panel</a></p></html>')
             return page, exc.code, {"Content-Type": "text/html; charset=utf-8"}
         return jsonify(error=message), exc.code
 
     @app.errorhandler(Exception)
     def _unexpected(exc: Exception):
-        logger.error("Unexpected error: %s", exc, exc_info=True)
+        logger.error("Unexpected error: %s", exc, exc_info=True, extra={"http_status": 500})
         return jsonify(error="No se pudo completar la operación. Inténtalo de nuevo."), 500
 
     return app

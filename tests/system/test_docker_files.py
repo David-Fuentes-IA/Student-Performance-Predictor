@@ -81,6 +81,11 @@ class ComposeTests(unittest.TestCase):
     def test_has_no_hard_coded_credentials(self):
         self.assertNotRegex(self.text, r"mongodb(\+srv)?://[^\s\"']+:[^\s\"'@]+@")
         self.assertNotRegex(self.text, r"(?im)^\s+ADMIN_PASSWORD:\s*(?!\$\{)[^\s#]+")  # only ${VARIABLE} references
+        self.assertNotRegex(self.text, r"(?im)^\s+SMTP_PASSWORD:\s*(?!\$\{)[^\s#]+")
+
+    def test_the_demo_mail_catcher_is_optional_and_local_only(self):
+        self.assertIn('profiles: ["mail"]', self.text)
+        self.assertIn('"127.0.0.1:8025:8025"', self.text)
 
     def test_the_single_command_documented_in_the_readme_matches(self):
         self.assertIn("docker compose up --build", self.text)

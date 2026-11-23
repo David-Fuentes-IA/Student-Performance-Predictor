@@ -123,6 +123,32 @@
           <tbody id="importRows"><tr><td colspan="4" class="muted">-</td></tr></tbody></table></div>
       </div>
     </div>
+    <div class="card" id="errorLogCard">
+      <h2>Bitacora de errores</h2>
+      <p class="muted" style="margin-top:0">Todo lo que fallo o fue rechazado (advertencias, errores y solicitudes invalidas), con el
+        codigo de referencia que vio el usuario. El detalle tecnico solo se ve aqui.</p>
+      <div id="el-counts" class="muted" style="margin-bottom:4px"></div>
+      <div class="row" style="align-items:center;margin-bottom:8px">
+        <div id="el-email" class="muted" style="flex:3"></div>
+        <div style="flex:0 0 auto"><button type="button" class="secondary" id="el-test-email" onclick="testEmail(this)" title="Incluye los eventos de los ultimos 10 minutos">Enviar correo de prueba</button></div>
+      </div>
+      <form id="errorLogForm" class="row" style="flex-wrap:wrap;align-items:flex-end">
+        <div><label for="el-level">Nivel</label><select id="el-level" name="level"><option value="">Todos</option>
+          <option value="WARNING">Advertencia</option><option value="ERROR">Error</option><option value="CRITICAL">Critico</option></select></div>
+        <div><label for="el-kind">Tipo</label><select id="el-kind" name="kind"><option value="">Todos</option></select></div>
+        <div><label for="el-q">Buscar</label><input id="el-q" name="q" maxlength="100" placeholder="Codigo, ruta o texto"></div>
+        <div><label for="el-from">Desde</label><input id="el-from" name="from" type="date"></div>
+        <div><label for="el-to">Hasta</label><input id="el-to" name="to" type="date"></div>
+        <div><button type="submit">Filtrar</button></div>
+      </form>
+      <div class="actions">
+        <button type="button" class="secondary" onclick="exportLog()">Exportar PDF</button>
+      </div>
+      <div class="scroll"><table><thead><tr><th>Fecha</th><th>Nivel</th><th>Tipo</th><th>Solicitud</th><th>Codigo</th><th>Mensaje</th></tr></thead>
+        <tbody id="el-rows"><tr><td colspan="6" class="muted">-</td></tr></tbody></table></div>
+      <div class="actions"><button type="button" class="secondary" id="el-more" onclick="loadErrorLog(true)" hidden>Cargar mas</button>
+        <span id="el-info" class="muted"></span></div>
+    </div>
   </section>
 </main>
 <div id="toast"></div>
@@ -131,6 +157,7 @@
 let currentGroup = null;
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $ = id => document.getElementById(id);
+const withRef = (body, fallback) => (body.error || fallback) + (body.ref ? " (codigo " + body.ref + ")" : "");
 
 function toast(text, ok = true) {
   const el = document.createElement("div");
@@ -150,7 +177,7 @@ async function api(path, options = {}) {
     if (typed) { sessionStorage.setItem("adminPassword", typed); return api(path, options); }
     throw new Error("Se requiere contrasena.");
   }
-  if (!res.ok) throw new Error(data.error || ("Error " + res.status));
+  if (!res.ok) throw new Error(withRef(data, "Error " + res.status));
   return data;
 }
 
@@ -333,7 +360,9 @@ async function loadImports() {
 function downloadTemplate() { window.location = "/admin/api/template.xlsx"; }
 
 async function refreshAll() {
-  if (!(await refreshHeader())) return;
+  const connected = await refreshHeader();
+  await loadErrorLog().catch(e => toast(e.message, false));   // also works in demo mode (memory)
+  if (!connected) return;
   await loadGroups();
   if (currentGroup) await loadStudents();
   await Promise.all([browse(), loadImports()]);
@@ -352,6 +381,74 @@ $("newGroupExcelForm").onsubmit = e => { e.preventDefault(); run(e.submitter, as
   e.target.reset(); currentGroup = id; await refreshAll();
   $("importResult").innerHTML = renderImport(r); toast("Grupo importado desde Excel.");
 }); };
+
+// ---- Error log ("bitacora de errores") ----
+const LEVEL_TEXT = { WARNING: "Advertencia", ERROR: "Error", CRITICAL: "Critico" };
+let logSkip = 0;
+
+function logQuery() {
+  const params = new URLSearchParams();
+  for (const [key, value] of new FormData($("errorLogForm"))) if (value) params.set(key, value);
+  return params;
+}
+
+async function loadErrorLog(more = false) {
+  if (!more) logSkip = 0;
+  const params = logQuery(); params.set("limit", 50); params.set("skip", logSkip);
+  const r = await api("/admin/api/error-log?" + params);
+  const kind = $("el-kind");
+  if (kind.options.length === 1) kind.insertAdjacentHTML("beforeend", r.kinds.map(k => `<option value="${esc(k)}">${esc(k)}</option>`).join(""));
+  const c = r.counts;
+  const errors = c.by_level.ERROR + c.by_level.CRITICAL, warnings = c.by_level.WARNING;
+  $("el-counts").textContent = `En total: ${c.total} eventos (${errors} ${errors === 1 ? "error" : "errores"}, ${warnings} ${warnings === 1 ? "advertencia" : "advertencias"}) - `
+    + (r.persistent ? "guardados en la base de datos desde que se activo la bitacora" : "en memoria (modo demo): se pierden al reiniciar");
+  const rows = r.events.map(e => `<tr>
+      <td class="muted">${esc(fmtDate(e.created_at))}</td><td>${esc(LEVEL_TEXT[e.level] || e.level)}</td><td>${esc(e.kind)}</td>
+      <td>${esc([e.status, e.method, e.path].filter(Boolean).join(" "))}</td><td>${esc(e.ref || "")}</td>
+      <td>${esc(e.message)}${e.traceback ? `<details><summary>Detalle tecnico</summary><pre>${esc(e.traceback)}</pre></details>` : ""}</td></tr>`).join("");
+  if (more) $("el-rows").insertAdjacentHTML("beforeend", rows);
+  else $("el-rows").innerHTML = rows || '<tr><td colspan="6" class="muted">Sin eventos con estos filtros.</td></tr>';
+  const m = r.email || {};
+  $("el-email").textContent = m.enabled
+    ? `Alertas por correo: activadas para ${m.recipients.join(", ")} (resumen cada ${m.digest_minutes} min como maximo)`
+      + (m.last_sent_at ? ` - ultimo envio: ${fmtDate(m.last_sent_at)}` : "") + (m.last_error ? ` - ultimo error: ${m.last_error}` : "")
+    : "Alertas por correo: desactivadas (configura ALERT_EMAIL_TO y SMTP_HOST en .env)";
+  $("el-test-email").disabled = !m.enabled;
+  logSkip += r.events.length;
+  $("el-more").hidden = logSkip >= r.total;
+  $("el-info").textContent = r.total ? `Mostrando ${logSkip} de ${r.total}` : "";
+}
+
+async function exportLog() {
+  await run(null, async () => {
+    const headers = {};
+    const pw = sessionStorage.getItem("adminPassword");
+    if (pw) headers["X-Admin-Password"] = pw;
+    const res = await fetch("/admin/api/error-log/export.pdf?" + logQuery(), { headers });
+    if (res.status === 401) {
+      const typed = prompt("Contrasena de administrador:");
+      if (typed) { sessionStorage.setItem("adminPassword", typed); return exportLog(); }
+      throw new Error("Se requiere contrasena.");
+    }
+    if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(withRef(d, "No se pudo exportar la bitacora.")); }
+    const name = (res.headers.get("Content-Disposition") || "").match(/filename="([^"]+)"/);
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(await res.blob());
+    link.download = name ? name[1] : "bitacora_errores.pdf";
+    link.click(); URL.revokeObjectURL(link.href);
+    toast("Bitacora exportada.");
+  });
+}
+
+async function testEmail(button) {
+  await run(button, async () => {
+    const r = await api("/admin/api/error-log/test-email", { method: "POST" });
+    toast("Correo de prueba enviado a " + r.recipients.join(", ") + ".");
+    await loadErrorLog();
+  });
+}
+
+$("errorLogForm").onsubmit = e => { e.preventDefault(); run(e.submitter, () => loadErrorLog()); };
 
 refreshAll().catch(e => toast(e.message, false));
 </script>

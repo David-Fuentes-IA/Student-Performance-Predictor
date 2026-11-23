@@ -106,7 +106,7 @@ class Attack:
         body = "" if response.mimetype == "application/pdf" else response.get_data(as_text=True)
         problems = [f"status {response.status_code}"] if response.status_code not in EXPECTED else []
         problems += [f"leak {leak!r}" for leak in LEAKS if leak in body]
-        if "<script>alert" in body and "json" not in (response.mimetype or ""):
+        if "<script>alert" in body and response.mimetype == "text/html":
             problems.append("payload reflected into HTML")
         if problems:
             self.findings.append((label, response.status_code, problems, body[:160]))
@@ -131,6 +131,11 @@ class Attack:
                 self.findings.append((f"GET {url}", 200, ["a hidden file or path answered"], ""))
         for query in ("limit=-5", "limit=999999999999", "limit=abc", "skip=-1", "skip=99999999999999999999"):
             self.check(f"GET collections?{query}", c.get(f"/admin/api/collections/students?{query}"))
+        for query in ("q=.*", "q=(a+)+$", "q=%5B", "q=$where", "q=" + "x" * 5000, "level=<script>", "kind=../../",
+                      "from=2026-02-30", "from=abc", "to=99999-01-01", "limit=-1", "limit=99999999999999999999",
+                      "skip=-5", "skip=99999999999999999999"):
+            for url in ("/admin/api/error-log", "/admin/api/error-log/export.pdf"):
+                self.check(f"GET {url}?{query[:40]}", c.get(f"{url}?{query}"))
         for raw in HOSTILE_BODIES:
             for url in ("/admin/api/groups", "/admin/api/groups/G1/students", "/admin/api/seed"):
                 kwargs = {} if raw is None else {"data": raw, "content_type": "application/json"}
@@ -162,7 +167,8 @@ class Attack:
                             ("delete", "/admin/api/seed"), ("get", "/admin/api/collections/students"),
                             ("get", "/admin/api//stats"), ("get", "/admin//api/stats"), ("get", "/admin/api/stats/"),
                             ("get", "/ADMIN/api/stats"), ("get", "/admin/api/./stats"), ("get", "/admin/api/health/../stats"),
-                            ("get", "/admin/api/groups/G1/students")):
+                            ("get", "/admin/api/groups/G1/students"), ("get", "/admin/api/error-log"),
+                            ("get", "/admin/api/error-log/export.pdf")):
             self.requests += 1
             response = getattr(c, method)(url)
             if response.status_code not in (401, 404, 405, 308):

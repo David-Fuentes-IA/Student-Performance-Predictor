@@ -67,8 +67,11 @@ class MongoAppTestCase(unittest.TestCase):
         self.client = create_app().test_client()
 
     def tearDown(self):
+        from core import event_log
+
         for p in self.patches:
             p.stop()
+        event_log.install(event_log.InMemoryEventLogStore())   # the error log must not write into a dropped DB
         self.mongo.drop_database(self.db.name)
         self.mongo.close()
 

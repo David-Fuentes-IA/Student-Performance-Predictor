@@ -10,8 +10,10 @@ import os
 import shutil
 import tempfile
 
-# Setting every variable (empty = default) also stops python-dotenv from filling it from a .env file.
-for name in ("MONGODB_URI", "RISK_THRESHOLD", "PASSING_GRADE", "RISK_MODEL", "ALLOW_DEMO_FALLBACK", "ADMIN_PASSWORD"):
+# Setting every variable (empty = default) also stops python-dotenv from filling it from a .env file
+# (and a developer's mail settings can never make the tests send e-mail).
+for name in ("MONGODB_URI", "RISK_THRESHOLD", "PASSING_GRADE", "RISK_MODEL", "ALLOW_DEMO_FALLBACK", "ADMIN_PASSWORD",
+             "ALERT_EMAIL_TO", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM", "SMTP_STARTTLS"):
     os.environ[name] = ""
 
 _MODEL_DIR = tempfile.mkdtemp(prefix="spp_test_models_")

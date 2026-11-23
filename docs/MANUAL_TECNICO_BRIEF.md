@@ -195,8 +195,11 @@ Administration (`/admin`, API under `/admin/api`; protected by `ADMIN_PASSWORD` 
 | `GET /admin/api/imports` | recent imports |
 | `POST, DELETE /admin/api/seed` | create / remove synthetic data (`count` 1–500) |
 | `GET /admin/api/collections/<name>` | read-only browser (only the 6 known collections; others → 400) |
+| `GET /admin/api/error-log` | error log, newest first: `level` (WARNING/ERROR/CRITICAL), `kind`, `q` (text, path or reference code), `from`/`to` (AAAA-MM-DD), `limit` ≤ 200, `skip`; also totals by level and kind |
+| `GET /admin/api/error-log/export.pdf` | the same filters; PDF with totals by level and kind and the 2,000 most recent events |
+| `POST /admin/api/error-log/test-email` | sends a test e-mail to `ALERT_EMAIL_TO` with the error log's events of the last 10 minutes (up to 20, any level) (400 if alerts are off, 400 if repeated within 30 s, 503 if sending failed) |
 
-Error contract: failures return JSON `{"error": "<safe message>"}` with 400 (invalid input), 401 (admin password), 404
+Error contract: failures return JSON `{"error": "<safe message>", "ref": "<8-character code>"}` with 400 (invalid input), 401 (admin password), 404
 (unknown group or student: `GroupNotFoundError`/`NotFoundError`) or 503 (database/model/unexpected). **Never** a
 traceback, host name or file path; internal detail goes only to the log. The JSON and PDF responses of the dashboard carry `Cache-Control: no-store`.
 Errors raised by Flask itself (unknown URL 404, wrong method 405, upload over 4 MB 413, URL too long 414) answer in Spanish:
@@ -244,9 +247,9 @@ venv\Scripts\python.exe -m pytest
 `MONGODB_URI`, `RISK_THRESHOLD`, `PASSING_GRADE`, `RISK_MODEL`, `ALLOW_DEMO_FALLBACK` and `ADMIN_PASSWORD` so a developer's
 `.env` cannot leak into tests.
 
-**Final run (strict, 2026-11-18):** unit 156 (+52 sub-cases), integration 82 (+85), system 78 (+55), memory profiling 6;
-**322 tests, 192 sub-cases, 0 failed, 0 skipped; coverage 94.6 %** (feature_store 100, learning_module 98.3, data_pipeline
-98.2, inference_engine 98.2, presentation 98.1, webapp 96.9, main_api 96.8, core 96.4, data_access 84.4). Local integration/
+**Final run (strict, 2026-11-18):** unit 176 (+59 sub-cases), integration 97 (+94), system 79 (+60), memory profiling 6;
+**358 tests, 213 sub-cases, 0 failed, 0 skipped; coverage 94.3 %** (feature_store 100, learning_module 98.3, data_pipeline
+98.2, inference_engine 98.2, presentation 97.6, main_api 96.8, core 95.9, webapp 94.3, data_access 84.4). Local integration/
 system times are long because each database test creates a schema (≈ 3.7 s on a mechanical disk); CI runs the whole suite
 in 2 min 39 s.
 
@@ -352,6 +355,7 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
 - **Access control:** dashboard has **no authentication**; `/admin` is open unless `ADMIN_PASSWORD` is set (the password travels in a
   header: use HTTPS in any shared deployment, which the project does not provide). Admin routes return 401 without it, and every
   rejected attempt is logged as `ADMIN AUTH FAILED | method path from address (wrong password | no password)`, never the value tried.
+  Brute-force guard: **10 wrong passwords** from one address within 5 minutes lock that address for **3 minutes** (429 "Demasiados intentos fallidos. Espera 3 minutos e intenta de nuevo.", `Retry-After: 180`), even with the right password; logged as `ADMIN AUTH LOCKOUT` / `ADMIN AUTH LOCKED`. Requests without any password do not count. The count is kept in memory per process (with gunicorn's 2 workers, at most 20 tries per window).
   With a database configured and no password, the start-up log warns and the panel shows a red "Sin contraseña" chip.
 - **Security headers (Milestone 4):** every response carries `Content-Security-Policy` (only this server; no framing, plugins or
   foreign forms; `'unsafe-inline'` still allowed for the admin page's inline script), `X-Frame-Options: DENY`,
@@ -361,10 +365,31 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
   database browser only allows the 6 known collections; responses never expose internals. The admin JSON API accepts text
   only as text (`null`, objects and lists → 400), numbers only as numbers (`true` and `null` are refused), at most 4 partial
   grades, and a demo-data `reset` only when it is a real JSON `true`.
-- **Adversarial review (Milestone 4):** `scripts/adversarial_check.py` sends 407 hostile requests (type confusion, MongoDB
+- **Error log ("Bitacora de errores", `core/event_log.py`):** a `logging.Handler` on the project's root logger copies every
+  WARNING/ERROR/CRITICAL line, and every rejected (4xx, except 401 and `/favicon.ico`) or failed (5xx) request, into a store:
+  MongoDB collection `event_log` (all time) when the application uses MongoDB, memory (last 5,000) in demo mode. Each event:
+  time (UTC), level, kind (seguridad, solicitud rechazada, no encontrado, base de datos, datos invalidos, modelo, error
+  inesperado, otro), source module, message, HTTP status, method, path, client address, reference code, exception type
+  and traceback (administrator only). `emit()` only queues; a daemon thread writes in batches every second, so a request
+  never waits for the database; if MongoDB is down the events wait in a bounded retry buffer (and are in the log file).
+  `RISK ALERT` lines are not failures and are not copied. Every request gets a reference code (`X-Request-ID` header and
+  `ref` in every error answer); the user is shown only the short message and the code, the administrator finds the
+  request in the log. Viewer and exports in `/admin` → **Bitacora de errores** (protected by `ADMIN_PASSWORD`).
+- **E-mail alerts (`core/email_alerts.py`, optional):** every ERROR/CRITICAL event and every failed request (5xx) is mailed
+  to `ALERT_EMAIL_TO` (up to 3 addresses) through `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASSWORD` (`SMTP_STARTTLS`, default
+  true), all in `.env` only. Rejected input (4xx) is not mailed. At most one summary every 5 minutes per process (2 gunicorn
+  workers → at most 2); fixed subject, every value cut and on one line (no header injection), no traceback, no names;
+  sent from the error log's background thread with a 10 s timeout; a failure to send is a WARNING in the log (never
+  mailed, so it cannot loop). The panel shows the state (masked addresses, last send, last error, of the process that
+  answered) and has **Enviar correo de prueba** (`POST /admin/api/error-log/test-email`, once every 30 s). Demo without a real
+  account: `docker compose --profile mail up -d` starts Mailpit (inbox at http://localhost:8025, local only) with
+  `ALERT_EMAIL_TO=errores@demo.local SMTP_HOST=mailpit SMTP_PORT=1025 SMTP_STARTTLS=false`.
+- **Log injection guard:** line breaks inside a logged message are written as `\r` / `\n` (`core/logger.py`), so a URL
+  with `%0d%0a` cannot forge a line in the text log.
+- **Adversarial review (Milestone 4):** `scripts/adversarial_check.py` sends 437 hostile requests (type confusion, MongoDB
   operator injection, path traversal, hidden files, fake/zip-bomb Excel, password-bypass tricks) to every route on a
   throw-away database; 5 findings before the fixes, **0 after**; regression tests in `tests/integration/test_hostile_input.py`;
-  details in `docs/evidence/security/README.md`. No rate limiting (stated limitation).
+  details in `docs/evidence/security/README.md`. No general rate limiting (only the admin password has an attempt limit).
 - **Containers:** non-root user, read-only filesystem and dropped capabilities in Kubernetes.
 - **Licence:** `LICENSE` is an academic-project notice, all rights reserved (public for review and evaluation only).
 - DR-2 (human in the loop): the system only recommends. Not done and needed before real use: HTTPS, teacher authentication and roles,
