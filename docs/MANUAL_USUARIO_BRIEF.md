@@ -64,7 +64,7 @@ the administration screen call them **parcial1…parcial4**. They are the same t
 
 ### 3.1 Top of the page
 - Header: logo **Student Predictor**, **Ingeniería en IA · UAEMéx**, a link **Administrar grupos** (goes to `/admin`) and a
-  label **DEMOSTRACIÓN**.
+  label **Equipo 5**.
 - Title: **Cada alumno cuenta.** and the button **↓ Descargar reporte del grupo** (disabled until a group is loaded).
 - Group bar: a selector labelled **Grupo**, the button **Cargar grupo**, a tag showing the alert rule (for example
   **Alerta: promedio < 6 o riesgo ≥ 75**), the note "Modelo de demostración entrenado con datos sintéticos." and the
