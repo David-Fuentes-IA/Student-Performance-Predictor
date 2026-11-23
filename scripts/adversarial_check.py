@@ -134,7 +134,7 @@ class Attack:
         for query in ("q=.*", "q=(a+)+$", "q=%5B", "q=$where", "q=" + "x" * 5000, "level=<script>", "kind=../../",
                       "from=2026-02-30", "from=abc", "to=99999-01-01", "limit=-1", "limit=99999999999999999999",
                       "skip=-5", "skip=99999999999999999999"):
-            for url in ("/admin/api/error-log", "/admin/api/error-log/export.csv", "/admin/api/error-log/export.pdf"):
+            for url in ("/admin/api/error-log", "/admin/api/error-log/export.pdf"):
                 self.check(f"GET {url}?{query[:40]}", c.get(f"{url}?{query}"))
         for raw in HOSTILE_BODIES:
             for url in ("/admin/api/groups", "/admin/api/groups/G1/students", "/admin/api/seed"):
@@ -168,7 +168,7 @@ class Attack:
                             ("get", "/admin/api//stats"), ("get", "/admin//api/stats"), ("get", "/admin/api/stats/"),
                             ("get", "/ADMIN/api/stats"), ("get", "/admin/api/./stats"), ("get", "/admin/api/health/../stats"),
                             ("get", "/admin/api/groups/G1/students"), ("get", "/admin/api/error-log"),
-                            ("get", "/admin/api/error-log/export.pdf"), ("get", "/admin/api/error-log/export.csv")):
+                            ("get", "/admin/api/error-log/export.pdf")):
             self.requests += 1
             response = getattr(c, method)(url)
             if response.status_code not in (401, 404, 405, 308):

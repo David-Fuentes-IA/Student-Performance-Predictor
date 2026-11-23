@@ -196,7 +196,7 @@ Administration (`/admin`, API under `/admin/api`; protected by `ADMIN_PASSWORD` 
 | `POST, DELETE /admin/api/seed` | create / remove synthetic data (`count` 1–500) |
 | `GET /admin/api/collections/<name>` | read-only browser (only the 6 known collections; others → 400) |
 | `GET /admin/api/error-log` | error log, newest first: `level` (WARNING/ERROR/CRITICAL), `kind`, `q` (text, path or reference code), `from`/`to` (AAAA-MM-DD), `limit` ≤ 200, `skip`; also totals by level and kind |
-| `GET /admin/api/error-log/export.pdf` · `export.csv` | the same filters; PDF with a summary and the 2,000 most recent events, CSV with all of them (formula-safe, UTF-8 for Excel) |
+| `GET /admin/api/error-log/export.pdf` | the same filters; PDF with totals by level and kind and the 2,000 most recent events |
 
 Error contract: failures return JSON `{"error": "<safe message>", "ref": "<8-character code>"}` with 400 (invalid input), 401 (admin password), 404
 (unknown group or student: `GroupNotFoundError`/`NotFoundError`) or 503 (database/model/unexpected). **Never** a
@@ -354,6 +354,7 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
 - **Access control:** dashboard has **no authentication**; `/admin` is open unless `ADMIN_PASSWORD` is set (the password travels in a
   header: use HTTPS in any shared deployment, which the project does not provide). Admin routes return 401 without it, and every
   rejected attempt is logged as `ADMIN AUTH FAILED | method path from address (wrong password | no password)`, never the value tried.
+  Brute-force guard: **10 wrong passwords** from one address within 5 minutes lock that address for **3 minutes** (429 "Demasiados intentos fallidos. Espera 3 minutos e intenta de nuevo.", `Retry-After: 180`), even with the right password; logged as `ADMIN AUTH LOCKOUT` / `ADMIN AUTH LOCKED`. Requests without any password do not count. The count is kept in memory per process (with gunicorn's 2 workers, at most 20 tries per window).
   With a database configured and no password, the start-up log warns and the panel shows a red "Sin contraseña" chip.
 - **Security headers (Milestone 4):** every response carries `Content-Security-Policy` (only this server; no framing, plugins or
   foreign forms; `'unsafe-inline'` still allowed for the admin page's inline script), `X-Frame-Options: DENY`,
@@ -378,7 +379,7 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
 - **Adversarial review (Milestone 4):** `scripts/adversarial_check.py` sends 452 hostile requests (type confusion, MongoDB
   operator injection, path traversal, hidden files, fake/zip-bomb Excel, password-bypass tricks) to every route on a
   throw-away database; 5 findings before the fixes, **0 after**; regression tests in `tests/integration/test_hostile_input.py`;
-  details in `docs/evidence/security/README.md`. No rate limiting (stated limitation).
+  details in `docs/evidence/security/README.md`. No general rate limiting (only the admin password has an attempt limit).
 - **Containers:** non-root user, read-only filesystem and dropped capabilities in Kubernetes.
 - **Licence:** `LICENSE` is an academic-project notice, all rights reserved (public for review and evaluation only).
 - DR-2 (human in the loop): the system only recommends. Not done and needed before real use: HTTPS, teacher authentication and roles,

@@ -12,9 +12,10 @@ health, auth-required and the empty Excel template requires the header
 .env) and are never sent to the browser.
 """
 
-import csv
 import hmac
-import io
+import threading
+import time
+from collections import deque
 from datetime import datetime, timedelta
 
 from flask import Blueprint, Response, jsonify, render_template, request
@@ -50,17 +51,77 @@ def service() -> GroupImportService:
     return GroupImportService(repo())
 
 
+# Brute-force guard: after MAX_FAILED wrong passwords from one address within WINDOW seconds, that address is refused
+# (429) for LOCKOUT seconds, even with the right password. 3 minutes on purpose: long enough to make guessing useless
+# (at most 10 tries every 3 minutes), short enough not to lock a teacher out for long after a few typos.
+# Kept in memory per process: with gunicorn's 2 workers an address gets at most 2 x 10 tries per window (documented).
+MAX_FAILED = 10
+WINDOW = 5 * 60
+LOCKOUT = 3 * 60
+_failures: dict[str, deque] = {}
+_locked_until: dict[str, float] = {}
+_lock = threading.Lock()
+
+
+def _seconds_locked(address: str) -> int:
+    with _lock:
+        until = _locked_until.get(address, 0)
+        if until <= time.monotonic():
+            _locked_until.pop(address, None)
+            return 0
+        return int(until - time.monotonic()) + 1
+
+
+def _register_failure(address: str) -> bool:
+    """Count a wrong password; True when this one locks the address."""
+    now = time.monotonic()
+    with _lock:
+        attempts = _failures.setdefault(address, deque())
+        attempts.append(now)
+        while attempts and attempts[0] < now - WINDOW:
+            attempts.popleft()
+        if len(attempts) >= MAX_FAILED:
+            _locked_until[address] = now + LOCKOUT
+            attempts.clear()
+            return True
+    return False
+
+
+def reset_lockouts() -> None:
+    with _lock:
+        _failures.clear()
+        _locked_until.clear()
+
+
+def _too_many_attempts(seconds: int):
+    response = jsonify(error="Demasiados intentos fallidos. Espera 3 minutos e intenta de nuevo.")
+    response.headers["Retry-After"] = str(seconds)
+    return response, 429
+
+
 @admin_bp.before_request
 def _require_password():
     password = config.admin_password()
     if not password or not request.path.startswith("/admin/api/") or request.path in _PUBLIC_API:
         return None
+    address = request.remote_addr or "?"
+    seconds = _seconds_locked(address)
+    if seconds:
+        logger.warning("ADMIN AUTH LOCKED | %s %s from %s (%d s left)", request.method, request.path, address, seconds)
+        return _too_many_attempts(seconds)
     supplied = request.headers.get("X-Admin-Password", "")
     if not hmac.compare_digest(supplied.encode(), password.encode()):
         # Audit trail of rejected attempts (never the supplied value): repeated lines reveal guessing.
         logger.warning("ADMIN AUTH FAILED | %s %s from %s (%s)", request.method, request.path,
-                       request.remote_addr, "wrong password" if supplied else "no password")
+                       address, "wrong password" if supplied else "no password")
+        # Only wrong passwords count: the panel's first requests go out without one before the browser asks for it.
+        if supplied and _register_failure(address):
+            logger.warning("ADMIN AUTH LOCKOUT | %s blocked for %d s after %d wrong passwords",
+                           address, LOCKOUT, MAX_FAILED)
+            return _too_many_attempts(LOCKOUT)
         return jsonify(error="Contrasena de administrador requerida o incorrecta."), 401
+    with _lock:
+        _failures.pop(address, None)
     return None
 
 
@@ -277,10 +338,7 @@ def browse_collection(name: str):
 # Error log ("bitacora de errores"): everything that went wrong, for all time
 # --------------------------------------------------------------------------
 
-_EXPORT_LIMIT = 100_000      # CSV: every event up to this many
-_PDF_LIMIT = 2_000           # PDF: the most recent ones (the CSV has them all)
-_CSV_FIELDS = ("created_at", "level", "kind", "status", "method", "path", "ref", "source", "message",
-               "remote_addr", "exception")
+_PDF_LIMIT = 2_000           # the most recent events (the viewer pages through all of them)
 
 
 def _date(name: str, *, end_of_day: bool = False):
@@ -327,26 +385,6 @@ def error_log():
     return jsonify(total=total, skip=skip, limit=limit, events=events, counts=counts,
                    persistent=getattr(store, "persistent", False), kinds=list(event_log.KINDS),
                    levels=list(event_log.LEVELS))
-
-
-def _safe_cell(value) -> str:
-    """CSV injection guard: a cell starting with = + - @ would run as a formula in Excel."""
-    text = "" if value is None else str(value)
-    return "'" + text if text[:1] in ("=", "+", "-", "@", "\t", "\r") else text
-
-
-@admin_bp.route("/api/error-log/export.csv")
-def export_error_log_csv():
-    (total, events), _, _ = _query_log(_log_filters(), _EXPORT_LIMIT)
-    out = io.StringIO()
-    writer = csv.writer(out)
-    writer.writerow(_CSV_FIELDS)
-    for e in events:
-        writer.writerow([_safe_cell(e.get(f)) for f in _CSV_FIELDS])
-    stamp = datetime.now().strftime("%Y%m%d_%H%M")
-    return Response("\ufeff" + out.getvalue(), mimetype="text/csv",          # BOM: Excel opens it as UTF-8
-                    headers={"Content-Disposition": f'attachment; filename="bitacora_errores_{stamp}.csv"',
-                             "Cache-Control": "no-store"})
 
 
 @admin_bp.route("/api/error-log/export.pdf")

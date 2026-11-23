@@ -70,7 +70,8 @@ every answer (`tests/integration/test_security_hardening.py`).
 - **No authentication for teachers.** Without `ADMIN_PASSWORD` the panel is open by design of the prototype: anyone who
   reaches it can delete groups (the red "Sin contraseña" chip says so). For a demo in front of others, set
   `ADMIN_PASSWORD`. Teacher login is a new feature and Milestone 4 forbids new features (see `docs/M4_CORRECCION.md` §5.3).
-- **No rate limiting.** A client can repeat valid requests as fast as it likes (for example, generating 500 demo students
+- **No general rate limiting.** Only the administrator password has an attempt limit (10 wrong passwords lock the
+  address for 3 minutes, `tests/integration/test_admin_lockout.py`). A client can repeat valid requests as fast as it likes (for example, generating 500 demo students
   over and over). It degrades speed, not correctness.
 - The attack is automated and broad, not a professional penetration test; it does not cover the network (HTTPS is not
   configured), the MongoDB server itself, or denial of service.

@@ -171,7 +171,7 @@ def build_error_log_report(events, total, counts, filters, *, persistent=True):
               [9*cm, 4*cm]),
         Spacer(1, 8),
         Paragraph('Eventos', STYLES['Heading2']),
-        para(f'{total} eventos con estos filtros' + (f'; se muestran los {shown} más recientes (el CSV los incluye todos).'
+        para(f'{total} eventos con estos filtros' + (f'; se muestran los {shown} más recientes (el panel permite consultar todos).'
                                                       if shown < total else '.'), 'ReportBody'),
     ]
     if events:

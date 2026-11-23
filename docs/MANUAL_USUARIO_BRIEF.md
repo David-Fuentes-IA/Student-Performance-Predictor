@@ -219,13 +219,15 @@ For the administrator: everything that failed or was rejected, kept for all time
 lost on restart). Header: totals ("En total: N eventos (N errores, N advertencias)"). Filters **Nivel** (Todos,
 Advertencia, Error, Critico), **Tipo**, **Buscar** (reference code, address or text), **Desde**, **Hasta** and the button
 **Filtrar**. Table: **Fecha, Nivel, Tipo, Solicitud, Codigo, Mensaje**; an unexpected error has **Detalle tecnico** (click
-to open). **Cargar mas** shows older events. **Exportar PDF** (summary plus the most recent events) and **Exportar CSV**
-(every event, opens in Excel) download the list with the filters applied.
+to open). **Cargar mas** shows older events. **Exportar PDF** downloads a report (totals plus the most recent events) with the
+filters applied.
 **How a teacher reports a problem:** every error message ends with a code, for example "(codigo 974DDCAE)". The teacher
 gives that code to the technical team, who types it in **Buscar** and sees exactly what happened.
 
 ### 4.8 Password
-If the administrator set one, the first time the browser asks **"Contrasena de administrador:"**. Without a password
+If the administrator set one, the first time the browser asks **"Contrasena de administrador:"**. After 10 wrong
+passwords the panel answers **"Demasiados intentos fallidos. Espera 3 minutos e intenta de nuevo."** and accepts nothing
+from that computer for 3 minutes. Without a password
 configured the panel is open to anyone who can reach the address: the header then shows a red chip **"Sin contraseña:
 cualquiera con acceso puede modificar los datos"** (warn about this in the manual and tell the reader to ask the technical team
 to set `ADMIN_PASSWORD`).

@@ -39,7 +39,7 @@ event_log         { created_at, level, kind, source, message, status, method, pa
 - **DR-1 (privacidad):** el nombre vive solo en `students`. El pipeline de IA recibe `FeatureVector` sin nombre, y `import_logs` no guarda datos personales.
 - **Historial:** `record_history` guarda una foto cada vez que cambian las calificaciones de un alumno. Se consulta con `GET /admin/api/groups/<g>/students/<s>/history` y en el explorador de la BD; ninguna pantalla lo muestra todavía como gráfica.
 - **Bitácora de errores:** `event_log` la llena `core/event_log.py` con cada advertencia, error y solicitud rechazada; se ve y
-  se exporta (PDF/CSV) en `/admin` → *Bitacora de errores*. No tiene política de retención (crece sin límite) ni nombres de
+  se exporta en PDF en `/admin` → *Bitacora de errores*. No tiene política de retención (crece sin límite) ni nombres de
   alumnos; no aparece en el explorador de colecciones.
 - **Idempotencia:** reimportar el mismo Excel no duplica nada (índice único + upsert; las filas iguales cuentan como "sin cambios").
 

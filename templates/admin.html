@@ -138,8 +138,7 @@
         <div><button type="submit">Filtrar</button></div>
       </form>
       <div class="actions">
-        <button type="button" class="secondary" onclick="exportLog('pdf')">Exportar PDF</button>
-        <button type="button" class="secondary" onclick="exportLog('csv')">Exportar CSV</button>
+        <button type="button" class="secondary" onclick="exportLog()">Exportar PDF</button>
       </div>
       <div class="scroll"><table><thead><tr><th>Fecha</th><th>Nivel</th><th>Tipo</th><th>Solicitud</th><th>Codigo</th><th>Mensaje</th></tr></thead>
         <tbody id="el-rows"><tr><td colspan="6" class="muted">-</td></tr></tbody></table></div>
@@ -409,22 +408,22 @@ async function loadErrorLog(more = false) {
   $("el-info").textContent = r.total ? `Mostrando ${logSkip} de ${r.total}` : "";
 }
 
-async function exportLog(format) {
+async function exportLog() {
   await run(null, async () => {
     const headers = {};
     const pw = sessionStorage.getItem("adminPassword");
     if (pw) headers["X-Admin-Password"] = pw;
-    const res = await fetch(`/admin/api/error-log/export.${format}?` + logQuery(), { headers });
+    const res = await fetch("/admin/api/error-log/export.pdf?" + logQuery(), { headers });
     if (res.status === 401) {
       const typed = prompt("Contrasena de administrador:");
-      if (typed) { sessionStorage.setItem("adminPassword", typed); return exportLog(format); }
+      if (typed) { sessionStorage.setItem("adminPassword", typed); return exportLog(); }
       throw new Error("Se requiere contrasena.");
     }
     if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(withRef(d, "No se pudo exportar la bitacora.")); }
     const name = (res.headers.get("Content-Disposition") || "").match(/filename="([^"]+)"/);
     const link = document.createElement("a");
     link.href = URL.createObjectURL(await res.blob());
-    link.download = name ? name[1] : "bitacora_errores." + format;
+    link.download = name ? name[1] : "bitacora_errores.pdf";
     link.click(); URL.revokeObjectURL(link.href);
     toast("Bitacora exportada.");
   });

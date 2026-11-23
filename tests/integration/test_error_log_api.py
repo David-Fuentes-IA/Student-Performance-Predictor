@@ -1,4 +1,4 @@
-"""Integration: the error log seen from the web (reference codes, the admin viewer, the PDF and CSV exports).
+"""Integration: the error log seen from the web (reference codes, the admin viewer, the PDF export).
 
 The user only ever sees a short message plus a reference code; the administrator finds that exact request in the
 log, with the technical detail. Runs without a database (memory store) and, when MONGODB_TEST_URI is set, against a
@@ -92,22 +92,18 @@ class MongoErrorLogTests(MongoAppTestCase):
         event_log.get_event_log().flush()
         self.assertGreaterEqual(self.db[event_log.COLLECTION].count_documents({"ref": ref}), 1)
 
-    def test_pdf_and_csv_exports_contain_the_failures_safely(self):
+    def test_the_pdf_export_contains_the_failures_safely(self):
         self.client.get("/api/groups/<script>alert(1)</script>")
         self.client.post("/admin/api/groups", data='{"group_id": "=HYPERLINK(1)"}', content_type="application/json")
         pdf = self.client.get("/admin/api/error-log/export.pdf")
         self.assertEqual(pdf.status_code, 200)
         self.assertTrue(pdf.data.startswith(b"%PDF"))
-        csv = self.client.get("/admin/api/error-log/export.csv")
-        self.assertEqual(csv.status_code, 200)
-        self.assertIn("attachment", csv.headers["Content-Disposition"])
-        text = csv.get_data(as_text=True)
-        self.assertIn("solicitud rechazada", text)
-        self.assertNotIn(",=", text)                      # a formula never starts a cell (CSV injection)
+        self.assertIn("attachment", pdf.headers["Content-Disposition"])
+        self.assertEqual(self.client.get("/admin/api/error-log/export.csv").status_code, 404)   # PDF only
 
     def test_the_log_needs_the_admin_password_when_one_is_set(self):
         with patch.dict("os.environ", {"ADMIN_PASSWORD": "pw-test"}):
             client = create_app().test_client()
-            for url in ("/admin/api/error-log", "/admin/api/error-log/export.pdf", "/admin/api/error-log/export.csv"):
+            for url in ("/admin/api/error-log", "/admin/api/error-log/export.pdf"):
                 with self.subTest(url=url):
                     self.assertEqual(client.get(url).status_code, 401)
