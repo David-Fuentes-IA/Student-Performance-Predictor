@@ -1,6 +1,6 @@
 # Student Performance Predictor
 
-[![CI/CD](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/workflows/ci.yml/badge.svg?branch=milestone-3)](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/workflows/ci.yml)
+[![CI/CD](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/David-Fuentes-IA/Student-Performance-Predictor/actions/workflows/ci.yml)
 
 **Team 5, Software Engineering II (UAEMéx)**: Gabriel de Anda Romero · David Nava Fuentes · Marco Uriel Romero Hurtado ·
 Axel Rubén López Soto · Fernando Saúl Domínguez Hernández
@@ -12,7 +12,7 @@ estimates the risk (0–100) of ending the term with low performance, marks the 
 reports. **It never acts on a student by itself**: every alert is for a teacher to review (DR-2).
 All the data in this repository are synthetic; no real student appears anywhere.
 
-> Current work lives on the branch `milestone-4` (Milestone 3 work: `milestone-3`). Milestone 4 material:
+> Everything is merged into `main` (history: branches `milestone-3` and `milestone-4`). Milestone 4 material:
 > [M4_CORRECCION.md](docs/M4_CORRECCION.md) · [accessibility audit](docs/evidence/accessibility/README.md) · [adversarial review](docs/evidence/security/README.md). Evidence:
 > [testing](docs/evidence/testing/README.md) · [model validation](docs/evidence/model/README.md) ·
 > [containers and deployment](docs/evidence/docker/README.md) · [CI/CD](docs/evidence/cicd/README.md) ·
@@ -33,13 +33,15 @@ Requirements: Git and [Docker Desktop](https://www.docker.com/products/docker-de
 ```bash
 git clone https://github.com/David-Fuentes-IA/Student-Performance-Predictor.git
 cd Student-Performance-Predictor
-git checkout milestone-3          # until it is merged into main
 docker compose up --build
 ```
 
 Open **http://localhost:8000** (dashboard) and **http://localhost:8000/admin** (administration).
 The first run builds the image (about 1–2 minutes), trains the model inside it, starts a private MongoDB and creates three
 demo groups (100 synthetic students). Stop with `Ctrl+C`; `docker compose down` keeps the data, `docker compose down -v` deletes it.
+
+Optional: `docker compose --profile mail up -d --build` also starts **Mailpit**, a local mail catcher, so the e-mail alerts can be
+seen at **http://localhost:8025** without a real mail account (settings in `.env`, see `.env.example`).
 
 ### Option B: Python on your machine
 
@@ -51,7 +53,6 @@ only needed for a local MongoDB.
 ```bash
 git clone https://github.com/David-Fuentes-IA/Student-Performance-Predictor.git
 cd Student-Performance-Predictor
-git checkout milestone-3
 ```
 
 **2. Create a virtual environment and install the dependencies**
@@ -141,7 +142,7 @@ group plus the model's metrics).
 
 The *risk score* is the model's estimate (0–100) that the student ends the term with low performance; it is **not** a grade.
 Both limits are configurable (`PASSING_GRADE`, `RISK_THRESHOLD`). Every alert is written to the log with its reason;
-sending it to the teacher by e-mail or SMS is future work.
+sending risk alerts to the teacher by e-mail or SMS is future work (system failures are e-mailed, see `ALERT_EMAIL_TO`).
 
 **Administration** (`/admin`): create and delete groups; add, update (save again with the same ID) and delete students; import
 Excel (*partial* mode keeps the valid rows and reports the rest, *strict* mode imports nothing if any row is invalid); download the
@@ -175,6 +176,8 @@ stops the application with a message naming the variable.
 | `RISK_THRESHOLD` | `75` | model score from which a student is high risk (0–100) |
 | `RISK_MODEL` | `logistic_regression` | model trained by `scripts/train_model.py` (`random_forest` is the alternative) |
 | `MODEL_DIR` | `models/` | where the trained model lives |
+| `ALERT_EMAIL_TO` | empty (alerts off) | up to 3 addresses that receive e-mail alerts of real failures (errors, 5xx), at most one summary every 5 minutes |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_STARTTLS` | empty, `587`, empty, empty, empty, `true` | mail server for the alerts (Mailpit for demos: `mailpit`, `1025`, `SMTP_STARTTLS=false`) |
 | `DOCKER_MONGODB_URI`, `APP_PORT`, `SEED_DEMO` | compose's MongoDB, `8000`, `true` | Docker only, see [docs/evidence/docker](docs/evidence/docker/README.md) |
 
 ---
@@ -204,7 +207,7 @@ $env:MONGODB_TEST_URI="mongodb://localhost:27018"; venv\Scripts\python.exe -m py
 | `python scripts/benchmark.py` | `docs/evidence/performance/`: latency, throughput, container resources, time per stage |
 | `python scripts/ai_value_experiment.py` | `docs/evidence/model/ai_value.*`: does the model beat the school rule at the same workload, also early in the term? |
 | `python scripts/soak_test.py --minutes 120` | `docs/evidence/docker/soak_test.json`: hours of steady load against the running container |
-| `python scripts/adversarial_check.py` (needs `MONGODB_TEST_URI`) | 452 hostile requests against every route on a throw-away database; exit 1 on any 500, leak or password bypass (`docs/evidence/security/`) |
+| `python scripts/adversarial_check.py` (needs `MONGODB_TEST_URI`) | 437 hostile requests against every route on a throw-away database; exit 1 on any 500, leak or password bypass (`docs/evidence/security/`) |
 | `python scripts/smoke_test.py http://localhost:8000` | end-to-end check of a running instance |
 | `python scripts/build_evaluation_dataset.py --check` | verifies `data/grupo_evaluacion.xlsx` against the simulator |
 

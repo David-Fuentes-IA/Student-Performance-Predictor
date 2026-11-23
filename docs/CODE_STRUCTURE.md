@@ -184,7 +184,7 @@ messages come from the error classes in `core/exception_handler.py`.
 | `collect_test_evidence.py`, `collect_docker_evidence.py` | Run everything and rewrite `docs/evidence/testing/` and `docs/evidence/docker/` |
 | `build_evaluation_dataset.py`, `memory_profile.py`, `migrate_local_to_atlas.py` | Rebuild the evaluation workbook, measure memory, copy demo data to Atlas |
 
-### `tests/`: the safety net (341 tests)
+### `tests/`: the safety net (358 tests)
 
 | Folder | Question it answers |
 |---|---|

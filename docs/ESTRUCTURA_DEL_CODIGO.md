@@ -187,7 +187,7 @@ técnico del error). Los mensajes salen de las clases de error de `core/exceptio
 | `collect_test_evidence.py`, `collect_docker_evidence.py` | Ejecutan todo y reescriben `docs/evidence/testing/` y `docs/evidence/docker/` |
 | `build_evaluation_dataset.py`, `memory_profile.py`, `migrate_local_to_atlas.py` | Reconstruyen el libro de evaluación, miden memoria, copian datos demo a Atlas |
 
-### `tests/`: la red de seguridad (341 pruebas)
+### `tests/`: la red de seguridad (358 pruebas)
 
 | Carpeta | Pregunta que responde |
 |---|---|

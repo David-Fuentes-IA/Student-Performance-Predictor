@@ -247,9 +247,9 @@ venv\Scripts\python.exe -m pytest
 `MONGODB_URI`, `RISK_THRESHOLD`, `PASSING_GRADE`, `RISK_MODEL`, `ALLOW_DEMO_FALLBACK` and `ADMIN_PASSWORD` so a developer's
 `.env` cannot leak into tests.
 
-**Final run (strict, 2026-11-18):** unit 166 (+59 sub-cases), integration 91 (+95), system 78 (+60), memory profiling 6;
-**341 tests, 214 sub-cases, 0 failed, 0 skipped; coverage 94.8 %** (feature_store 100, learning_module 98.3, data_pipeline
-98.2, inference_engine 98.2, presentation 97.6, webapp 97.2, main_api 96.8, core 95.8, data_access 84.4). Local integration/
+**Final run (strict, 2026-11-18):** unit 176 (+59 sub-cases), integration 97 (+94), system 79 (+60), memory profiling 6;
+**358 tests, 213 sub-cases, 0 failed, 0 skipped; coverage 94.3 %** (feature_store 100, learning_module 98.3, data_pipeline
+98.2, inference_engine 98.2, presentation 97.6, main_api 96.8, core 95.9, webapp 94.3, data_access 84.4). Local integration/
 system times are long because each database test creates a schema (≈ 3.7 s on a mechanical disk); CI runs the whole suite
 in 2 min 39 s.
 
@@ -386,7 +386,7 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
   `ALERT_EMAIL_TO=errores@demo.local SMTP_HOST=mailpit SMTP_PORT=1025 SMTP_STARTTLS=false`.
 - **Log injection guard:** line breaks inside a logged message are written as `\r` / `\n` (`core/logger.py`), so a URL
   with `%0d%0a` cannot forge a line in the text log.
-- **Adversarial review (Milestone 4):** `scripts/adversarial_check.py` sends 452 hostile requests (type confusion, MongoDB
+- **Adversarial review (Milestone 4):** `scripts/adversarial_check.py` sends 437 hostile requests (type confusion, MongoDB
   operator injection, path traversal, hidden files, fake/zip-bomb Excel, password-bypass tricks) to every route on a
   throw-away database; 5 findings before the fixes, **0 after**; regression tests in `tests/integration/test_hostile_input.py`;
   details in `docs/evidence/security/README.md`. No general rate limiting (only the admin password has an attempt limit).

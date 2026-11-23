@@ -13,7 +13,7 @@ MONGODB_TEST_URI=mongodb://localhost:27018 python scripts/adversarial_check.py
 The script runs the real application (the same `create_app()` gunicorn serves) against a throw-away database that it
 drops at the end, so the team's database is never touched.
 
-## What is attacked (452 requests per run)
+## What is attacked (437 requests per run)
 
 | Area | Inputs |
 |---|---|
@@ -34,7 +34,7 @@ drops at the end, so the team's database is never touched.
 |---|---|
 | Code as merged to `main` (before this review) | **5**: four answered **500** (a `skip` beyond 64 bits in the collection browser; a demo-data request whose body was a number, a string, or `count: 1e400`) and one answered **503 "the database did not respond"** to a student with 50 grades, blaming the database for bad input |
 | After the fixes | **0** findings in 407 requests |
-| After adding the error log (2026-11-22) | **0** findings in 452 requests |
+| After adding the error log, the password lockout and the e-mail alerts (2026-11-22) | **0** findings in 437 requests (the PDF-only export has fewer routes than the first version with CSV, which had 452) |
 
 No response, before or after, contained a traceback, a file path, a driver name or a connection string; HTML in names is
 always escaped; no route could be reached without the password once one is set; hidden files are never served.
