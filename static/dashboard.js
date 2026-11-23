@@ -12,6 +12,7 @@ const fmt = n => Number(n).toLocaleString('es-MX', {maximumFractionDigits:1, min
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function groupPath(){return `/reports/groups/${encodeURIComponent(data.group_id)}`;}
 function studentPath(s){return `${groupPath()}/students/${encodeURIComponent(s.student_id)}.pdf`;}
+const withRef=(body,fallback)=>(body.error||fallback)+(body.ref?` (código ${body.ref})`:'');
 function error(message){$('error').textContent=message; $('error').hidden=!message;}
 async function load(group){
   if(loading) return;
@@ -24,7 +25,7 @@ async function load(group){
   try{
     const response=await fetch(`/api/groups/${encodeURIComponent(group)}`);
     const payload=await response.json();
-    if(!response.ok) throw new Error(payload.error || 'No se pudo cargar el grupo.');
+    if(!response.ok) throw new Error(withRef(payload, 'No se pudo cargar el grupo.'));
     data=payload; $('group').value=data.group_id; $('risk').value='all'; $('search').value='';
     history.replaceState(null,'',`/?group=${encodeURIComponent(data.group_id)}`);
     renderOverview(); renderStudents(); $('group-report').disabled=false;
@@ -64,7 +65,7 @@ async function download(url, button){
  button.disabled=true; button.textContent='Preparando PDF…'; error('');
  try{
   const response=await fetch(url);
-  if(!response.ok){const body=await response.json().catch(()=>({}));throw new Error(body.error||'No se pudo generar el PDF.');}
+  if(!response.ok){const body=await response.json().catch(()=>({}));throw new Error(withRef(body,'No se pudo generar el PDF.'));}
   if(!response.headers.get('content-type')?.includes('application/pdf')) throw new Error('El servidor no devolvió un PDF válido.');
   const blob=await response.blob(), objectUrl=URL.createObjectURL(blob), link=document.createElement('a');
   link.href=objectUrl; link.download=url.split('/').pop(); document.body.appendChild(link); link.click(); link.remove();
@@ -76,7 +77,7 @@ async function download(url, button){
 async function loadGroups(){
   const response=await fetch('/api/groups');
   const payload=await response.json();
-  if(!response.ok) throw new Error(payload.error || 'No se pudo obtener la lista de grupos.');
+  if(!response.ok) throw new Error(withRef(payload, 'No se pudo obtener la lista de grupos.'));
   const current=$('group').value;
   $('group').innerHTML=payload.groups.map(g=>`<option value="${esc(g.group_id)}">${esc(g.group_id)}${g.name?` · ${esc(g.name)}`:''} (${g.student_count} alumnos)</option>`).join('');
   if(payload.groups.some(g=>g.group_id===current)) $('group').value=current;

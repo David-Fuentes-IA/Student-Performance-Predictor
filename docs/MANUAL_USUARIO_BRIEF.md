@@ -214,6 +214,16 @@ A read-only viewer: choose a collection (groups, students, academic_records, rec
 **Actualizar**. **Ultimas importaciones** lists recent imports with the result "+created / ~updated / rechazadas N".
 This part is for the technical team; teachers do not need it.
 
+### 4.7b Bitacora de errores (error log)
+For the administrator: everything that failed or was rejected, kept for all time (in demo mode only the recent events,
+lost on restart). Header: totals ("En total: N eventos (N errores, N advertencias)"). Filters **Nivel** (Todos,
+Advertencia, Error, Critico), **Tipo**, **Buscar** (reference code, address or text), **Desde**, **Hasta** and the button
+**Filtrar**. Table: **Fecha, Nivel, Tipo, Solicitud, Codigo, Mensaje**; an unexpected error has **Detalle tecnico** (click
+to open). **Cargar mas** shows older events. **Exportar PDF** (summary plus the most recent events) and **Exportar CSV**
+(every event, opens in Excel) download the list with the filters applied.
+**How a teacher reports a problem:** every error message ends with a code, for example "(codigo 974DDCAE)". The teacher
+gives that code to the technical team, who types it in **Buscar** and sees exactly what happened.
+
 ### 4.8 Password
 If the administrator set one, the first time the browser asks **"Contrasena de administrador:"**. Without a password
 configured the panel is open to anyone who can reach the address: the header then shows a red chip **"Sin contraseña:
@@ -227,10 +237,11 @@ to set `ADMIN_PASSWORD`).
 | "Modo demo: sin conexión a la base de datos…" | no database configured; only 3 example groups of 12 students | tell the technical team; administration is disabled |
 | "El grupo 'X' no existe en la base de datos." | the group ID was not found | check the ID or create the group in `/admin` |
 | "La base de datos no respondio correctamente. Intenta de nuevo." | the database is not answering | wait a minute and press **↻ Actualizar**; if it persists, tell the technical team |
-| "No se pudo generar la información del grupo. Inténtalo de nuevo." | an unexpected problem; the system never shows technical details | try again; report it with the time |
+| "No se pudo generar la información del grupo. Inténtalo de nuevo." | an unexpected problem; the system never shows technical details | try again; report it with the code shown at the end, "(código XXXXXXXX)" |
 | "No se pudo generar el PDF." / "El servidor no devolvió un PDF válido." | the PDF could not be produced | try again |
 | the group list is empty | no groups yet | create one in `/admin` |
-| a page "La pagina o ruta solicitada no existe." with **Volver al panel** | a mistyped address | click **Volver al panel** |
+| a page "La pagina o ruta solicitada no existe." with **Codigo de referencia** and **Volver al panel** | a mistyped address | click **Volver al panel** |
+| any red message ending in "(código XXXXXXXX)" | the code identifies the request in the error log | if it repeats, give the code to the technical team |
 | a group has no students | the report is empty (this is valid) | add students or import an Excel |
 
 Records with invalid data (for example a grade over 100) are **skipped** and the rest of the group is still analysed.

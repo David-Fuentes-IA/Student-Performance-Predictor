@@ -1,6 +1,7 @@
-.............................................................................................................................................................................................................. [ 63%]
-.......................................................................................................... [ 96%]
-..........                                                               [100%]
+............................................. [ 13%]
+.................................................................................................. [ 41%]
+...................................................................................................................................................... [ 85%]
+................................................                      [100%]
 =============================== tests coverage ================================
 _______________ coverage: platform win32, python 3.12.3-final-0 _______________
 
@@ -8,8 +9,9 @@ Name                                    Stmts   Miss  Cover   Missing
 ---------------------------------------------------------------------
 core\audit_observer.py                     57      1    98%   77
 core\config.py                             46      2    96%   43, 107
+core\event_log.py                         179      9    95%   66, 89, 139-140, 149, 151, 153, 217-218
 core\exception_handler.py                  25      0   100%
-core\logger.py                             45      4    91%   27-29, 64-65
+core\logger.py                             49      4    92%   27-29, 74-75
 core\risk_levels.py                        22      0   100%
 data_access\mongo_connection.py            27      4    85%   47-55, 72
 data_access\mongo_repository.py           211     52    75%   48-49, 63-64, 76, 93, 101-113, 117-127, 141-142, 157-158, 166-167, 188-189, 202-203, 222-223, 241, 309-312, 325-326, 338-339, 351-352, 376-377, 391-392, 399-400, 407-408, 422-423, 461
@@ -32,15 +34,15 @@ learning_module\model_trainer.py           40      1    98%   91
 learning_module\model_validation.py       127      2    98%   115, 213
 learning_module\training_pipeline.py       22      0   100%
 main_api.py                                62      2    97%   97, 102
-presentation\pdf_reports.py                62      0   100%
+presentation\pdf_reports.py                81      1    99%   185
 presentation\report_data.py                26      0   100%
 presentation\teacher_report_ui.py          18      2    89%   43-44
-webapp\__init__.py                         60      4    93%   59, 104, 115-116
-webapp\admin.py                           140      2    99%   103, 241
+webapp\__init__.py                         91      4    96%   61, 152, 164-165
+webapp\admin.py                           202      4    98%   107, 245, 316-317
 webapp\dashboard.py                        94      3    97%   136, 144, 151
 ---------------------------------------------------------------------
-TOTAL                                    1784     97    95%
+TOTAL                                    2079    109    95%
 
 7 empty files skipped.
-Coverage JSON written to file C:\Users\Gabo\AppData\Local\Temp\tmp4sfeyost\coverage.json
-322 passed, 192 subtests passed in 351.90s (0:05:51)
+Coverage JSON written to file C:\Users\Gabo\AppData\Local\Temp\tmpd6xxy81y\coverage.json
+341 passed, 214 subtests passed in 376.98s (0:06:16)

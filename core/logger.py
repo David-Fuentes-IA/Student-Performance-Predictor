@@ -38,13 +38,23 @@ _DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 _configured = False
 
 
+class _OneLineFormatter(logging.Formatter):
+    """Log-injection guard (CWE-117): a URL such as /api/groups/x%0d%0aADMIN... must not be able to start a fake
+    line in the log. Line breaks inside the message are written as \\r / \\n; a traceback (added after the message
+    by logging itself) keeps its real lines."""
+
+    def formatMessage(self, record: logging.LogRecord) -> str:
+        text = super().formatMessage(record)
+        return text.replace("\r", "\\r").replace("\n", "\\n")
+
+
 def _configure_root_logger(level: int = logging.DEBUG) -> None:
     """Configure the root logger exactly once (idempotent)."""
     global _configured
     if _configured:
         return
 
-    formatter = logging.Formatter(_LOG_FORMAT, datefmt=_DATE_FORMAT)
+    formatter = _OneLineFormatter(_LOG_FORMAT, datefmt=_DATE_FORMAT)
 
     console_handler = logging.StreamHandler(stream=sys.stdout)
     console_handler.setLevel(logging.INFO)

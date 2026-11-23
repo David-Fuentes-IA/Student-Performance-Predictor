@@ -136,3 +136,54 @@ def build_group_report(group_id, students, threshold=DEFAULT_RISK_THRESHOLD, pas
             para('Los promedios son medias aritméticas por alumno; cada registro usa los alumnos que lo tienen disponible. Niveles de riesgo: '
                  f'{describe_levels(threshold, passing_grade)}. El puntaje de riesgo no mide directamente el rendimiento.', 'SmallNote')]
     return document('Reporte de rendimiento grupal', group_id, body)
+
+
+LEVEL_LABELS = {'WARNING': 'Advertencia', 'ERROR': 'Error', 'CRITICAL': 'Crítico'}
+
+
+def _when(value):
+    return value.strftime('%d/%m/%Y %H:%M:%S') if isinstance(value, datetime) else str(value or '')
+
+
+def build_error_log_report(events, total, counts, filters, *, persistent=True):
+    """Administrator's export of the error log. Every value is escaped by para(): log messages can contain text a
+    hostile client typed (paths, ids), and ReportLab would otherwise read it as markup."""
+    output = BytesIO()
+    doc = SimpleDocTemplate(output, pagesize=(21*cm, 29.7*cm), rightMargin=1.5*cm, leftMargin=1.5*cm,
+                            topMargin=1.6*cm, bottomMargin=2*cm, title='Bitácora de errores',
+                            author='Student Performance Predictor')
+    applied = [f'{name}: {value:%d/%m/%Y}' if isinstance(value, datetime) else f'{name}: {value}'
+               for name, value in (('nivel', filters.get('level')), ('tipo', filters.get('kind')),
+                                   ('texto', filters.get('text')), ('desde', filters.get('since')),
+                                   ('hasta', filters.get('until'))) if value]
+    shown = len(events)
+    content = [
+        para('ADMINISTRACIÓN', 'SmallNote'), para('Bitácora de errores y fallas', 'ReportTitle'),
+        para(f'Emitido: {datetime.now(timezone.utc):%d/%m/%Y %H:%M} UTC | Horas de los eventos en UTC', 'SmallNote'),
+        para(('Fuente: base de datos (todos los eventos desde que se activó la bitácora).' if persistent else
+              'Fuente: memoria del proceso (modo demo, últimos eventos; se pierden al reiniciar).'), 'SmallNote'),
+        para('Filtros: ' + ('; '.join(applied) if applied else 'ninguno (todos los eventos)'), 'ReportBody'),
+        Paragraph('Resumen de toda la bitácora', STYLES['Heading2']),
+        table([['Nivel', 'Eventos']] + [[LEVEL_LABELS.get(k, k), v] for k, v in counts['by_level'].items()]
+              + [['Total', counts['total']]], [9*cm, 4*cm]),
+        Spacer(1, 8),
+        table([['Tipo', 'Eventos']] + sorted(([k, v] for k, v in counts['by_kind'].items()), key=lambda r: -r[1]),
+              [9*cm, 4*cm]),
+        Spacer(1, 8),
+        Paragraph('Eventos', STYLES['Heading2']),
+        para(f'{total} eventos con estos filtros' + (f'; se muestran los {shown} más recientes (el CSV los incluye todos).'
+                                                      if shown < total else '.'), 'ReportBody'),
+    ]
+    if events:
+        rows = [['Fecha (UTC)', 'Nivel', 'Tipo', 'Solicitud', 'Código', 'Mensaje']]
+        for e in events:
+            request_text = ' '.join(str(x) for x in (e.get('status'), e.get('method'), e.get('path')) if x)
+            rows.append([_when(e.get('created_at')), LEVEL_LABELS.get(e.get('level'), e.get('level')), e.get('kind', ''),
+                         request_text, e.get('ref') or '', (e.get('message') or '')[:400]])
+        content.append(table(rows, [2.3*cm, 2.3*cm, 2.3*cm, 3.2*cm, 2.0*cm, 5.9*cm]))
+    else:
+        content.append(para('No hay eventos registrados con estos filtros.'))
+    content.append(para('Los mensajes no contienen nombres de alumnos ni contraseñas. El detalle técnico '
+                        '(traceback) se consulta en el panel; nunca se muestra a los usuarios.', 'SmallNote'))
+    doc.build(content, onFirstPage=footer, onLaterPages=footer)
+    return output.getvalue()

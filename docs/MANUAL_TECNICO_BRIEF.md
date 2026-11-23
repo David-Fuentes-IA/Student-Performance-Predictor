@@ -195,8 +195,10 @@ Administration (`/admin`, API under `/admin/api`; protected by `ADMIN_PASSWORD` 
 | `GET /admin/api/imports` | recent imports |
 | `POST, DELETE /admin/api/seed` | create / remove synthetic data (`count` 1–500) |
 | `GET /admin/api/collections/<name>` | read-only browser (only the 6 known collections; others → 400) |
+| `GET /admin/api/error-log` | error log, newest first: `level` (WARNING/ERROR/CRITICAL), `kind`, `q` (text, path or reference code), `from`/`to` (AAAA-MM-DD), `limit` ≤ 200, `skip`; also totals by level and kind |
+| `GET /admin/api/error-log/export.pdf` · `export.csv` | the same filters; PDF with a summary and the 2,000 most recent events, CSV with all of them (formula-safe, UTF-8 for Excel) |
 
-Error contract: failures return JSON `{"error": "<safe message>"}` with 400 (invalid input), 401 (admin password), 404
+Error contract: failures return JSON `{"error": "<safe message>", "ref": "<8-character code>"}` with 400 (invalid input), 401 (admin password), 404
 (unknown group or student: `GroupNotFoundError`/`NotFoundError`) or 503 (database/model/unexpected). **Never** a
 traceback, host name or file path; internal detail goes only to the log. The JSON and PDF responses of the dashboard carry `Cache-Control: no-store`.
 Errors raised by Flask itself (unknown URL 404, wrong method 405, upload over 4 MB 413, URL too long 414) answer in Spanish:
@@ -244,9 +246,9 @@ venv\Scripts\python.exe -m pytest
 `MONGODB_URI`, `RISK_THRESHOLD`, `PASSING_GRADE`, `RISK_MODEL`, `ALLOW_DEMO_FALLBACK` and `ADMIN_PASSWORD` so a developer's
 `.env` cannot leak into tests.
 
-**Final run (strict, 2026-11-18):** unit 156 (+52 sub-cases), integration 82 (+85), system 78 (+55), memory profiling 6;
-**322 tests, 192 sub-cases, 0 failed, 0 skipped; coverage 94.6 %** (feature_store 100, learning_module 98.3, data_pipeline
-98.2, inference_engine 98.2, presentation 98.1, webapp 96.9, main_api 96.8, core 96.4, data_access 84.4). Local integration/
+**Final run (strict, 2026-11-18):** unit 166 (+59 sub-cases), integration 91 (+95), system 78 (+60), memory profiling 6;
+**341 tests, 214 sub-cases, 0 failed, 0 skipped; coverage 94.8 %** (feature_store 100, learning_module 98.3, data_pipeline
+98.2, inference_engine 98.2, presentation 97.6, webapp 97.2, main_api 96.8, core 95.8, data_access 84.4). Local integration/
 system times are long because each database test creates a schema (≈ 3.7 s on a mechanical disk); CI runs the whole suite
 in 2 min 39 s.
 
@@ -361,7 +363,19 @@ Probes: use `/health` for liveness and `/ready` for readiness. With the database
   database browser only allows the 6 known collections; responses never expose internals. The admin JSON API accepts text
   only as text (`null`, objects and lists → 400), numbers only as numbers (`true` and `null` are refused), at most 4 partial
   grades, and a demo-data `reset` only when it is a real JSON `true`.
-- **Adversarial review (Milestone 4):** `scripts/adversarial_check.py` sends 407 hostile requests (type confusion, MongoDB
+- **Error log ("Bitacora de errores", `core/event_log.py`):** a `logging.Handler` on the project's root logger copies every
+  WARNING/ERROR/CRITICAL line, and every rejected (4xx, except 401 and `/favicon.ico`) or failed (5xx) request, into a store:
+  MongoDB collection `event_log` (all time) when the application uses MongoDB, memory (last 5,000) in demo mode. Each event:
+  time (UTC), level, kind (seguridad, solicitud rechazada, no encontrado, base de datos, datos invalidos, modelo, error
+  inesperado, otro), source module, message, HTTP status, method, path, client address, reference code, exception type
+  and traceback (administrator only). `emit()` only queues; a daemon thread writes in batches every second, so a request
+  never waits for the database; if MongoDB is down the events wait in a bounded retry buffer (and are in the log file).
+  `RISK ALERT` lines are not failures and are not copied. Every request gets a reference code (`X-Request-ID` header and
+  `ref` in every error answer); the user is shown only the short message and the code, the administrator finds the
+  request in the log. Viewer and exports in `/admin` → **Bitacora de errores** (protected by `ADMIN_PASSWORD`).
+- **Log injection guard:** line breaks inside a logged message are written as `\r` / `\n` (`core/logger.py`), so a URL
+  with `%0d%0a` cannot forge a line in the text log.
+- **Adversarial review (Milestone 4):** `scripts/adversarial_check.py` sends 452 hostile requests (type confusion, MongoDB
   operator injection, path traversal, hidden files, fake/zip-bomb Excel, password-bypass tricks) to every route on a
   throw-away database; 5 findings before the fixes, **0 after**; regression tests in `tests/integration/test_hostile_input.py`;
   details in `docs/evidence/security/README.md`. No rate limiting (stated limitation).

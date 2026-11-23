@@ -204,7 +204,7 @@ $env:MONGODB_TEST_URI="mongodb://localhost:27018"; venv\Scripts\python.exe -m py
 | `python scripts/benchmark.py` | `docs/evidence/performance/`: latency, throughput, container resources, time per stage |
 | `python scripts/ai_value_experiment.py` | `docs/evidence/model/ai_value.*`: does the model beat the school rule at the same workload, also early in the term? |
 | `python scripts/soak_test.py --minutes 120` | `docs/evidence/docker/soak_test.json`: hours of steady load against the running container |
-| `python scripts/adversarial_check.py` (needs `MONGODB_TEST_URI`) | 407 hostile requests against every route on a throw-away database; exit 1 on any 500, leak or password bypass (`docs/evidence/security/`) |
+| `python scripts/adversarial_check.py` (needs `MONGODB_TEST_URI`) | 452 hostile requests against every route on a throw-away database; exit 1 on any 500, leak or password bypass (`docs/evidence/security/`) |
 | `python scripts/smoke_test.py http://localhost:8000` | end-to-end check of a running instance |
 | `python scripts/build_evaluation_dataset.py --check` | verifies `data/grupo_evaluacion.xlsx` against the simulator |
 
@@ -329,6 +329,7 @@ core/            configuration, logging (PII-safe), exceptions, Observer, risk l
 | performance benchmark, bottleneck analysis, batch inference and batch storage | |
 | CI/CD on GitHub Actions: lint, tests with MongoDB, quality gate, container smoke test, Kubernetes deployment | |
 | security headers, logged rejected admin passwords, open-panel warning, observer failures in `/health` | teacher roles, access log, retention policy |
+| error log ("Bitacora de errores"): every warning, error and rejected request kept in MongoDB for all time, viewer with filters in `/admin`, PDF and CSV export; a reference code on every error the user sees | central log collection across machines, alerts on errors |
 | WCAG 2.1 AA fixes (contrast, labels, keyboard) on both screens | tagged (accessible) PDFs, screen-reader user testing |
 | | Vercel deployment (configuration present, not verified) |
 

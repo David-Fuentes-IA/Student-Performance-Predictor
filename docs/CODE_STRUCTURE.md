@@ -116,7 +116,8 @@ messages come from the error classes in `core/exception_handler.py`.
 | `risk_levels.py` | **The single definition** of "high / medium / low" and of the alert reasons. If the rule changes, it changes here |
 | `audit_observer.py` | The *Observer* mechanism: after each prediction, listeners are told. One writes alerts, one keeps a history. A listener that fails never stops the report |
 | `exception_handler.py` | The project's error types (`ValidationError`, `DataAccessError`, `NotFoundError`, `ModelLoadError`…), each with a safe message for the user |
-| `logger.py` | Logging in one format; `sanitize()` hides names and e-mails from log lines |
+| `logger.py` | Logging in one format; `sanitize()` hides names and e-mails from log lines; line breaks in a message are escaped (no forged lines) |
+| `event_log.py` | The error log: copies every warning, error and rejected request (with its reference code) to MongoDB, or to memory in demo mode, for the admin viewer and the PDF/CSV export |
 
 ### `data_access/`: storage (Data access)
 
@@ -182,7 +183,7 @@ messages come from the error classes in `core/exception_handler.py`.
 | `collect_test_evidence.py`, `collect_docker_evidence.py` | Run everything and rewrite `docs/evidence/testing/` and `docs/evidence/docker/` |
 | `build_evaluation_dataset.py`, `memory_profile.py`, `migrate_local_to_atlas.py` | Rebuild the evaluation workbook, measure memory, copy demo data to Atlas |
 
-### `tests/`: the safety net (322 tests)
+### `tests/`: the safety net (341 tests)
 
 | Folder | Question it answers |
 |---|---|
